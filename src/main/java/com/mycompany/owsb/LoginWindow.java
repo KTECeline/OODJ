@@ -1,11 +1,5 @@
 package com.mycompany.owsb;
 
-
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
@@ -14,6 +8,11 @@ import java.io.IOException;
 import java.awt.*;
 import java.util.ArrayList;
 import javax.swing.*;
+
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 
 /**
  *
@@ -216,9 +215,7 @@ public class LoginWindow extends javax.swing.JFrame {
             openRoleBasedWindow(foundUser); // Open the appropriate window based on the user's role
 
         } else {
-            JOptionPane.showMessageDialog(this, "Invalid username or password. Attempt " + foundUser.getFailedAttempts());
-            }
-
+            JOptionPane.showMessageDialog(this, "Invalid username or password. Attempt ");
         }
     }//GEN-LAST:event_loginButtonActionPerformed
 

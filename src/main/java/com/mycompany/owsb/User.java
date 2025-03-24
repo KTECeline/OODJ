@@ -14,16 +14,12 @@ public class User {
     private final String username;
     private String password;
     private String role;
-    private int failedAttempts;
-    private boolean isLocked;
 
 
-    public User(String username, String password, String role, int failedAttempts, boolean isLocked) {
+    public User(String username, String password, String role) {
         this.username = username;
         this.password = password;
         this.role = role;
-        this.failedAttempts = failedAttempts;
-        this.isLocked = isLocked;
     }
 
     public String getUsername() {
@@ -46,29 +42,9 @@ public class User {
         this.role = role;
     }
 
-    public int getFailedAttempts() {
-        return failedAttempts;
-    }
-
-    public void incrementFailedAttempts() {
-        this.failedAttempts++;
-    }
-    
-    public void resetFailedAttempts() {
-        this.failedAttempts = 0;
-    }
-
-    public boolean isLocked() {
-        return isLocked;
-    }
-
-    public void setLocked(boolean isLocked) {
-        this.isLocked = isLocked;
-    }
-
     @Override
     public String toString() {
-        return username + "," + password + "," + role + "," + failedAttempts + "," + (isLocked ? "locked" : "unlocked");
+        return username + "," + password + "," + role;
     }
 
     public static User fromString(String userData) {
@@ -76,7 +52,7 @@ public class User {
         String[] data = userData.split(",");
         
         //check data length
-        if (data.length != 5) {
+        if (data.length != 3) {
             System.out.println("Error: Invalid user data format: " + userData);
             return null;
         }
@@ -84,11 +60,8 @@ public class User {
         String username = data[0];
         String password = data[1];
         String role = data[2];
-        //convert string to int
-        int failedAttempts = Integer.parseInt(data[3]);
-        boolean isLocked = data[4].equals("locked");
 
-        return new User(username, password, role, failedAttempts, isLocked);
+        return new User(username, password, role);
     }
     
     
