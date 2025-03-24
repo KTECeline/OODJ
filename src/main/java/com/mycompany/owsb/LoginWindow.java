@@ -1,8 +1,10 @@
+package com.mycompany.owsb;
+
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.mycompany.owsb;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -207,32 +209,16 @@ public class LoginWindow extends javax.swing.JFrame {
             return;
         }
 
-        if (foundUser.isLocked()) {
-            JOptionPane.showMessageDialog(this, "Account is locked. Please contact the System Administrator.");
-            return;
-        }
 
         if (foundUser.getPassword().equals(password)) {
-            // Successful login
-            foundUser.resetFailedAttempts(); // Reset the failed attempts on successful login
-            saveUsers(); // Save the state after resetting failed attempts
-
             currentUser = foundUser;
             JOptionPane.showMessageDialog(this, "Login successful! \n" + foundUser.getRole() + " Role");
             openRoleBasedWindow(foundUser); // Open the appropriate window based on the user's role
 
         } else {
-            // Failed login attempt
-            foundUser.incrementFailedAttempts();
-
-            if (foundUser.getFailedAttempts() >= 3) {
-                foundUser.setLocked(true);
-                JOptionPane.showMessageDialog(this, "Account is now locked due to multiple failed login attempts. \nPlease contact the system administrator to unlock your account.");
-            } else {
-                JOptionPane.showMessageDialog(this, "Invalid username or password. Attempt " + foundUser.getFailedAttempts());
+            JOptionPane.showMessageDialog(this, "Invalid username or password. Attempt " + foundUser.getFailedAttempts());
             }
 
-            saveUsers(); // Save the state after incrementing failed attempts and locking the account
         }
     }//GEN-LAST:event_loginButtonActionPerformed
 
@@ -265,16 +251,16 @@ public class LoginWindow extends javax.swing.JFrame {
         String role = loggedInUser.getRole();
         this.dispose(); // Close the login UI
 
-        if ("System Administrator".equals(role)) {
-            new SAWindow(loggedInUser).setVisible(true);
-        } else if ("Human Resource Officer".equals(role)) {
-            new HRWindow(loggedInUser).setVisible(true);
-        } else if ("Department Manager".equals(role)) {
-            new DMWindow(loggedInUser).setVisible(true);
-        } else if ("Payroll Officer".equals(role)) {
-            new POWindow(loggedInUser).setVisible(true);
-        } else if ("Employee".equals(role)) {
-            new SettingsWindow(this, loggedInUser).setVisible(true);
+        if ("Sales Manager".equals(role)) {
+            new SalesManagerWindow(loggedInUser).setVisible(true);
+        } else if ("Purchase Manager".equals(role)) {
+            new PurchaseManagerWindow(loggedInUser).setVisible(true);
+        } else if ("Inventory Manager".equals(role)) {
+            new InventoryManagerWindow(loggedInUser).setVisible(true);
+        } else if ("Finance Manager".equals(role)) {
+            new FinanceManagerWindow(loggedInUser).setVisible(true);
+        } else if ("Administrator".equals(role)) {
+            new AdminWindow(loggedInUser).setVisible(true);
         } else {
             JOptionPane.showMessageDialog(this, "Unknown role: " + role, "Error", JOptionPane.ERROR_MESSAGE);
         }
