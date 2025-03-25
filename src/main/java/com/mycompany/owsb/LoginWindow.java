@@ -48,7 +48,7 @@ public class LoginWindow extends javax.swing.JFrame {
                 g.drawImage(image, 0, 0, getWidth(), getHeight(), this);
             }
         };
-
+        
         // Set the layout to null for absolute positioning
         backgroundPanel.setLayout(null);
 
