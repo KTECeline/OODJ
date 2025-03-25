@@ -57,8 +57,13 @@ public class LoginWindow extends javax.swing.JFrame {
 
         // Set the custom panel as the content pane
         setContentPane(backgroundPanel);
-
+        
+        JLabel title = new JLabel("OMEGA WHOLESALE SDN BHD");
+        title.setFont(new java.awt.Font("Heiti TC", java.awt.Font.BOLD, 16));
+        
+        
         // Re-add existing components to the background panel
+        backgroundPanel.add(title);
         backgroundPanel.add(jLabel2);
         backgroundPanel.add(jLabel3);
         backgroundPanel.add(usernameField);
@@ -66,11 +71,12 @@ public class LoginWindow extends javax.swing.JFrame {
         backgroundPanel.add(loginButton);
 
         // Set bounds for the components position (x, y, width, height)
+        title.setBounds(240, 30, 400, 25);
         jLabel2.setBounds(450, 145, 80, 25);
         usernameField.setBounds(449, 165, 160, 25);
         jLabel3.setBounds(450, 205, 80, 25);
         passwordField.setBounds(449, 225, 160, 25);
-        loginButton.setBounds(485, 275, 80, 30);
+        loginButton.setBounds(490, 275, 80, 30);
         
         loginButton.setBackground(Color.white);
 
