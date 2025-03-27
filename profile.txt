@@ -1,0 +1,5 @@
+zhi_xian|09-06-2004|matthew@gmail.com|0136593669|0198364729|Male|Wong Zhi Xian|Kai|33, Jalan Bukit Jalil, KL
+timi|22-09-2004|timiweeyuetim@gmail.com|0102705103|0109874401|Female|Wee Yue Tim|Rose|22, Jalan Cheras, 56000, KL
+yung_hao|22-04-2004|yyhao@gmail.com|0167452850|0102759266|Male|Yong Yung Hao|Yung|50, Jalan Midah, KL
+wen_kang|07-08-2004|chongwk@gmail.com|01765560256|01759365690|Male|Chong Wen Kang|shyn wei|11, Jalan Pudu, KL
+ying_xin|08-12-2004|yxxxx@gmail.com|0125568329|0165366943|Female|Ong Ying Xin|Jenn|1, Jalan Connaught, KL
