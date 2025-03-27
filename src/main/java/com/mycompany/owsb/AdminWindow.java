@@ -29,6 +29,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import java.awt.Color;
 
 /**
  *
@@ -132,24 +133,16 @@ public class AdminWindow extends javax.swing.JFrame {
     }
     
     private void setBackgroundImage() {
-        // Load the image
-        ImageIcon icon = new ImageIcon(getClass().getResource("/background.png"));
-        Image image = icon.getImage();
-
         // Create a custom panel to hold the background image
-        JPanel backgroundPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                g.drawImage(image, 0, 0, getWidth(), getHeight(), this);
-            }
-        };
+        JPanel backgroundPanel = new JPanel();
 
         // Set the layout to null for absolute positioning
         backgroundPanel.setLayout(null);
 
         // Set the size of the background panel
-        backgroundPanel.setPreferredSize(new Dimension(500, 300));
+        backgroundPanel.setPreferredSize(new Dimension(500, 400));
+        
+        backgroundPanel.setBackground(new Color(155,237,255));
 
 
         // Set the custom panel as the content pane
@@ -198,6 +191,7 @@ public class AdminWindow extends javax.swing.JFrame {
         searchButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Administration");
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
 
         createUser.setBackground(new java.awt.Color(204, 204, 255));
