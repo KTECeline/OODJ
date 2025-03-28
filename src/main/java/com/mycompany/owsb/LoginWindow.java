@@ -33,6 +33,7 @@ public class LoginWindow extends javax.swing.JFrame {
         loadUsers();
         initComponents();
         setBackgroundImage();
+        setLocationRelativeTo(null);
     }
     
      private void setBackgroundImage() {

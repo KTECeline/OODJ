@@ -72,8 +72,18 @@ public class AdminWindow extends javax.swing.JFrame {
     }
     
     private void setBackgroundImage() {
+        // Load the image
+        ImageIcon icon = new ImageIcon(getClass().getResource("/background.jpg"));
+        Image image = icon.getImage();
+
         // Create a custom panel to hold the background image
-        JPanel backgroundPanel = new JPanel();
+        JPanel backgroundPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.drawImage(image, 0, 0, getWidth(), getHeight(), this);
+            }
+        };
 
         // Set the layout to null for absolute positioning
         backgroundPanel.setLayout(null);
@@ -82,7 +92,6 @@ public class AdminWindow extends javax.swing.JFrame {
         backgroundPanel.setPreferredSize(new Dimension(600, 500));
         
         backgroundPanel.setBackground(new Color(155,237,255));
-
 
         // Set the custom panel as the content pane
         setContentPane(backgroundPanel);
@@ -99,8 +108,8 @@ public class AdminWindow extends javax.swing.JFrame {
         backgroundPanel.add(jTabbedPane1);
         
         // Set bounds for the components position (x, y, width, height)
-        searchField.setBounds(40, 45, 312, 27);
-        searchButton.setBounds(357, 45, 80, 25);
+        searchField.setBounds(40, 45, 440, 27);
+        searchButton.setBounds(490, 45, 87, 25);
         createUser.setBounds(40, 100, 150, 30);
         updateUser.setBounds(40, 140, 150, 30);
         deleteUser.setBounds(40, 180, 150, 30);
@@ -599,7 +608,7 @@ public class AdminWindow extends javax.swing.JFrame {
             }
         });
 
-        createUpdateProfileButton.setBackground(new java.awt.Color(204, 204, 255));
+        createUpdateProfileButton.setBackground(new java.awt.Color(153, 153, 255));
         createUpdateProfileButton.setFont(new java.awt.Font("Heiti TC", 0, 11)); // NOI18N
         createUpdateProfileButton.setText("Create/Update Profile");
         createUpdateProfileButton.addActionListener(new java.awt.event.ActionListener() {
