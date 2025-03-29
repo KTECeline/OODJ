@@ -214,6 +214,7 @@ public class AdminWindow extends javax.swing.JFrame {
     
     //Method to display the profile of a selected user
     private void displayProfile(String username) {
+        profiles = loadProfiles();
         String[] profile = profiles.get(username);
         if (profile != null) {
             profileArea.setText(String.format(
