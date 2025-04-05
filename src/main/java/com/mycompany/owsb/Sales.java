@@ -8,7 +8,7 @@ package com.mycompany.owsb;
  *
  * @author timi
  */
-public class SalesEntry {
+public class Sales {
     String itemID;
     int quantitySold;
     double pricePerUnit;
@@ -17,7 +17,7 @@ public class SalesEntry {
     String date;
     String remarks;
 
-    public SalesEntry(String itemID, int quantitySold, double pricePerUnit, String salesManagerId, String date, String remarks) {
+    public Sales(String itemID, int quantitySold, double pricePerUnit, String salesManagerId, String date, String remarks) {
         this.itemID = itemID;
         this.quantitySold = quantitySold;
         this.pricePerUnit = pricePerUnit;
@@ -32,9 +32,9 @@ public class SalesEntry {
         return itemID + "," + quantitySold + "," + pricePerUnit + "," + totalAmount + "," + salesManagerId + "," + date + "," + remarks;
     }
 
-    public static SalesEntry fromString(String line) {
+    public static Sales fromString(String line) {
         String[] parts = line.split(",");
-        return new SalesEntry(
+        return new Sales(
             parts[0],
             Integer.parseInt(parts[1]),
             Double.parseDouble(parts[2]),

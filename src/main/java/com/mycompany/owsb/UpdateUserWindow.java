@@ -77,7 +77,7 @@ public class UpdateUserWindow extends javax.swing.JFrame {
         roles = new javax.swing.JComboBox<>();
         updateButton = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         homeButton.setFont(new java.awt.Font("Heiti TC", 0, 11)); // NOI18N
         homeButton.setText("Home");

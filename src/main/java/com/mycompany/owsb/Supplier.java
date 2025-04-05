@@ -12,18 +12,18 @@ public class Supplier {
     String supplierID;
     String supplierName;
     String itemId;
-    String contact;
+    String email;
 
-    public Supplier(String supplierID, String supplierName, String itemId, String contact) {
+    public Supplier(String supplierID, String supplierName, String itemId, String email) {
         this.supplierID = supplierID;
         this.supplierName = supplierName;
         this.itemId = itemId;
-        this.contact = contact;
+        this.email = email;
     }
 
     @Override
     public String toString() {
-        return supplierID + "," + supplierName + "," + itemId + "," + contact;
+        return supplierID + "," + supplierName + "," + itemId + "," + email;
     }
 
     public static Supplier fromString(String line) {
@@ -32,7 +32,7 @@ public class Supplier {
             parts[0],  // supplierID
             parts[1],  // supplierName
             parts[2],  // itemId
-            parts[3]   // contact
+            parts[3]   // email
         );
     }
 }

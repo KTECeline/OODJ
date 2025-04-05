@@ -68,7 +68,7 @@ public class CreateUserWindow extends javax.swing.JFrame {
         role = new javax.swing.JComboBox<>();
         submit = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         jPanel1.setBackground(new java.awt.Color(218, 218, 255));
 

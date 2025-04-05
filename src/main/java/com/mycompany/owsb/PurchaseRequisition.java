@@ -1,3 +1,5 @@
+package com.mycompany.owsb;
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
@@ -8,15 +10,15 @@
  * @author timi
  */
 public class PurchaseRequisition {
-    String prID;
-    String itemID;
-    int quantity;
-    String requiredDate;
-    String supplierID;
-    String raisedBy;
-    double unitCost;
-    double totalCost;
-    String status;
+String prID;
+String itemID;
+int quantity;
+String requiredDate;
+String supplierID;
+String raisedBy;
+double unitCost;
+double totalCost;
+String status;
 
     public PurchaseRequisition(String prID, String itemID, int quantity, String requiredDate, String supplierID,
                                String raisedBy, double unitCost, String status) {
