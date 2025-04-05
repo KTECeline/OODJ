@@ -61,12 +61,11 @@ public class SmManagePrWindow extends javax.swing.JFrame {
 
     
     public void updatePurchaseRequisitionList() {
-        List<PurchaseRequisition> prList = loadPurchaseRequisitions();
+        List<PurchaseRequisition> prListData = loadPurchaseRequisitions(); // Load requisitions
         DefaultListModel<String> listModel = new DefaultListModel<>();
-
-        // Load lines from file
+        
         List<String> lines = FileUtil.readLines(PR_FILE);
-
+        
         // Add new Purchase Requisitions to the list
         for (String line : lines) {
             PurchaseRequisition pr = PurchaseRequisition.fromString(line);
@@ -74,9 +73,10 @@ public class SmManagePrWindow extends javax.swing.JFrame {
             listModel.addElement(pr.prID);  // Only display the itemID in the list
         }
 
-        // Set to JList
+        // Set the model for the JList (assuming prList is a JList<String>)
         prList.setModel(listModel);
     }
+   
 
 
     /**
@@ -89,29 +89,42 @@ public class SmManagePrWindow extends javax.swing.JFrame {
     private void initComponents() {
 
         jScrollPane2 = new javax.swing.JScrollPane();
-        prList = new javax.swing.JTextArea();
+        prDetails = new javax.swing.JTextArea();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        prList = new javax.swing.JList<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
-        prList.setColumns(20);
-        prList.setRows(5);
-        jScrollPane2.setViewportView(prList);
+        prDetails.setColumns(20);
+        prDetails.setRows(5);
+        jScrollPane2.setViewportView(prDetails);
+
+        prList.setModel(new javax.swing.AbstractListModel<String>() {
+            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
+            public int getSize() { return strings.length; }
+            public String getElementAt(int i) { return strings[i]; }
+        });
+        jScrollPane1.setViewportView(prList);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(148, Short.MAX_VALUE)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18))
+                .addContainerGap(149, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jScrollPane2)
+                    .addComponent(jScrollPane1))
+                .addGap(17, 17, 17))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(109, Short.MAX_VALUE)
+                .addContainerGap(7, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(100, 100, 100))
+                .addGap(30, 30, 30))
         );
 
         pack();
@@ -157,7 +170,9 @@ public class SmManagePrWindow extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JTextArea prList;
+    private javax.swing.JTextArea prDetails;
+    private javax.swing.JList<String> prList;
     // End of variables declaration//GEN-END:variables
 }
