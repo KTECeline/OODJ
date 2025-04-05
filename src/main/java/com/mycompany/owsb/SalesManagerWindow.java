@@ -19,7 +19,7 @@ import javax.swing.JOptionPane;
 public class SalesManagerWindow extends javax.swing.JFrame {
     private final User loggedInUser;
     
-    private final String PURCHASE_ORDER_FILE = "purchase_order.txt";
+    private final String PO_FILE = "purchase_order.txt";
     
     private List<PurchaseOrder> purchaseOrderList = new ArrayList<>();
     
@@ -41,7 +41,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
     
     public List<PurchaseOrder> loadPurchaseOrders() {
         List<PurchaseOrder> purchaseOrderList = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(PURCHASE_ORDER_FILE))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(PO_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 PurchaseOrder po = PurchaseOrder.fromString(line);
@@ -59,7 +59,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
         DefaultListModel<String> listModel = new DefaultListModel<>();
         
         // Load lines from file
-        List<String> lines = FileUtil.readLines(PURCHASE_ORDER_FILE);
+        List<String> lines = FileUtil.readLines(PO_FILE);
 
         // Add new Purchase Requisitions to the list
         for (String line : lines) {
@@ -234,9 +234,6 @@ public class SalesManagerWindow extends javax.swing.JFrame {
 
                         if (selectedIndex >= 0 && selectedIndex < purchaseOrderList.size()) {
                             PurchaseOrder selectedPO = purchaseOrderList.get(selectedIndex);
-                            
-                            // Debugging: Check if we got a valid Purchase Order
-                            System.out.println("Selected PO: " + selectedPO.purchaseOrderID);
 
                             // Show the purchase order details
                             poDetails.setText(

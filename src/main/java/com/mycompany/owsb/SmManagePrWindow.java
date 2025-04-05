@@ -94,6 +94,7 @@ public class SmManagePrWindow extends javax.swing.JFrame {
         prList = new javax.swing.JList<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Purchase Requisition");
 
         prDetails.setColumns(20);
         prDetails.setRows(5);
@@ -104,32 +105,76 @@ public class SmManagePrWindow extends javax.swing.JFrame {
             public int getSize() { return strings.length; }
             public String getElementAt(int i) { return strings[i]; }
         });
+        prList.addAncestorListener(new javax.swing.event.AncestorListener() {
+            public void ancestorAdded(javax.swing.event.AncestorEvent evt) {
+                prListAncestorAdded(evt);
+            }
+            public void ancestorMoved(javax.swing.event.AncestorEvent evt) {
+            }
+            public void ancestorRemoved(javax.swing.event.AncestorEvent evt) {
+            }
+        });
         jScrollPane1.setViewportView(prList);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(149, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(246, 246, 246)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jScrollPane2)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 319, Short.MAX_VALUE)
                     .addComponent(jScrollPane1))
-                .addGap(17, 17, 17))
+                .addContainerGap(41, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(7, Short.MAX_VALUE)
+                .addGap(70, 70, 70)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(30, 30, 30))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 231, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(38, Short.MAX_VALUE))
         );
 
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
+
+    private void prListAncestorAdded(javax.swing.event.AncestorEvent evt) {//GEN-FIRST:event_prListAncestorAdded
+        updatePurchaseRequisitionList(); // Updates the JList with data from the file
+
+        if (prList.getListSelectionListeners().length == 0) {
+            prList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+                @Override
+                public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                    if (!evt.getValueIsAdjusting()) {
+                        int selectedIndex = prList.getSelectedIndex();
+
+                        if (selectedIndex >= 0 && selectedIndex < purchaseRequisitionList.size()) {
+                            PurchaseRequisition selectedPR = purchaseRequisitionList.get(selectedIndex);
+
+                            // Show the purchase order details
+                            prDetails.setText(
+                                "PO ID: " + selectedPR.prID + "\n\n" +
+                                "Item Code: " + selectedPR.itemID + "\n\n" +
+                                "Quantity: " + selectedPR.quantity + "\n\n" +
+                                "Required Date: " + selectedPR.requiredDate + "\n\n" +        
+                                "Supplier ID: " + selectedPR.supplierID + "\n\n" +
+                                "Raised By: " + selectedPR.raisedBy + "\n\n" +        
+                                "Unit Cost: " + selectedPR.unitCost + "\n\n" +
+                                "Total Cost: " + selectedPR.totalCost + "\n\n" +
+                                "Status: " + selectedPR.status
+                            );
+                        } else {
+                            prDetails.setText("No Purchase Order selected.");
+                        }
+                    }
+                }
+            });
+        }
+
+    }//GEN-LAST:event_prListAncestorAdded
 
     /**
      * @param args the command line arguments
