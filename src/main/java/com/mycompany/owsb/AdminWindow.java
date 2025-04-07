@@ -777,6 +777,7 @@ public class AdminWindow extends javax.swing.JFrame {
                         if (selectedUser != null) {
                             // Display user details in the text area
                             userDetails.setText(
+                                "UserID: " + selectedUser.getUserId() + "\n\n" +
                                 "Username: " + selectedUser.getUsername() + "\n\n" +
                                 "Password: " + selectedUser.getPassword() + "\n\n" +
                                 "Role: " + selectedUser.getRole() + "\n\n"
