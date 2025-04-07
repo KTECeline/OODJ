@@ -4,83 +4,55 @@
  */
 package com.mycompany.owsb.view;
 
-import com.mycompany.owsb.model.FileUtil;
 import com.mycompany.owsb.model.PurchaseOrder;
+import com.mycompany.owsb.model.SalesManager;
 import com.mycompany.owsb.model.User;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
 
 /**
  *
  * @author timi
  */
 public class SalesManagerWindow extends javax.swing.JFrame {
+    // Store the currently logged-in user
     private final User loggedInUser;
-    private PurchaseOrder po;
-    
-    private final String PO_FILE = "data/purchase_order.txt";
-    
-    List<PurchaseOrder> purchaseOrderList = new ArrayList<>();
 
-    
+    // Instance of SalesManager to call sales-related methods
+    private final SalesManager salesManager;
+
+    // List to hold all loaded purchase orders
+    private List<PurchaseOrder> purchaseOrderList;
+
+    // String representing the file path for purchase order data
+    private static final String PO_FILE = "data/purchase_order.txt";
 
     /**
      * Creates new form SalesManagerWindow
+     * @param loggedInUser
+     * @param salesManager
      */
-    public SalesManagerWindow(User loggedInUser) {
+    public SalesManagerWindow(User loggedInUser, SalesManager salesManager) {
         this.loggedInUser = loggedInUser;
+        this.salesManager = salesManager;
         initComponents();
-        updatePurchaseOrderList(); // Update UI list
     }
     
     // Method to show the UserWindow and ensure the user list is updated
     public void showSmWindow() {
-        updatePurchaseOrderList();  // Ensure the list is up to date
-        searchField.setText("");
         poDetails.setText("");
+        loadPOsIntoList();
         setVisible(true);  // Show the window
     }
     
-    public List<PurchaseOrder> loadPurchaseOrders() {
-        try (BufferedReader reader = new BufferedReader(new FileReader(PO_FILE))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (!line.trim().isEmpty()) {
-                    PurchaseOrder po = PurchaseOrder.fromString(line);
-                    purchaseOrderList.add(po);
-                }
-            }
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "An error occurred while reading PO file: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
-        return purchaseOrderList;
+    // Method to load Purchase Orders from file and display them in the UI list
+    private void loadPOsIntoList() {
+        // Load the list of Purchase Orders from the purchase order file
+        purchaseOrderList = PurchaseOrder.loadFromFile(PO_FILE);
+        
+        // Update the JList and details area in the UI with the loaded Purchase Orders
+        PurchaseOrder.updatePOListInUI(purchaseOrderList, poList, poDetails);
     }
-
-    // Update Purchase Order list in JList
-    public void updatePurchaseOrderList() {
-        List<String> lines = FileUtil.readLines(PO_FILE);
-        DefaultListModel<String> listModel = new DefaultListModel<>();
-
-        purchaseOrderList.clear(); // Clear existing entries
-
-        for (String line : lines) {
-            PurchaseOrder po = PurchaseOrder.fromString(line);
-            purchaseOrderList.add(po);         // Add the object to the list
-            listModel.addElement(po.getOrderID());  // Show orderID in the JList
-        }
-
-        poList.setModel(listModel);
-    }
-
-
-
-
+ 
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -147,15 +119,6 @@ public class SalesManagerWindow extends javax.swing.JFrame {
             String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
             public int getSize() { return strings.length; }
             public String getElementAt(int i) { return strings[i]; }
-        });
-        poList.addAncestorListener(new javax.swing.event.AncestorListener() {
-            public void ancestorAdded(javax.swing.event.AncestorEvent evt) {
-                poListAncestorAdded(evt);
-            }
-            public void ancestorMoved(javax.swing.event.AncestorEvent evt) {
-            }
-            public void ancestorRemoved(javax.swing.event.AncestorEvent evt) {
-            }
         });
         jScrollPane2.setViewportView(poList);
 
@@ -229,44 +192,10 @@ public class SalesManagerWindow extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void ManageItemsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ManageItemsButtonActionPerformed
-        SmManageItemsWindow manageItemsWindow = new SmManageItemsWindow(this);
+        SmManageItemsWindow manageItemsWindow = new SmManageItemsWindow(this, salesManager);
         manageItemsWindow.setVisible(true);
         this.setVisible(false); // Hide current window
     }//GEN-LAST:event_ManageItemsButtonActionPerformed
-
-    private void poListAncestorAdded(javax.swing.event.AncestorEvent evt) {//GEN-FIRST:event_poListAncestorAdded
-        updatePurchaseOrderList(); // Updates the JList with data from the file
-
-        if (poList.getListSelectionListeners().length == 0) {
-            poList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-                @Override
-                public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                    if (!evt.getValueIsAdjusting()) {
-                        int selectedIndex = poList.getSelectedIndex();
-
-                        if (selectedIndex >= 0 && selectedIndex < purchaseOrderList.size()) {
-                            PurchaseOrder selectedPO = purchaseOrderList.get(selectedIndex);
-
-                            // Show the purchase order details
-                            poDetails.setText(
-                                "Purchase Order ID: " + selectedPO.getOrderID() + "\n\n" +
-                                "Item ID: " + selectedPO.getItemID() + "\n\n" +
-                                "Quantity: " + selectedPO.getQuantity() + "\n\n" +
-                                "Supplier ID: " + selectedPO.getSupplierID()+ "\n\n" +
-                                "Unit Price: " + selectedPO.getUnitPrice() + "\n\n" +
-                                "Total Price: " + selectedPO.getTotalPrice() + "\n\n" +
-                                "Order Date: " + selectedPO.getOrderDate() + "\n\n" +
-                                "Status: " + selectedPO.getStatus()
-                            );
-                        } else {
-                            poDetails.setText("No Purchase Order selected.");
-                        }
-                    }
-                }
-            });
-        }
-
-    }//GEN-LAST:event_poListAncestorAdded
 
     private void ManageSuppliersButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ManageSuppliersButtonActionPerformed
         SmManageSuppliersWindow manageSuppliersWindow = new SmManageSuppliersWindow(this);
@@ -281,44 +210,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_CreatePRButtonActionPerformed
 
     private void searchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchButtonActionPerformed
-                                           
-        // Get the search query from the search field and convert to uppercase
-        String searchText = searchField.getText().trim().toUpperCase();
-
-        if (searchText.isEmpty()) {
-            // If the search field is empty, show all purchase orders
-            updatePurchaseOrderList();
-            poDetails.setText(""); // Clear the details text area
-        } else {
-            // Filter the purchase orders based on purchaseOrderID
-            List<PurchaseOrder> filteredList = new ArrayList<>();
-
-            for (PurchaseOrder po : purchaseOrderList) {
-                if (po.getOrderID() != null && po.getOrderID().equalsIgnoreCase(searchText)) { // Case-insensitive search
-                    filteredList.add(po);
-                }
-            }
-
-            // Update the JList with filtered results using update method
-            updatePurchaseOrderList();
-
-            // If a matching Purchase Order is found, show its details in the text area
-            if (!filteredList.isEmpty()) {
-                PurchaseOrder selectedPO = filteredList.get(0); // Taking the first match
-                poDetails.setText(
-                    "Purchase Order ID: " + selectedPO.getOrderID() + "\n\n" +
-                    "Item ID: " + selectedPO.getItemID() + "\n\n" +
-                    "Quantity: " + selectedPO.getQuantity() + "\n\n" +
-                    "Supplier ID: " + selectedPO.getSupplierID()+ "\n\n" +
-                    "Unit Price: " + selectedPO.getUnitPrice() + "\n\n" +
-                    "Total Price: " + selectedPO.getTotalPrice() + "\n\n" +
-                    "Order Date: " + selectedPO.getOrderDate() + "\n\n" +
-                    "Status: " + selectedPO.getStatus()
-                );
-            } else {
-                poDetails.setText("No matching Purchase Order found.");
-            }
-        }
+        PurchaseOrder.searchAndDisplayPO(searchField, poDetails, purchaseOrderList);
     }//GEN-LAST:event_searchButtonActionPerformed
 
     private void searchFieldMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_searchFieldMouseClicked
@@ -334,37 +226,6 @@ public class SalesManagerWindow extends javax.swing.JFrame {
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(SalesManagerWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(SalesManagerWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(SalesManagerWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(SalesManagerWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new SalesManagerWindow(null).setVisible(true);
-            }
-        });
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton CreatePRButton;

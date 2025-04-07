@@ -4,24 +4,11 @@
  */
 package com.mycompany.owsb.view;
 
-import com.mycompany.owsb.model.FileUtil;
 import com.mycompany.owsb.model.Item;
-import com.mycompany.owsb.view.SalesManagerWindow;
-import java.awt.GridLayout;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import javax.swing.DefaultListModel;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import com.mycompany.owsb.model.SalesManager;
+import java.awt.event.*;
+import java.util.*;
+import javax.swing.*;
 
 /**
  *
@@ -30,22 +17,31 @@ import javax.swing.JTextField;
 public class SmManageItemsWindow extends javax.swing.JFrame {
     private final SalesManagerWindow parentWindow;
     
-    private Item item;
+    // Instance of SalesManager to call sales-related methods
+    private final SalesManager salesManager;
     
-    private final String ITEMS_FILE = "data/items.txt";
+    private java.util.List<Item> itemDataList = new ArrayList<>();
+    
+    // String representing the file path for purchase order data
+    private static final String ITEM_FILE = "data/items.txt";
+    
 
-    private final List<Item> itemDataList = new ArrayList<>();
 
     /**
      * Creates new form SmManageItemsWindow
      * @param parentWindow
+     * @param salesManager
      */
-    public SmManageItemsWindow(SalesManagerWindow parentWindow) {
+    public SmManageItemsWindow(SalesManagerWindow parentWindow, SalesManager salesManager) {
         this.parentWindow = parentWindow;
+        this.salesManager = salesManager;
         initComponents();
+        itemDetails.setText("");
+        loadItemsIntoList();
         setupWindowListener();
         
     }
+    
     
     // close button go back to menu instead of close system  
     private void setupWindowListener() {
@@ -58,65 +54,47 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
         });
     }
     
-    public List<Item> loadItems() {
-        List<Item> itemList = new ArrayList<>(); 
-        try (BufferedReader reader = new BufferedReader(new FileReader(ITEMS_FILE))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                Item items = Item.fromString(line);
-                itemList.add(items);
-            }
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "An error occurred while reading items file: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
-        return itemList;
-    }
-
-    
-    public void updateItemList() {
-        DefaultListModel<String> listModel = new DefaultListModel<>();
+    // Method to load Items from file and display them in the UI list
+    private void loadItemsIntoList() {
+        // Load the list of Purchase Orders from the purchase order file
+        itemDataList = Item.loadFromFile(ITEM_FILE);
         
-        List<String> lines = FileUtil.readLines(ITEMS_FILE);
-        
-        // Add new Purchase Requisitions to the list
-        for (String line : lines) {
-            Item items = Item.fromString(line);
-            itemDataList.add(items);  // store object
-            listModel.addElement(items.getItemID());  // show itemID in UI
-        }
-
-        // Set the model for the JList
-        itemList.setModel(listModel);
+        // Update the JList and details area in the UI with the loaded Purchase Orders
+        Item.updateItemListInUI(itemDataList, itemList, itemDetails);
     }
     
+    private void promptForItemID() {
+        String inputID = JOptionPane.showInputDialog(
+            null, 
+            "Enter the Item ID to edit:", 
+            "Item ID", 
+            JOptionPane.PLAIN_MESSAGE
+        );
 
-    public static void saveItems(String filename, List<Item> items) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename))) {
-            for (Item item : items) {
-                bw.write(item.toString());
-                bw.newLine();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    
-    private Item getSelectedItemOrPrompt() {
-        int selectedIndex = itemList.getSelectedIndex();
-        if (selectedIndex >= 0 && selectedIndex < itemDataList.size()) {
-            return itemDataList.get(selectedIndex);
-        } else {
-            String inputID = JOptionPane.showInputDialog(this, "Enter Item ID to find:");
+        if (inputID != null && !inputID.trim().isEmpty()) {
+            inputID = inputID.trim().toUpperCase();
+            boolean found = false;
+
+            // Search for the item based on input ID
             for (Item item : itemDataList) {
                 if (item.getItemID().equalsIgnoreCase(inputID)) {
-                    return item;
+                    salesManager.editItem(item); // Call editItem method in Sales Manager Class if item found
+                    Item.updateItemListInUI(itemDataList, itemList, itemDetails); // Refresh the list
+                    found = true;
+                    break;
                 }
             }
-            JOptionPane.showMessageDialog(this, "Item not found.");
-            return null;
+
+            if (!found) {
+                JOptionPane.showMessageDialog(null, "Item ID not found.");
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Please enter a valid Item ID.");
         }
     }
 
+    
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -133,6 +111,8 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
         addItemButton = new javax.swing.JButton();
         editItemButton = new javax.swing.JButton();
         deleteItemButton = new javax.swing.JButton();
+        searchField = new javax.swing.JTextField();
+        searchButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Items");
@@ -142,15 +122,6 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
             String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
             public int getSize() { return strings.length; }
             public String getElementAt(int i) { return strings[i]; }
-        });
-        itemList.addAncestorListener(new javax.swing.event.AncestorListener() {
-            public void ancestorAdded(javax.swing.event.AncestorEvent evt) {
-                itemListAncestorAdded(evt);
-            }
-            public void ancestorMoved(javax.swing.event.AncestorEvent evt) {
-            }
-            public void ancestorRemoved(javax.swing.event.AncestorEvent evt) {
-            }
         });
         jScrollPane2.setViewportView(itemList);
 
@@ -178,26 +149,51 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
         deleteItemButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
         deleteItemButton.setText("Delete");
 
+        searchField.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        searchField.setForeground(new java.awt.Color(102, 102, 102));
+        searchField.setText("Enter Item ID");
+        searchField.setToolTipText("");
+        searchField.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                searchFieldMouseClicked(evt);
+            }
+        });
+
+        searchButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        searchButton.setText("Search");
+        searchButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                searchButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(28, 28, 28)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 263, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 263, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(addItemButton, javax.swing.GroupLayout.DEFAULT_SIZE, 91, Short.MAX_VALUE)
-                    .addComponent(editItemButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(deleteItemButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(22, Short.MAX_VALUE))
+                    .addComponent(searchField)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 263, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 263, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(addItemButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(editItemButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(deleteItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(searchButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(32, 32, 32))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(60, Short.MAX_VALUE)
+                .addContainerGap(29, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(searchField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(searchButton))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(addItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -215,115 +211,45 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void itemListAncestorAdded(javax.swing.event.AncestorEvent evt) {//GEN-FIRST:event_itemListAncestorAdded
-        updateItemList(); // Updates the JList with data from the file
-
-        if (itemList.getListSelectionListeners().length == 0) {
-            itemList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-                @Override
-                public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                    if (!evt.getValueIsAdjusting()) {
-                        int selectedIndex = itemList.getSelectedIndex();
-
-                        if (selectedIndex >= 0 && selectedIndex < itemDataList.size()) {
-                            Item selectedItem = itemDataList.get(selectedIndex);
-
-                            // Show the purchase order details
-                            itemDetails.setText(
-                                "Item ID: " + selectedItem.getItemID() + "\n\n" +
-                                "Item Name: " + selectedItem.getItemName() + "\n\n" +
-                                "Supplier ID: " + selectedItem.getSupplierId() + "\n\n" +
-                                "Stock: " + selectedItem.getStock() + "\n\n" +
-                                "Cost: " + selectedItem.getCost() + "\n\n" +
-                                "Price: " + selectedItem.getPrice()
-
-                            );
-                        } else {
-                            itemDetails.setText("No Item selected.");
-                        }
-                    }
-                }
-            });
-        }
-
-    }//GEN-LAST:event_itemListAncestorAdded
-
     private void addItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addItemButtonActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_addItemButtonActionPerformed
 
     private void editItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editItemButtonActionPerformed
+        String selectedItemID = itemList.getSelectedValue(); // Get selected item ID from JList
+        if (selectedItemID != null) {
+            int confirm = JOptionPane.showConfirmDialog(
+                null, 
+                "Are you sure you want to edit item " + selectedItemID + "?",
+                "Confirm Edit", 
+                JOptionPane.YES_NO_OPTION, 
+                JOptionPane.QUESTION_MESSAGE
+            );
 
-    Item itemToEdit = getSelectedItemOrPrompt();
-
-    if (itemToEdit != null) {
-        // Create a JPanel to hold all the input fields
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(5, 2)); // 5 rows, 2 columns
-
-        // Input fields
-        JTextField nameField = new JTextField(itemToEdit.getItemName());
-        JTextField supplierField = new JTextField(itemToEdit.getSupplierId());
-        JTextField stockField = new JTextField(String.valueOf(itemToEdit.getStock()));
-        JTextField costField = new JTextField(String.valueOf(itemToEdit.getCost()));
-        JTextField priceField = new JTextField(String.valueOf(itemToEdit.getPrice()));
-
-        // Add the labels and fields to the panel
-        panel.add(new JLabel("Item Name:"));
-        panel.add(nameField);
-        panel.add(new JLabel("Supplier ID:"));
-        panel.add(supplierField);
-        panel.add(new JLabel("Stock:"));
-        panel.add(stockField);
-        panel.add(new JLabel("Cost(RM):"));
-        panel.add(costField);
-        panel.add(new JLabel("Price:"));
-        panel.add(priceField);
-
-        // Show the dialog with all fields
-        int option = JOptionPane.showConfirmDialog(this, panel, "Edit Item", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-        if (option == JOptionPane.OK_OPTION) {
-            try {
-                // Retrieve the data from the input fields
-                String newName = nameField.getText();
-                String newSupplier = supplierField.getText();
-                int newStock = Integer.parseInt(stockField.getText());
-                double newCost = Double.parseDouble(costField.getText());
-                double newPrice = Double.parseDouble(priceField.getText());
-
-                // Update the item fields
-                itemToEdit.setItemName(newName);
-                itemToEdit.setSupplierId(newSupplier);
-                itemToEdit.setStock(newStock);
-                itemToEdit.setCost(newCost);
-                itemToEdit.setPrice(newPrice);
-
-                // Load all items
-                List<Item> allItems = loadItems();
-
-                // Replace the old item with the updated one
-                for (int i = 0; i < allItems.size(); i++) {
-                    if (allItems.get(i).getItemID().equals(itemToEdit.getItemID())) {
-                        allItems.set(i, itemToEdit);
+            if (confirm == JOptionPane.YES_OPTION) {
+                // Find the item in the list and edit it
+                for (Item item : itemDataList) {
+                    if (item.getItemID().equalsIgnoreCase(selectedItemID)) {
+                        salesManager.editItem(item); // Call editItem method in Sales Manager Class
+                        Item.updateItemListInUI(itemDataList, itemList, itemDetails); // Refresh the list
+                        itemDetails.setText(""); // Clear the item details display
                         break;
                     }
                 }
-
-                // Save the updated items to file
-                saveItems("data/items.txt", allItems);
-
-                // Refresh the JList with updated data
-                updateItemList();
-
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "Invalid input. Please check the values.", "Error", JOptionPane.ERROR_MESSAGE);
             }
+            
+        } else {
+            promptForItemID();
         }
-    }
-
-
     }//GEN-LAST:event_editItemButtonActionPerformed
+
+    private void searchFieldMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_searchFieldMouseClicked
+        searchField.setText("");
+    }//GEN-LAST:event_searchFieldMouseClicked
+
+    private void searchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchButtonActionPerformed
+        Item.searchAndDisplayItem(searchField, itemDetails, itemDataList);
+    }//GEN-LAST:event_searchButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -338,5 +264,7 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
     private javax.swing.JList<String> itemList;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JButton searchButton;
+    private javax.swing.JTextField searchField;
     // End of variables declaration//GEN-END:variables
 }

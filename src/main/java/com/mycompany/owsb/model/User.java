@@ -87,12 +87,14 @@ public class User {
     public void setRole(String role) {
         this.role = role;
     }
-
+    
+    // Convert object to string to save it in file
     @Override
     public String toString() {
         return userId + "," + username + "," + password + "," + role;
     }
-
+    
+    // Convert the line in the file from String to object
     public static User fromString(String userData) {
         // split data by comma
         String[] data = userData.split(",");

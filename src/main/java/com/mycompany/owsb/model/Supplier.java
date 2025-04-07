@@ -38,11 +38,13 @@ public class Supplier {
         return email;
     }
 
+    // Convert object to string to save it in file
     @Override
     public String toString() {
         return supplierID + "," + supplierName + "," + itemId + "," + email;
     }
 
+    // Convert the line in the file from String to object
     public static Supplier fromString(String line) {
         String[] parts = line.split(",");
         return new Supplier(

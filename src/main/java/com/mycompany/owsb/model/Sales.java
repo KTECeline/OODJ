@@ -55,12 +55,14 @@ public class Sales {
     public String getRemarks() {
         return remarks;
     }
-
+    
+    // Convert object to string to save it in file
     @Override
     public String toString() {
         return salesID + "," + itemID + "," + quantitySold + "," + pricePerUnit + "," + totalAmount + "," + date + "," + remarks;
     }
-
+    
+    // Convert the line in the file from String to object
     public static Sales fromString(String line) {
         String[] parts = line.split(",");
         return new Sales(

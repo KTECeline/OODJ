@@ -4,6 +4,19 @@
  */
 package com.mycompany.owsb.model;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+
 /**
  *
  * @author timi
@@ -63,12 +76,13 @@ public class Item {
         this.price = price; 
     }
     
-    
+    // Convert object to string to save it in file
     @Override
     public String toString() {
         return itemID + "," + itemName + "," + supplierId + "," + stock + "," + cost + "," + price;
     }
-
+    
+    // Convert the line in the file from String to object
     public static Item fromString(String line) {
         String[] parts = line.split(",");  // Split the line by commas
         String itemID = parts[0];
@@ -77,8 +91,93 @@ public class Item {
         int stock = Integer.parseInt(parts[3]);
         double cost = Double.parseDouble(parts[4]);
         double price = Double.parseDouble(parts[5]);
+        
         return new Item(itemID, itemName, supplierId, stock, cost, price);  // Return a new Item object
     }
+    
+    
+    // Method to return the formatted details of the Item
+    public String getFormattedDetails() {
+        return "Item ID: " + itemID + "\n\n" +
+               "Item Name: " + itemName + "\n\n" +
+               "Supplier ID: " + supplierId + "\n\n" +
+               "Stock: " + stock + "\n\n" +
+               "Cost: " + cost + "\n\n" +
+               "Price: " + price;
+    }
+
+    // Method to load Items from a file
+    public static List<Item> loadFromFile(String filePath) {
+        List<Item> itemList = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                Item item = Item.fromString(line);
+                itemList.add(item);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return itemList;
+    }
+
+    // Method to update the list of items in the UI
+    public static void updateItemListInUI(List<Item> itemList, JList<String> targetList, JTextArea detailArea) {
+        DefaultListModel<String> listModel = new DefaultListModel<>();
+        for (Item item : itemList) {
+            listModel.addElement(item.getItemID());
+        }
+        targetList.setModel(listModel);
+
+        // List click listener
+        targetList.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                String selectedID = targetList.getSelectedValue();
+                for (Item item : itemList) {
+                    if (item.getItemID().equals(selectedID)) {
+                        detailArea.setText(item.getFormattedDetails());
+                        break;
+                    }
+                }
+            }
+        });
+    }
+
+    // Method to search and display an Item's details
+    public static void searchAndDisplayItem(JTextField searchField, JTextArea detailsArea, List<Item> itemList) {
+        String searchID = searchField.getText().trim().toUpperCase();
+        boolean found = false;
+
+        if (itemList.isEmpty()) {
+            detailsArea.setText("No Items loaded.");
+            return;
+        }
+
+        for (Item item : itemList) {
+            if (item.getItemID().equalsIgnoreCase(searchID)) {
+                detailsArea.setText(item.getFormattedDetails());
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            detailsArea.setText("Item ID not found.");
+        }
+    }
+
+    // Method to save Items to a file
+    public static void saveToFile(List<Item> itemList, String filename) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+            for (Item item : itemList) {
+                writer.write(item.toString());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Failed to save items.");
+        }
+    }
+    
     
     
 

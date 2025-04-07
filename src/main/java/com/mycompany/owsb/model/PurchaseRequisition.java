@@ -68,13 +68,15 @@ public class PurchaseRequisition {
     public String getStatus() {
         return status;
     }
-
+    
+    // Convert object to string to save it in file
     @Override
     public String toString() {
         return prID + "," + itemID + "," + quantity + "," + requiredDate + "," + supplierID + "," +
                raisedBy + "," + unitCost + "," + totalCost + "," + status;
     }
-
+    
+    // Convert the line in the file from String to object
     public static PurchaseRequisition fromString(String line) {
         String[] parts = line.split(",");
         return new PurchaseRequisition(
