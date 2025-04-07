@@ -36,6 +36,8 @@ public class SalesManagerWindow extends javax.swing.JFrame {
     // Method to show the UserWindow and ensure the user list is updated
     public void showSmWindow() {
         updatePurchaseOrderList();  // Ensure the list is up to date
+        searchField.setText("");
+        poDetails.setText("");
         setVisible(true);  // Show the window
     }
     
@@ -65,7 +67,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
         for (String line : lines) {
             PurchaseOrder po = PurchaseOrder.fromString(line);
             purchaseOrderList.add(po);  // Add the actual PurchaseRequisition object
-            listModel.addElement(po.purchaseOrderID);  // Only display the itemID in the list
+            listModel.addElement(po.orderID);  // Only display the itemID in the list
         }
 
         poList.setModel(listModel);
@@ -85,7 +87,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
 
         ManageItemsButton = new javax.swing.JButton();
         ManageSuppliersButton = new javax.swing.JButton();
-        EnterDailySalesButton = new javax.swing.JButton();
+        ManageDailySalesButton = new javax.swing.JButton();
         CreatePRButton = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         poDetails = new javax.swing.JTextArea();
@@ -113,8 +115,13 @@ public class SalesManagerWindow extends javax.swing.JFrame {
             }
         });
 
-        EnterDailySalesButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
-        EnterDailySalesButton.setText("Manage Daily Sales");
+        ManageDailySalesButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        ManageDailySalesButton.setText("Manage Daily Sales");
+        ManageDailySalesButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ManageDailySalesButtonActionPerformed(evt);
+            }
+        });
 
         CreatePRButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
         CreatePRButton.setText("Manage Purchase Requisition");
@@ -179,7 +186,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                             .addComponent(CreatePRButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 201, Short.MAX_VALUE)
-                            .addComponent(EnterDailySalesButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(ManageDailySalesButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(ManageSuppliersButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(ManageItemsButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addGap(18, 18, 18)
@@ -206,7 +213,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(ManageSuppliersButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(5, 5, 5)
-                        .addComponent(EnterDailySalesButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(ManageDailySalesButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(CreatePRButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(32, Short.MAX_VALUE))
@@ -237,7 +244,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
 
                             // Show the purchase order details
                             poDetails.setText(
-                                "PO ID: " + selectedPO.purchaseOrderID + "\n\n" +
+                                "Purchase Order ID: " + selectedPO.orderID + "\n\n" +
                                 "Item Code: " + selectedPO.itemID + "\n\n" +
                                 "Quantity: " + selectedPO.quantity + "\n\n" +
                                 "Supplier ID: " + selectedPO.supplierID + "\n\n" +
@@ -282,7 +289,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
             List<PurchaseOrder> filteredList = new ArrayList<>();
 
             for (PurchaseOrder po : purchaseOrderList) {
-                if (po.purchaseOrderID != null && po.purchaseOrderID.contains(searchText)) { // Case-insensitive search
+                if (po.orderID != null && po.orderID.equalsIgnoreCase(searchText)) { // Case-insensitive search
                     filteredList.add(po);
                 }
             }
@@ -294,7 +301,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
             if (!filteredList.isEmpty()) {
                 PurchaseOrder selectedPO = filteredList.get(0); // Taking the first match
                 poDetails.setText(
-                    "PO ID: " + selectedPO.purchaseOrderID + "\n\n" +
+                    "Purchase Order ID: " + selectedPO.orderID + "\n\n" +
                     "Item Code: " + selectedPO.itemID + "\n\n" +
                     "Quantity: " + selectedPO.quantity + "\n\n" +
                     "Supplier ID: " + selectedPO.supplierID + "\n\n" +
@@ -312,6 +319,12 @@ public class SalesManagerWindow extends javax.swing.JFrame {
     private void searchFieldMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_searchFieldMouseClicked
         searchField.setText("");
     }//GEN-LAST:event_searchFieldMouseClicked
+
+    private void ManageDailySalesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ManageDailySalesButtonActionPerformed
+        SmManageDailySalesWindow manageDailySalesWindow = new SmManageDailySalesWindow(this);
+        manageDailySalesWindow.setVisible(true);
+        this.setVisible(false); // Hide current window
+    }//GEN-LAST:event_ManageDailySalesButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -350,7 +363,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton CreatePRButton;
-    private javax.swing.JButton EnterDailySalesButton;
+    private javax.swing.JButton ManageDailySalesButton;
     private javax.swing.JButton ManageItemsButton;
     private javax.swing.JButton ManageSuppliersButton;
     private javax.swing.JScrollPane jScrollPane1;

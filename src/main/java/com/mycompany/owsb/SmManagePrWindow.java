@@ -23,10 +23,11 @@ public class SmManagePrWindow extends javax.swing.JFrame {
     
     private final String PR_FILE = "purchase_requisition.txt";
 
-    private List<PurchaseRequisition> purchaseRequisitionList = new ArrayList<>();
+    private final List<PurchaseRequisition> purchaseRequisitionList = new ArrayList<>();
 
     /**
      * Creates new form NewJFrame
+     * @param parentWindow
      */
     public SmManagePrWindow(SalesManagerWindow parentWindow) {
         this.parentWindow = parentWindow;
@@ -46,7 +47,7 @@ public class SmManagePrWindow extends javax.swing.JFrame {
     }
     
     public List<PurchaseRequisition> loadPurchaseRequisitions() {
-        List<PurchaseRequisition> purchaseRequisitionList = new ArrayList<>();  // Renamed local variable
+        List<PurchaseRequisition> purchaseRequisitionList = new ArrayList<>(); 
         try (BufferedReader reader = new BufferedReader(new FileReader(PR_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
@@ -61,7 +62,6 @@ public class SmManagePrWindow extends javax.swing.JFrame {
 
     
     public void updatePurchaseRequisitionList() {
-        List<PurchaseRequisition> prListData = loadPurchaseRequisitions(); // Load requisitions
         DefaultListModel<String> listModel = new DefaultListModel<>();
         
         List<String> lines = FileUtil.readLines(PR_FILE);
@@ -73,7 +73,7 @@ public class SmManagePrWindow extends javax.swing.JFrame {
             listModel.addElement(pr.prID);  // Only display the itemID in the list
         }
 
-        // Set the model for the JList (assuming prList is a JList<String>)
+        // Set the model for the JList
         prList.setModel(listModel);
     }
    
@@ -97,9 +97,11 @@ public class SmManagePrWindow extends javax.swing.JFrame {
         setTitle("Purchase Requisition");
 
         prDetails.setColumns(20);
+        prDetails.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
         prDetails.setRows(5);
         jScrollPane2.setViewportView(prDetails);
 
+        prList.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
         prList.setModel(new javax.swing.AbstractListModel<String>() {
             String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
             public int getSize() { return strings.length; }
@@ -134,7 +136,7 @@ public class SmManagePrWindow extends javax.swing.JFrame {
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 231, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(38, Short.MAX_VALUE))
+                .addContainerGap(70, Short.MAX_VALUE))
         );
 
         pack();
@@ -157,7 +159,7 @@ public class SmManagePrWindow extends javax.swing.JFrame {
                             // Show the purchase order details
                             prDetails.setText(
                                 "PO ID: " + selectedPR.prID + "\n\n" +
-                                "Item Code: " + selectedPR.itemID + "\n\n" +
+                                "Item ID: " + selectedPR.itemID + "\n\n" +
                                 "Quantity: " + selectedPR.quantity + "\n\n" +
                                 "Required Date: " + selectedPR.requiredDate + "\n\n" +        
                                 "Supplier ID: " + selectedPR.supplierID + "\n\n" +

@@ -4,8 +4,21 @@
  */
 package com.mycompany.owsb;
 
+import java.awt.GridLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.DefaultListModel;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 /**
  *
@@ -13,9 +26,14 @@ import java.awt.event.WindowEvent;
  */
 public class SmManageItemsWindow extends javax.swing.JFrame {
     private final SalesManagerWindow parentWindow;
+    
+    private final String ITEMS_FILE = "items.txt";
+
+    private final List<Item> itemDataList = new ArrayList<>();
 
     /**
      * Creates new form SmManageItemsWindow
+     * @param parentWindow
      */
     public SmManageItemsWindow(SalesManagerWindow parentWindow) {
         this.parentWindow = parentWindow;
@@ -34,6 +52,65 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
             }
         });
     }
+    
+    public List<Item> loadItems() {
+        List<Item> itemList = new ArrayList<>(); 
+        try (BufferedReader reader = new BufferedReader(new FileReader(ITEMS_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                Item items = Item.fromString(line);
+                itemList.add(items);
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "An error occurred while reading PR file: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        return itemList;
+    }
+
+    
+    public void updateItemList() {
+        DefaultListModel<String> listModel = new DefaultListModel<>();
+        
+        List<String> lines = FileUtil.readLines(ITEMS_FILE);
+        
+        // Add new Purchase Requisitions to the list
+        for (String line : lines) {
+            Item items = Item.fromString(line);
+            itemDataList.add(items);  // store object
+            listModel.addElement(items.itemID);  // show itemID in UI
+        }
+
+        // Set the model for the JList
+        itemList.setModel(listModel);
+    }
+    
+
+    public static void saveItems(String filename, List<Item> items) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename))) {
+            for (Item item : items) {
+                bw.write(item.toString());
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private Item getSelectedItemOrPrompt() {
+        int selectedIndex = itemList.getSelectedIndex();
+        if (selectedIndex >= 0 && selectedIndex < itemDataList.size()) {
+            return itemDataList.get(selectedIndex);
+        } else {
+            String inputID = JOptionPane.showInputDialog(this, "Enter Item ID to find:");
+            for (Item item : itemDataList) {
+                if (item.itemID.equalsIgnoreCase(inputID)) {
+                    return item;
+                }
+            }
+            JOptionPane.showMessageDialog(this, "Item not found.");
+            return null;
+        }
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -44,58 +121,216 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jScrollPane2 = new javax.swing.JScrollPane();
+        itemList = new javax.swing.JList<>();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        itemDetails = new javax.swing.JTextArea();
+        addItemButton = new javax.swing.JButton();
+        editItemButton = new javax.swing.JButton();
+        deleteItemButton = new javax.swing.JButton();
+
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Items");
+
+        itemList.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        itemList.setModel(new javax.swing.AbstractListModel<String>() {
+            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
+            public int getSize() { return strings.length; }
+            public String getElementAt(int i) { return strings[i]; }
+        });
+        itemList.addAncestorListener(new javax.swing.event.AncestorListener() {
+            public void ancestorAdded(javax.swing.event.AncestorEvent evt) {
+                itemListAncestorAdded(evt);
+            }
+            public void ancestorMoved(javax.swing.event.AncestorEvent evt) {
+            }
+            public void ancestorRemoved(javax.swing.event.AncestorEvent evt) {
+            }
+        });
+        jScrollPane2.setViewportView(itemList);
+
+        itemDetails.setColumns(20);
+        itemDetails.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        itemDetails.setRows(5);
+        jScrollPane1.setViewportView(itemDetails);
+
+        addItemButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        addItemButton.setText("Add");
+        addItemButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addItemButtonActionPerformed(evt);
+            }
+        });
+
+        editItemButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        editItemButton.setText("Edit");
+        editItemButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                editItemButtonActionPerformed(evt);
+            }
+        });
+
+        deleteItemButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        deleteItemButton.setText("Delete");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(28, 28, 28)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 263, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 263, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(addItemButton, javax.swing.GroupLayout.DEFAULT_SIZE, 91, Short.MAX_VALUE)
+                    .addComponent(editItemButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(deleteItemButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(22, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(60, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(addItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(editItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(deleteItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(27, 27, 27))
         );
 
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
+    private void itemListAncestorAdded(javax.swing.event.AncestorEvent evt) {//GEN-FIRST:event_itemListAncestorAdded
+        updateItemList(); // Updates the JList with data from the file
+
+        if (itemList.getListSelectionListeners().length == 0) {
+            itemList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+                @Override
+                public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                    if (!evt.getValueIsAdjusting()) {
+                        int selectedIndex = itemList.getSelectedIndex();
+
+                        if (selectedIndex >= 0 && selectedIndex < itemDataList.size()) {
+                            Item selectedItem = itemDataList.get(selectedIndex);
+
+                            // Show the purchase order details
+                            itemDetails.setText(
+                                "Item ID: " + selectedItem.itemID + "\n\n" +
+                                "Item Name: " + selectedItem.itemName + "\n\n" +
+                                "Supplier ID: " + selectedItem.supplierId + "\n\n" +
+                                "Stock: " + selectedItem.stock + "\n\n" +
+                                "Cost: " + selectedItem.cost + "\n\n" +
+                                "Price: " + selectedItem.price 
+                            );
+                        } else {
+                            itemDetails.setText("No Item selected.");
+                        }
+                    }
+                }
+            });
+        }
+
+    }//GEN-LAST:event_itemListAncestorAdded
+
+    private void addItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addItemButtonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_addItemButtonActionPerformed
+
+    private void editItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editItemButtonActionPerformed
+
+    Item itemToEdit = getSelectedItemOrPrompt();
+
+    if (itemToEdit != null) {
+        // Create a JPanel to hold all the input fields
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(5, 2)); // 5 rows, 2 columns
+
+        // Input fields
+        JTextField nameField = new JTextField(itemToEdit.itemName);
+        JTextField supplierField = new JTextField(itemToEdit.supplierId);
+        JTextField stockField = new JTextField(String.valueOf(itemToEdit.stock));
+        JTextField costField = new JTextField(String.valueOf(itemToEdit.cost));
+        JTextField priceField = new JTextField(String.valueOf(itemToEdit.price));
+
+        // Add the labels and fields to the panel
+        panel.add(new JLabel("Item Name:"));
+        panel.add(nameField);
+        panel.add(new JLabel("Supplier ID:"));
+        panel.add(supplierField);
+        panel.add(new JLabel("Stock:"));
+        panel.add(stockField);
+        panel.add(new JLabel("Cost(RM):"));
+        panel.add(costField);
+        panel.add(new JLabel("Price:"));
+        panel.add(priceField);
+
+        // Show the dialog with all fields
+        int option = JOptionPane.showConfirmDialog(this, panel, "Edit Item", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (option == JOptionPane.OK_OPTION) {
+            try {
+                // Retrieve the data from the input fields
+                String newName = nameField.getText();
+                String newSupplier = supplierField.getText();
+                int newStock = Integer.parseInt(stockField.getText());
+                double newCost = Double.parseDouble(costField.getText());
+                double newPrice = Double.parseDouble(priceField.getText());
+
+                // Update the item fields
+                itemToEdit.itemName = newName;
+                itemToEdit.supplierId = newSupplier;
+                itemToEdit.stock = newStock;
+                itemToEdit.cost = newCost;
+                itemToEdit.price = newPrice;
+
+                // Load all items
+                List<Item> allItems = loadItems();
+
+                // Replace the old item with the updated one
+                for (int i = 0; i < allItems.size(); i++) {
+                    if (allItems.get(i).itemID.equals(itemToEdit.itemID)) {
+                        allItems.set(i, itemToEdit);
+                        break;
+                    }
+                }
+
+                // Save the updated items to file
+                saveItems("items.txt", allItems);
+
+                // Refresh the JList with updated data
+                updateItemList();
+
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Invalid input. Please check the values.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+
+    }//GEN-LAST:event_editItemButtonActionPerformed
+
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(SmManageItemsWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(SmManageItemsWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(SmManageItemsWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(SmManageItemsWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
 
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new SmManageItemsWindow(null).setVisible(true);
-            }
-        });
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton addItemButton;
+    private javax.swing.JButton deleteItemButton;
+    private javax.swing.JButton editItemButton;
+    private javax.swing.JTextArea itemDetails;
+    private javax.swing.JList<String> itemList;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     // End of variables declaration//GEN-END:variables
 }

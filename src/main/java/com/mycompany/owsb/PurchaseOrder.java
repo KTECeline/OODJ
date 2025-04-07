@@ -4,7 +4,6 @@
  */
 package com.mycompany.owsb;
 
-import java.util.Date;
 
 /**
  *
@@ -13,7 +12,7 @@ import java.util.Date;
 
 
 public class PurchaseOrder {
-    String purchaseOrderID;
+    String orderID;
     String itemID;
     int quantity;
     String supplierID;
@@ -23,8 +22,8 @@ public class PurchaseOrder {
     String status;
 
     // Constructor
-    public PurchaseOrder(String purchaseOrderID, String itemID, int quantity, String supplierID, double unitPrice, String orderDate, String status) {
-        this.purchaseOrderID = purchaseOrderID;
+    public PurchaseOrder(String orderID, String itemID, int quantity, String supplierID, double unitPrice, String orderDate, String status) {
+        this.orderID = orderID;
         this.itemID = itemID;
         this.quantity = quantity;
         this.supplierID = supplierID;
@@ -36,14 +35,14 @@ public class PurchaseOrder {
     
     // Method to convert a Purchase Order to a String for saving to a file
     public String toString() {
-        return purchaseOrderID + "," + itemID + "," + quantity + "," + supplierID + "," + unitPrice + "," + totalPrice + "," + orderDate + "," + status;
+        return orderID + "," + itemID + "," + quantity + "," + supplierID + "," + unitPrice + "," + totalPrice + "," + orderDate + "," + status;
     }
 
     public static PurchaseOrder fromString(String orderString) {
         String[] orderData = orderString.split(",");
 
         // Parse the fields from the string array
-        String purchaseOrderID = orderData[0];         // Purchase Order ID
+        String orderID = orderData[0];         // Purchase Order ID
         String itemID = orderData[1];                  // Item ID
         int quantity = Integer.parseInt(orderData[2]); // Quantity
         String supplierID = orderData[3];              // Supplier ID
@@ -52,6 +51,6 @@ public class PurchaseOrder {
         String status = orderData[7];                  // Order Status (Pending, Approved, etc.)
 
         // Return a new PurchaseOrder object
-        return new PurchaseOrder(purchaseOrderID, itemID, quantity, supplierID, unitPrice, orderDate, status);
+        return new PurchaseOrder(orderID, itemID, quantity, supplierID, unitPrice, orderDate, status);
     }
 }
