@@ -2,20 +2,20 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.mycompany.owsb;
+package com.mycompany.owsb.model;
 
 /**
  *
  * @author timi
  */
 public class Sales {
-    String salesID;
-    String itemID;
-    int quantitySold;
-    double pricePerUnit;
-    double totalAmount;
-    String date;
-    String remarks;
+    private String salesID;
+    private String itemID;
+    private int quantitySold;
+    private double pricePerUnit;
+    private double totalAmount;
+    private String date;
+    private String remarks;
 
     public Sales(String salesID, String itemID, int quantitySold, double pricePerUnit, String date, String remarks) {
         this.salesID = salesID;
@@ -25,6 +25,35 @@ public class Sales {
         this.totalAmount = quantitySold * pricePerUnit;
         this.date = date;
         this.remarks = remarks;
+    }
+    
+    // Getters
+    public String getSalesID() {
+        return salesID;
+    }
+
+    public String getItemID() {
+        return itemID;
+    }
+
+    public int getQuantitySold() {
+        return quantitySold;
+    }
+
+    public double getPricePerUnit() {
+        return pricePerUnit;
+    }
+
+    public double getTotalAmount() {
+        return totalAmount;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public String getRemarks() {
+        return remarks;
     }
 
     @Override

@@ -2,23 +2,40 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.mycompany.owsb;
+package com.mycompany.owsb.model;
 
 /**
  *
  * @author timi
  */
 public class Supplier {
-    String supplierID;
-    String supplierName;
-    String itemId;
-    String email;
+    private String supplierID;
+    private String supplierName;
+    private String itemId;
+    private String email;
 
     public Supplier(String supplierID, String supplierName, String itemId, String email) {
         this.supplierID = supplierID;
         this.supplierName = supplierName;
         this.itemId = itemId;
         this.email = email;
+    }
+    
+    // Getters
+    public String getSupplierID() {
+        return supplierID;
+    }
+
+    public String getSupplierName() {
+        return supplierName;
+    }
+
+    public String getItemId() {
+        return itemId;
+    }
+
+    public String getEmail() {
+        return email;
     }
 
     @Override

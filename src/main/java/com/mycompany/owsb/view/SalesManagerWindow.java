@@ -2,14 +2,18 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
-package com.mycompany.owsb;
+package com.mycompany.owsb.view;
 
+import com.mycompany.owsb.model.FileUtil;
+import com.mycompany.owsb.model.PurchaseOrder;
+import com.mycompany.owsb.model.User;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.DefaultListModel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 
 /**
@@ -18,10 +22,12 @@ import javax.swing.JOptionPane;
  */
 public class SalesManagerWindow extends javax.swing.JFrame {
     private final User loggedInUser;
+    private PurchaseOrder po;
     
-    private final String PO_FILE = "purchase_order.txt";
+    private final String PO_FILE = "data/purchase_order.txt";
     
-    private List<PurchaseOrder> purchaseOrderList = new ArrayList<>();
+    List<PurchaseOrder> purchaseOrderList = new ArrayList<>();
+
     
 
     /**
@@ -30,7 +36,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
     public SalesManagerWindow(User loggedInUser) {
         this.loggedInUser = loggedInUser;
         initComponents();
-        updatePurchaseOrderList(); // Update the list on UI load
+        updatePurchaseOrderList(); // Update UI list
     }
     
     // Method to show the UserWindow and ensure the user list is updated
@@ -42,32 +48,31 @@ public class SalesManagerWindow extends javax.swing.JFrame {
     }
     
     public List<PurchaseOrder> loadPurchaseOrders() {
-        List<PurchaseOrder> purchaseOrderList = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(PO_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                PurchaseOrder po = PurchaseOrder.fromString(line);
-                purchaseOrderList.add(po);
+                if (!line.trim().isEmpty()) {
+                    PurchaseOrder po = PurchaseOrder.fromString(line);
+                    purchaseOrderList.add(po);
+                }
             }
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "An error occurred while reading PO file: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "An error occurred while reading PO file: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
         return purchaseOrderList;
     }
 
     // Update Purchase Order list in JList
     public void updatePurchaseOrderList() {
-        List<PurchaseOrder> poListData = loadPurchaseOrders();
-        DefaultListModel<String> listModel = new DefaultListModel<>();
-        
-        // Load lines from file
         List<String> lines = FileUtil.readLines(PO_FILE);
+        DefaultListModel<String> listModel = new DefaultListModel<>();
 
-        // Add new Purchase Requisitions to the list
+        purchaseOrderList.clear(); // Clear existing entries
+
         for (String line : lines) {
             PurchaseOrder po = PurchaseOrder.fromString(line);
-            purchaseOrderList.add(po);  // Add the actual PurchaseRequisition object
-            listModel.addElement(po.orderID);  // Only display the itemID in the list
+            purchaseOrderList.add(po);         // Add the object to the list
+            listModel.addElement(po.getOrderID());  // Show orderID in the JList
         }
 
         poList.setModel(listModel);
@@ -244,14 +249,14 @@ public class SalesManagerWindow extends javax.swing.JFrame {
 
                             // Show the purchase order details
                             poDetails.setText(
-                                "Purchase Order ID: " + selectedPO.orderID + "\n\n" +
-                                "Item Code: " + selectedPO.itemID + "\n\n" +
-                                "Quantity: " + selectedPO.quantity + "\n\n" +
-                                "Supplier ID: " + selectedPO.supplierID + "\n\n" +
-                                "Unit Price: " + selectedPO.unitPrice + "\n\n" +
-                                "Total Price: " + selectedPO.totalPrice + "\n\n" +
-                                "Order Date: " + selectedPO.orderDate + "\n\n" +
-                                "Status: " + selectedPO.status
+                                "Purchase Order ID: " + selectedPO.getOrderID() + "\n\n" +
+                                "Item ID: " + selectedPO.getItemID() + "\n\n" +
+                                "Quantity: " + selectedPO.getQuantity() + "\n\n" +
+                                "Supplier ID: " + selectedPO.getSupplierID()+ "\n\n" +
+                                "Unit Price: " + selectedPO.getUnitPrice() + "\n\n" +
+                                "Total Price: " + selectedPO.getTotalPrice() + "\n\n" +
+                                "Order Date: " + selectedPO.getOrderDate() + "\n\n" +
+                                "Status: " + selectedPO.getStatus()
                             );
                         } else {
                             poDetails.setText("No Purchase Order selected.");
@@ -289,7 +294,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
             List<PurchaseOrder> filteredList = new ArrayList<>();
 
             for (PurchaseOrder po : purchaseOrderList) {
-                if (po.orderID != null && po.orderID.equalsIgnoreCase(searchText)) { // Case-insensitive search
+                if (po.getOrderID() != null && po.getOrderID().equalsIgnoreCase(searchText)) { // Case-insensitive search
                     filteredList.add(po);
                 }
             }
@@ -301,14 +306,14 @@ public class SalesManagerWindow extends javax.swing.JFrame {
             if (!filteredList.isEmpty()) {
                 PurchaseOrder selectedPO = filteredList.get(0); // Taking the first match
                 poDetails.setText(
-                    "Purchase Order ID: " + selectedPO.orderID + "\n\n" +
-                    "Item Code: " + selectedPO.itemID + "\n\n" +
-                    "Quantity: " + selectedPO.quantity + "\n\n" +
-                    "Supplier ID: " + selectedPO.supplierID + "\n\n" +
-                    "Unit Price: " + selectedPO.unitPrice + "\n\n" +
-                    "Total Price: " + selectedPO.totalPrice + "\n\n" +
-                    "Order Date: " + selectedPO.orderDate + "\n\n" +
-                    "Status: " + selectedPO.status
+                    "Purchase Order ID: " + selectedPO.getOrderID() + "\n\n" +
+                    "Item ID: " + selectedPO.getItemID() + "\n\n" +
+                    "Quantity: " + selectedPO.getQuantity() + "\n\n" +
+                    "Supplier ID: " + selectedPO.getSupplierID()+ "\n\n" +
+                    "Unit Price: " + selectedPO.getUnitPrice() + "\n\n" +
+                    "Total Price: " + selectedPO.getTotalPrice() + "\n\n" +
+                    "Order Date: " + selectedPO.getOrderDate() + "\n\n" +
+                    "Status: " + selectedPO.getStatus()
                 );
             } else {
                 poDetails.setText("No matching Purchase Order found.");

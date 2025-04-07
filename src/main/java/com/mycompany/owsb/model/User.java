@@ -1,4 +1,4 @@
-package com.mycompany.owsb;
+package com.mycompany.owsb.model;
 
 
 /*

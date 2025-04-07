@@ -1,21 +1,22 @@
+package com.mycompany.owsb.model;
+
+import com.mycompany.owsb.view.LoginWindow;
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
-package com.mycompany.owsb;
 
 /**
  *
  * @author timi
  */
-public class PurchaseManagerWindow extends javax.swing.JFrame {
-    private final User loggedInUser;
+public class Main extends javax.swing.JFrame {
 
     /**
-     * Creates new form PurchaseManagerWindow
+     * Creates new form Main
      */
-    public PurchaseManagerWindow(User loggedInUser) {
-        this.loggedInUser = loggedInUser;
+    public Main() {
         initComponents();
     }
 
@@ -42,7 +43,6 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
         );
 
         pack();
-        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     /**
@@ -62,20 +62,20 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(PurchaseManagerWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Main.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(PurchaseManagerWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Main.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(PurchaseManagerWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Main.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(PurchaseManagerWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Main.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new PurchaseManagerWindow(null).setVisible(true);
+                new LoginWindow().setVisible(true);
             }
         });
     }

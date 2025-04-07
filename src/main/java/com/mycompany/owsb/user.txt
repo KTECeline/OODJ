@@ -1,5 +1,0 @@
-timi,timi1234,Sales Manager
-yunghao,yunghao1234,Administrator
-celine,celine1234,Purchase Manager
-zhixian,zhixian1234,Finance Manager
-wenkang,wenkang1234,Inventory Manager

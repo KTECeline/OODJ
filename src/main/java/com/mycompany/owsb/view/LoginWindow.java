@@ -1,5 +1,10 @@
-package com.mycompany.owsb;
+package com.mycompany.owsb.view;
 
+import com.mycompany.owsb.model.User;
+import com.mycompany.owsb.view.PurchaseManagerWindow;
+import com.mycompany.owsb.view.FinanceManagerWindow;
+import com.mycompany.owsb.view.InventoryManagerWindow;
+import com.mycompany.owsb.view.SalesManagerWindow;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
@@ -20,7 +25,7 @@ import javax.swing.*;
  */
 public class LoginWindow extends javax.swing.JFrame {
     //find user by username
-    private final String USERS_FILE = "user.txt";
+    private final String USERS_FILE = "data/user.txt";
     private java.util.List<User> users = loadUsers();
     
     //login user

@@ -2,8 +2,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
-package com.mycompany.owsb;
+package com.mycompany.owsb.view;
 
+import com.mycompany.owsb.model.User;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.GridLayout;
@@ -40,8 +41,8 @@ public class AdminWindow extends javax.swing.JFrame {
     private final User loggedInUser;
 
     //set text file
-    private final String USERS_FILE = "user.txt";
-    private final String PROFILE_FILE = "profile.txt";
+    private final String USERS_FILE = "data/user.txt";
+    private final String PROFILE_FILE = "data/profile.txt";
     
     //create bg purpose
     private JPanel contentPanel;

@@ -2,8 +2,11 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
-package com.mycompany.owsb;
+package com.mycompany.owsb.view;
 
+import com.mycompany.owsb.model.FileUtil;
+import com.mycompany.owsb.model.Item;
+import com.mycompany.owsb.view.SalesManagerWindow;
 import java.awt.GridLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -27,7 +30,9 @@ import javax.swing.JTextField;
 public class SmManageItemsWindow extends javax.swing.JFrame {
     private final SalesManagerWindow parentWindow;
     
-    private final String ITEMS_FILE = "items.txt";
+    private Item item;
+    
+    private final String ITEMS_FILE = "data/items.txt";
 
     private final List<Item> itemDataList = new ArrayList<>();
 
@@ -62,7 +67,7 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
                 itemList.add(items);
             }
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "An error occurred while reading PR file: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "An error occurred while reading items file: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
         return itemList;
     }
@@ -77,7 +82,7 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
         for (String line : lines) {
             Item items = Item.fromString(line);
             itemDataList.add(items);  // store object
-            listModel.addElement(items.itemID);  // show itemID in UI
+            listModel.addElement(items.getItemID());  // show itemID in UI
         }
 
         // Set the model for the JList
@@ -103,7 +108,7 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
         } else {
             String inputID = JOptionPane.showInputDialog(this, "Enter Item ID to find:");
             for (Item item : itemDataList) {
-                if (item.itemID.equalsIgnoreCase(inputID)) {
+                if (item.getItemID().equalsIgnoreCase(inputID)) {
                     return item;
                 }
             }
@@ -225,12 +230,13 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
 
                             // Show the purchase order details
                             itemDetails.setText(
-                                "Item ID: " + selectedItem.itemID + "\n\n" +
-                                "Item Name: " + selectedItem.itemName + "\n\n" +
-                                "Supplier ID: " + selectedItem.supplierId + "\n\n" +
-                                "Stock: " + selectedItem.stock + "\n\n" +
-                                "Cost: " + selectedItem.cost + "\n\n" +
-                                "Price: " + selectedItem.price 
+                                "Item ID: " + selectedItem.getItemID() + "\n\n" +
+                                "Item Name: " + selectedItem.getItemName() + "\n\n" +
+                                "Supplier ID: " + selectedItem.getSupplierId() + "\n\n" +
+                                "Stock: " + selectedItem.getStock() + "\n\n" +
+                                "Cost: " + selectedItem.getCost() + "\n\n" +
+                                "Price: " + selectedItem.getPrice()
+
                             );
                         } else {
                             itemDetails.setText("No Item selected.");
@@ -256,11 +262,11 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
         panel.setLayout(new GridLayout(5, 2)); // 5 rows, 2 columns
 
         // Input fields
-        JTextField nameField = new JTextField(itemToEdit.itemName);
-        JTextField supplierField = new JTextField(itemToEdit.supplierId);
-        JTextField stockField = new JTextField(String.valueOf(itemToEdit.stock));
-        JTextField costField = new JTextField(String.valueOf(itemToEdit.cost));
-        JTextField priceField = new JTextField(String.valueOf(itemToEdit.price));
+        JTextField nameField = new JTextField(itemToEdit.getItemName());
+        JTextField supplierField = new JTextField(itemToEdit.getSupplierId());
+        JTextField stockField = new JTextField(String.valueOf(itemToEdit.getStock()));
+        JTextField costField = new JTextField(String.valueOf(itemToEdit.getCost()));
+        JTextField priceField = new JTextField(String.valueOf(itemToEdit.getPrice()));
 
         // Add the labels and fields to the panel
         panel.add(new JLabel("Item Name:"));
@@ -287,25 +293,25 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
                 double newPrice = Double.parseDouble(priceField.getText());
 
                 // Update the item fields
-                itemToEdit.itemName = newName;
-                itemToEdit.supplierId = newSupplier;
-                itemToEdit.stock = newStock;
-                itemToEdit.cost = newCost;
-                itemToEdit.price = newPrice;
+                itemToEdit.setItemName(newName);
+                itemToEdit.setSupplierId(newSupplier);
+                itemToEdit.setStock(newStock);
+                itemToEdit.setCost(newCost);
+                itemToEdit.setPrice(newPrice);
 
                 // Load all items
                 List<Item> allItems = loadItems();
 
                 // Replace the old item with the updated one
                 for (int i = 0; i < allItems.size(); i++) {
-                    if (allItems.get(i).itemID.equals(itemToEdit.itemID)) {
+                    if (allItems.get(i).getItemID().equals(itemToEdit.getItemID())) {
                         allItems.set(i, itemToEdit);
                         break;
                     }
                 }
 
                 // Save the updated items to file
-                saveItems("items.txt", allItems);
+                saveItems("data/items.txt", allItems);
 
                 // Refresh the JList with updated data
                 updateItemList();

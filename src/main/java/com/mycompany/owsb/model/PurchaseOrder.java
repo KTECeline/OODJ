@@ -2,7 +2,16 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.mycompany.owsb;
+package com.mycompany.owsb.model;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
 
 
 /**
@@ -12,15 +21,17 @@ package com.mycompany.owsb;
 
 
 public class PurchaseOrder {
-    String orderID;
-    String itemID;
-    int quantity;
-    String supplierID;
-    double unitPrice;
-    double totalPrice;
-    String orderDate;
-    String status;
+    private String orderID;
+    private String itemID;
+    private int quantity;
+    private String supplierID;
+    private double unitPrice;
+    private double totalPrice;
+    private String orderDate;
+    private String status;
+    
 
+    
     // Constructor
     public PurchaseOrder(String orderID, String itemID, int quantity, String supplierID, double unitPrice, String orderDate, String status) {
         this.orderID = orderID;
@@ -32,6 +43,39 @@ public class PurchaseOrder {
         this.orderDate = orderDate;
         this.status = status;
     }
+    
+    public String getOrderID() {
+        return orderID;
+    }
+
+    public String getItemID() {
+        return itemID;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public String getSupplierID() {
+        return supplierID;
+    }
+
+    public double getUnitPrice() {
+        return unitPrice;
+    }
+
+    public double getTotalPrice() {
+        return totalPrice;
+    }
+
+    public String getOrderDate() {
+        return orderDate;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
     
     // Method to convert a Purchase Order to a String for saving to a file
     public String toString() {
@@ -53,4 +97,6 @@ public class PurchaseOrder {
         // Return a new PurchaseOrder object
         return new PurchaseOrder(orderID, itemID, quantity, supplierID, unitPrice, orderDate, status);
     }
+    
+
 }

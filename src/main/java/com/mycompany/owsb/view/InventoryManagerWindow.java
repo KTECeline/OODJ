@@ -2,39 +2,24 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
-package com.mycompany.owsb;
+package com.mycompany.owsb.view;
 
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import com.mycompany.owsb.model.User;
 
 /**
  *
  * @author timi
  */
-public class SmManageSuppliersWindow extends javax.swing.JFrame {
-    private final SalesManagerWindow parentWindow;
+public class InventoryManagerWindow extends javax.swing.JFrame {
+    private final User loggedInUser;
 
     /**
-     * Creates new form SmManageSuppliersWindow
-     * @param parentWindow
+     * Creates new form InventoryManagerWindow
      */
-    public SmManageSuppliersWindow(SalesManagerWindow parentWindow) {
-        this.parentWindow = parentWindow;
+    public InventoryManagerWindow(User loggedInUser) {
+        this.loggedInUser = loggedInUser;
         initComponents();
-        setupWindowListener();
     }
-    
-    // close button go back to menu instead of close system  
-    private void setupWindowListener() {
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                parentWindow.showSmWindow(); // Show the homepage
-                dispose(); // Close the current window
-            }
-        });
-    }
-
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -45,8 +30,7 @@ public class SmManageSuppliersWindow extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Suppliers");
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -80,20 +64,20 @@ public class SmManageSuppliersWindow extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(SmManageSuppliersWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(InventoryManagerWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(SmManageSuppliersWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(InventoryManagerWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(SmManageSuppliersWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(InventoryManagerWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(SmManageSuppliersWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(InventoryManagerWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new SmManageSuppliersWindow(null).setVisible(true);
+                new InventoryManagerWindow(null).setVisible(true);
             }
         });
     }

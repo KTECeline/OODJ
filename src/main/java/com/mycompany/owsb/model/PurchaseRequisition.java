@@ -1,4 +1,4 @@
-package com.mycompany.owsb;
+package com.mycompany.owsb.model;
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
@@ -10,15 +10,15 @@ package com.mycompany.owsb;
  * @author timi
  */
 public class PurchaseRequisition {
-String prID;
-String itemID;
-int quantity;
-String requiredDate;
-String supplierID;
-String raisedBy;
-double unitCost;
-double totalCost;
-String status;
+    private String prID;
+    private String itemID;
+    private int quantity;
+    private String requiredDate;
+    private String supplierID;
+    private String raisedBy;
+    private double unitCost;
+    private double totalCost;
+    private String status;
 
     public PurchaseRequisition(String prID, String itemID, int quantity, String requiredDate, String supplierID,
                                String raisedBy, double unitCost, String status) {
@@ -31,6 +31,42 @@ String status;
         this.unitCost = unitCost;
         this.totalCost = quantity * unitCost;
         this.status = status;
+    }
+    
+    public String getPrID() {
+        return prID;
+    }
+
+    public String getItemID() {
+        return itemID;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public String getRequiredDate() {
+        return requiredDate;
+    }
+
+    public String getSupplierID() {
+        return supplierID;
+    }
+
+    public String getRaisedBy() {
+        return raisedBy;
+    }
+
+    public double getUnitCost() {
+        return unitCost;
+    }
+
+    public double getTotalCost() {
+        return totalCost;
+    }
+
+    public String getStatus() {
+        return status;
     }
 
     @Override

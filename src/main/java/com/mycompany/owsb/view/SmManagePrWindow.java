@@ -2,8 +2,11 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
-package com.mycompany.owsb;
+package com.mycompany.owsb.view;
 
+import com.mycompany.owsb.model.FileUtil;
+import com.mycompany.owsb.model.PurchaseRequisition;
+import com.mycompany.owsb.view.SalesManagerWindow;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
@@ -21,7 +24,10 @@ import javax.swing.JOptionPane;
 public class SmManagePrWindow extends javax.swing.JFrame {
     private final SalesManagerWindow parentWindow;
     
-    private final String PR_FILE = "purchase_requisition.txt";
+    private PurchaseRequisition pr;
+        
+    
+    private final String PR_FILE = "data/purchase_requisition.txt";
 
     private final List<PurchaseRequisition> purchaseRequisitionList = new ArrayList<>();
 
@@ -70,7 +76,7 @@ public class SmManagePrWindow extends javax.swing.JFrame {
         for (String line : lines) {
             PurchaseRequisition pr = PurchaseRequisition.fromString(line);
             purchaseRequisitionList.add(pr);  // Add the actual PurchaseRequisition object
-            listModel.addElement(pr.prID);  // Only display the itemID in the list
+            listModel.addElement(pr.getPrID());  // Only display the itemID in the list
         }
 
         // Set the model for the JList
@@ -158,15 +164,15 @@ public class SmManagePrWindow extends javax.swing.JFrame {
 
                             // Show the purchase order details
                             prDetails.setText(
-                                "PO ID: " + selectedPR.prID + "\n\n" +
-                                "Item ID: " + selectedPR.itemID + "\n\n" +
-                                "Quantity: " + selectedPR.quantity + "\n\n" +
-                                "Required Date: " + selectedPR.requiredDate + "\n\n" +        
-                                "Supplier ID: " + selectedPR.supplierID + "\n\n" +
-                                "Raised By: " + selectedPR.raisedBy + "\n\n" +        
-                                "Unit Cost: " + selectedPR.unitCost + "\n\n" +
-                                "Total Cost: " + selectedPR.totalCost + "\n\n" +
-                                "Status: " + selectedPR.status
+                                "PO ID: " + selectedPR.getPrID() + "\n\n" +
+                                "Item ID: " + selectedPR.getItemID() + "\n\n" +
+                                "Quantity: " + selectedPR.getQuantity() + "\n\n" +
+                                "Required Date: " + selectedPR.getRequiredDate() + "\n\n" +        
+                                "Supplier ID: " + selectedPR.getSupplierID() + "\n\n" +
+                                "Raised By: " + selectedPR.getRaisedBy() + "\n\n" +        
+                                "Unit Cost: " + selectedPR.getUnitCost() + "\n\n" +
+                                "Total Cost: " + selectedPR.getTotalCost() + "\n\n" +
+                                "Status: " + selectedPR.getStatus()
                             );
                         } else {
                             prDetails.setText("No Purchase Order selected.");
