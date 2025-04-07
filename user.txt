@@ -2,4 +2,7 @@ US0001,timi,timi1234,Sales Manager
 US0002,yunghao,yunghao1234,Administrator
 US0003,celine,celine1234,Purchase Manager
 US0004,zhixian,zhixian1234,Finance Manager
-US0005,wenkang,wenkang1234,Inventory Ma
+US0005,wenkang,wenkang1234,Inventory Manager
+US0006,tutu,Tutu1234@,Administrator
+US0008,tuji,Tuji1234@,Administrator
+US0009,huaji,Huaji1234@,Administrator
