@@ -36,8 +36,7 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
         this.parentWindow = parentWindow;
         this.salesManager = salesManager;
         initComponents();
-        itemDetails.setText("");
-        loadItemsIntoList();
+        loadItemsIntoList(); 
         setupWindowListener();
         
     }
@@ -59,9 +58,14 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
         // Load the list of Purchase Orders from the purchase order file
         itemDataList = Item.loadFromFile(ITEM_FILE);
         
-        // Update the JList and details area in the UI with the loaded Purchase Orders
-        Item.updateItemListInUI(itemDataList, itemList, itemDetails);
+        // Update JTable to the latest
+        Item.updateItemTableInUI(itemDataList, itemTable);
+        
+        // Auto-resize columns to fit content
+        Item.autoResizeColumnWidths(itemTable);
     }
+    
+    
     
     private void promptForItemID() {
         String inputID = JOptionPane.showInputDialog(
@@ -79,7 +83,7 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
             for (Item item : itemDataList) {
                 if (item.getItemID().equalsIgnoreCase(inputID)) {
                     salesManager.editItem(item); // Call editItem method in Sales Manager Class if item found
-                    Item.updateItemListInUI(itemDataList, itemList, itemDetails); // Refresh the list
+                    Item.updateItemTableInUI(itemDataList, itemTable);
                     found = true;
                     break;
                 }
@@ -104,31 +108,16 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jScrollPane2 = new javax.swing.JScrollPane();
-        itemList = new javax.swing.JList<>();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        itemDetails = new javax.swing.JTextArea();
         addItemButton = new javax.swing.JButton();
         editItemButton = new javax.swing.JButton();
         deleteItemButton = new javax.swing.JButton();
         searchField = new javax.swing.JTextField();
         searchButton = new javax.swing.JButton();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        itemTable = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Items");
-
-        itemList.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
-        itemList.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
-        });
-        jScrollPane2.setViewportView(itemList);
-
-        itemDetails.setColumns(20);
-        itemDetails.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
-        itemDetails.setRows(5);
-        jScrollPane1.setViewportView(itemDetails);
 
         addItemButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
         addItemButton.setText("Add");
@@ -167,44 +156,76 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
             }
         });
 
+        itemTable.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        itemTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null}
+            },
+            new String [] {
+                "Item ID", "Item Name", "Supplier ID", "Stock", "Cost", "Price"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.Double.class, java.lang.Double.class
+            };
+            boolean[] canEdit = new boolean [] {
+                true, false, false, true, false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        jScrollPane3.setViewportView(itemTable);
+        if (itemTable.getColumnModel().getColumnCount() > 0) {
+            itemTable.getColumnModel().getColumn(0).setPreferredWidth(50);
+            itemTable.getColumnModel().getColumn(0).setMaxWidth(50);
+            itemTable.getColumnModel().getColumn(1).setMinWidth(200);
+        }
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(28, 28, 28)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(searchField)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 263, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 263, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(addItemButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(editItemButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(deleteItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(searchButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(32, 32, 32))
+                .addContainerGap(28, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(deleteItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(addItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(searchField))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(searchButton, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(editItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 549, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(27, 27, 27))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(29, Short.MAX_VALUE)
+                .addGap(41, 41, 41)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(searchField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(searchButton))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(deleteItemButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(editItemButton)
+                    .addComponent(addItemButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(addItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(editItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(deleteItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jScrollPane2))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(27, 27, 27))
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(37, Short.MAX_VALUE))
         );
 
         pack();
@@ -216,31 +237,34 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_addItemButtonActionPerformed
 
     private void editItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editItemButtonActionPerformed
-        String selectedItemID = itemList.getSelectedValue(); // Get selected item ID from JList
-        if (selectedItemID != null) {
+        int selectedRow = itemTable.getSelectedRow(); // Get selected row index
+
+        if (selectedRow != -1) { // -1 means no row selected
+            String selectedItemID = itemTable.getValueAt(selectedRow, 0).toString(); // Assuming item ID is in column 0
+
             int confirm = JOptionPane.showConfirmDialog(
-                null, 
+                null,
                 "Are you sure you want to edit item " + selectedItemID + "?",
-                "Confirm Edit", 
-                JOptionPane.YES_NO_OPTION, 
+                "Confirm Edit",
+                JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE
             );
 
             if (confirm == JOptionPane.YES_OPTION) {
-                // Find the item in the list and edit it
                 for (Item item : itemDataList) {
                     if (item.getItemID().equalsIgnoreCase(selectedItemID)) {
-                        salesManager.editItem(item); // Call editItem method in Sales Manager Class
-                        Item.updateItemListInUI(itemDataList, itemList, itemDetails); // Refresh the list
-                        itemDetails.setText(""); // Clear the item details display
+                        salesManager.editItem(item); // Open the edit form
+                        Item.updateItemTableInUI(itemDataList, itemTable); // Refresh the table
                         break;
                     }
                 }
             }
-            
+
         } else {
             promptForItemID();
         }
+
+
     }//GEN-LAST:event_editItemButtonActionPerformed
 
     private void searchFieldMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_searchFieldMouseClicked
@@ -248,7 +272,7 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_searchFieldMouseClicked
 
     private void searchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchButtonActionPerformed
-        Item.searchAndDisplayItem(searchField, itemDetails, itemDataList);
+        Item.searchAndDisplayItemInTable(searchField, itemTable, itemDataList);
     }//GEN-LAST:event_searchButtonActionPerformed
 
     /**
@@ -260,10 +284,8 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
     private javax.swing.JButton addItemButton;
     private javax.swing.JButton deleteItemButton;
     private javax.swing.JButton editItemButton;
-    private javax.swing.JTextArea itemDetails;
-    private javax.swing.JList<String> itemList;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JTable itemTable;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JButton searchButton;
     private javax.swing.JTextField searchField;
     // End of variables declaration//GEN-END:variables

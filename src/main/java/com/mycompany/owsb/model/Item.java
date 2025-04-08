@@ -4,6 +4,7 @@
  */
 package com.mycompany.owsb.model;
 
+import java.awt.Component;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
@@ -14,8 +15,12 @@ import java.util.List;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumnModel;
 
 /**
  *
@@ -95,16 +100,6 @@ public class Item {
         return new Item(itemID, itemName, supplierId, stock, cost, price);  // Return a new Item object
     }
     
-    
-    // Method to return the formatted details of the Item
-    public String getFormattedDetails() {
-        return "Item ID: " + itemID + "\n\n" +
-               "Item Name: " + itemName + "\n\n" +
-               "Supplier ID: " + supplierId + "\n\n" +
-               "Stock: " + stock + "\n\n" +
-               "Cost: " + cost + "\n\n" +
-               "Price: " + price;
-    }
 
     // Method to load Items from a file
     public static List<Item> loadFromFile(String filePath) {
@@ -121,50 +116,86 @@ public class Item {
         return itemList;
     }
 
-    // Method to update the list of items in the UI
-    public static void updateItemListInUI(List<Item> itemList, JList<String> targetList, JTextArea detailArea) {
-        DefaultListModel<String> listModel = new DefaultListModel<>();
-        for (Item item : itemList) {
-            listModel.addElement(item.getItemID());
-        }
-        targetList.setModel(listModel);
+    
+    // Method to update item table in the UI
+    public static void updateItemTableInUI(List<Item> itemList, JTable targetTable) {
+        String[] columnNames = {"Item ID", "Name", "Supplier ID", "Stock", "Cost (RM)", "Price (RM)"};
+        DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
 
-        // List click listener
-        targetList.addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                String selectedID = targetList.getSelectedValue();
-                for (Item item : itemList) {
-                    if (item.getItemID().equals(selectedID)) {
-                        detailArea.setText(item.getFormattedDetails());
-                        break;
-                    }
-                }
-            }
-        });
+        for (Item item : itemList) {
+            Object[] row = {
+                item.getItemID(),
+                item.getItemName(),
+                item.getSupplierId(),
+                item.getStock(),
+                item.getCost(),
+                item.getPrice()
+            };
+            tableModel.addRow(row);
+        }
+
+        targetTable.setModel(tableModel);
     }
 
-    // Method to search and display an Item's details
-    public static void searchAndDisplayItem(JTextField searchField, JTextArea detailsArea, List<Item> itemList) {
+
+    public static void searchAndDisplayItemInTable(JTextField searchField, JTable table, List<Item> itemList) {
         String searchID = searchField.getText().trim().toUpperCase();
         boolean found = false;
 
         if (itemList.isEmpty()) {
-            detailsArea.setText("No Items loaded.");
+            JOptionPane.showMessageDialog(null, "No items loaded.", "Warning", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0); // Clear previous table data
+
         for (Item item : itemList) {
             if (item.getItemID().equalsIgnoreCase(searchID)) {
-                detailsArea.setText(item.getFormattedDetails());
+                Object[] row = {
+                    item.getItemID(),
+                    item.getItemName(),
+                    item.getSupplierId(),
+                    item.getStock(),
+                    item.getCost(),
+                    item.getPrice()
+                };
+                model.addRow(row); // Add matched item to the table
                 found = true;
+                
+                searchField.setText(""); // Reset Search Field
                 break;
             }
         }
 
         if (!found) {
-            detailsArea.setText("Item ID not found.");
+            JOptionPane.showMessageDialog(null, "Item ID not found.", "Not Found", JOptionPane.INFORMATION_MESSAGE);
+            
+            // Reload full item list into table
+            updateItemTableInUI(itemList, table);
+            autoResizeColumnWidths(table);
+            
+            // Reset Search Field
+            searchField.setText("");
         }
     }
+    
+    
+    public static void autoResizeColumnWidths(JTable table) {
+        final TableColumnModel columnModel = table.getColumnModel();
+        for (int column = 0; column < table.getColumnCount(); column++) {
+            int width = 50; // Minimum width
+            for (int row = 0; row < table.getRowCount(); row++) {
+                TableCellRenderer renderer = table.getCellRenderer(row, column);
+                Component comp = table.prepareRenderer(renderer, row, column);
+                width = Math.max(comp.getPreferredSize().width + 10, width);
+            }
+            columnModel.getColumn(column).setPreferredWidth(width);
+        }
+    }
+
+
+
 
     // Method to save Items to a file
     public static void saveToFile(List<Item> itemList, String filename) {
