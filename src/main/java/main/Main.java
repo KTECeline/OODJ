@@ -1,4 +1,4 @@
-package com.mycompany.owsb.view.main;
+package main;
 
 import com.mycompany.owsb.view.LoginWindow;
 
