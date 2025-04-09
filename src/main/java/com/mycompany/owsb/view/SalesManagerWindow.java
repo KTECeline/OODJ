@@ -23,8 +23,6 @@ public class SalesManagerWindow extends javax.swing.JFrame {
     // List to hold all loaded purchase orders
     private List<PurchaseOrder> purchaseOrderList;
 
-    // String representing the file path for purchase order data
-    private static final String PO_FILE = "data/purchase_order.txt";
 
     /**
      * Creates new form SalesManagerWindow
@@ -47,7 +45,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
     // Method to load Purchase Orders from file and display them in the UI list
     private void loadPOsIntoList() {
         // Load the list of Purchase Orders from the purchase order file
-        purchaseOrderList = PurchaseOrder.loadFromFile(PO_FILE);
+        purchaseOrderList = PurchaseOrder.loadPurchaseOrders();
         
         // Update the JList and details area in the UI with the loaded Purchase Orders
         PurchaseOrder.updatePOListInUI(purchaseOrderList, poList, poDetails);
@@ -76,6 +74,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Sales Manager");
 
+        ManageItemsButton.setBackground(new java.awt.Color(204, 204, 255));
         ManageItemsButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
         ManageItemsButton.setText("Manage Items");
         ManageItemsButton.addActionListener(new java.awt.event.ActionListener() {
@@ -123,7 +122,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
         jScrollPane2.setViewportView(poList);
 
         searchField.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
-        searchField.setForeground(new java.awt.Color(102, 102, 102));
+        searchField.setForeground(new java.awt.Color(51, 51, 51));
         searchField.setText("Enter Purchase Order ID");
         searchField.setToolTipText("");
         searchField.addMouseListener(new java.awt.event.MouseAdapter() {

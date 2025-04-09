@@ -1,1 +1,2 @@
 IT0001,Medium Size Tupperware,SP0001,30,22.5,30.0
+IT0002,Kuromi T-shirt,SP0001,2,2.0,2.0

@@ -12,11 +12,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
@@ -33,6 +30,9 @@ public class Item {
     private int stock;
     private double cost;
     private double price;
+    
+    // String representing the file path for item data
+    private static final String ITEM_FILE = "data/items.txt";
 
     public Item(String itemID, String itemName, String supplierId, int stock, double cost, double price) {
         this.itemID = itemID;
@@ -102,9 +102,9 @@ public class Item {
     
 
     // Method to load Items from a file
-    public static List<Item> loadFromFile(String filePath) {
+    public static List<Item> loadItems() {
         List<Item> itemList = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(ITEM_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 Item item = Item.fromString(line);
@@ -135,6 +135,8 @@ public class Item {
         }
 
         targetTable.setModel(tableModel);
+        autoResizeColumnWidths(targetTable);
+        
     }
 
 
@@ -173,11 +175,9 @@ public class Item {
             
             // Reload full item list into table
             updateItemTableInUI(itemList, table);
-            autoResizeColumnWidths(table);
-            
-            // Reset Search Field
-            searchField.setText("");
         }
+        // Reset Search Field
+        searchField.setText("Enter Item ID");
     }
     
     
@@ -198,8 +198,8 @@ public class Item {
 
 
     // Method to save Items to a file
-    public static void saveToFile(List<Item> itemList, String filename) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+    public static void saveToFile(List<Item> itemList) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(ITEM_FILE))) {
             for (Item item : itemList) {
                 writer.write(item.toString());
                 writer.newLine();

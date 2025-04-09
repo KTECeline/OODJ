@@ -34,7 +34,8 @@ public class PurchaseOrder {
     private String orderDate;
     private String status;
     
-
+    // String representing the file path for purchase order data
+    private static final String PURCHASE_ORDER_FILE = "data/purchase_order.txt";
     
     // Constructor
     public PurchaseOrder(String orderID, String itemID, int quantity, String supplierID, double unitPrice, String orderDate, String status) {
@@ -82,6 +83,7 @@ public class PurchaseOrder {
 
     
     // Method to convert a Purchase Order to a String for saving to a file
+    @Override
     public String toString() {
         return orderID + "," + itemID + "," + quantity + "," + supplierID + "," + unitPrice + "," + totalPrice + "," + orderDate + "," + status;
     }
@@ -90,13 +92,13 @@ public class PurchaseOrder {
         String[] orderData = orderString.split(",");
 
         // Parse the fields from the string array
-        String orderID = orderData[0];         // Purchase Order ID
-        String itemID = orderData[1];                  // Item ID
-        int quantity = Integer.parseInt(orderData[2]); // Quantity
-        String supplierID = orderData[3];              // Supplier ID
+        String orderID = orderData[0];                       // Purchase Order ID
+        String itemID = orderData[1];                        // Item ID
+        int quantity = Integer.parseInt(orderData[2]);       // Quantity
+        String supplierID = orderData[3];                    // Supplier ID
         double unitPrice = Double.parseDouble(orderData[4]); // Unit Price
-        String orderDate = orderData[6];               // Order Date (as a String)
-        String status = orderData[7];                  // Order Status (Pending, Approved, etc.)
+        String orderDate = orderData[6];                     // Order Date (as a String)
+        String status = orderData[7];                        // Order Status (Pending, Approved, etc.)
 
         // Return a new PurchaseOrder object
         return new PurchaseOrder(orderID, itemID, quantity, supplierID, unitPrice, orderDate, status);
@@ -113,9 +115,9 @@ public class PurchaseOrder {
                "Status: " + getStatus();
     }
 
-    public static List<PurchaseOrder> loadFromFile(String filePath) {
+    public static List<PurchaseOrder> loadPurchaseOrders() {
         List<PurchaseOrder> poList = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(PURCHASE_ORDER_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 PurchaseOrder po = PurchaseOrder.fromString(line);

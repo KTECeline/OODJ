@@ -6,6 +6,7 @@ package com.mycompany.owsb.view;
 
 import com.mycompany.owsb.model.Item;
 import com.mycompany.owsb.model.SalesManager;
+import com.mycompany.owsb.model.Supplier;
 import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
@@ -21,6 +22,7 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
     private final SalesManager salesManager;
     
     private java.util.List<Item> itemDataList = new ArrayList<>();
+    private java.util.List<Supplier> supplierDataList = new ArrayList<>();
     
     // String representing the file path for purchase order data
     private static final String ITEM_FILE = "data/items.txt";
@@ -56,13 +58,10 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
     // Method to load Items from file and display them in the UI list
     private void loadItemsIntoList() {
         // Load the list of Purchase Orders from the purchase order file
-        itemDataList = Item.loadFromFile(ITEM_FILE);
+        itemDataList = Item.loadItems();
         
         // Update JTable to the latest
         Item.updateItemTableInUI(itemDataList, itemTable);
-        
-        // Auto-resize columns to fit content
-        Item.autoResizeColumnWidths(itemTable);
     }
     
     
@@ -82,7 +81,7 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
             // Search for the item based on input ID
             for (Item item : itemDataList) {
                 if (item.getItemID().equalsIgnoreCase(inputID)) {
-                    salesManager.editItem(item); // Call editItem method in Sales Manager Class if item found
+                    salesManager.editItem(item, itemDataList, supplierDataList, itemTable); // Call editItem method in Sales Manager Class if item found
                     Item.updateItemTableInUI(itemDataList, itemTable);
                     found = true;
                     break;
@@ -108,53 +107,21 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel1 = new javax.swing.JPanel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        itemTable = new javax.swing.JTable();
+        backButton = new javax.swing.JButton();
         addItemButton = new javax.swing.JButton();
         editItemButton = new javax.swing.JButton();
         deleteItemButton = new javax.swing.JButton();
         searchField = new javax.swing.JTextField();
         searchButton = new javax.swing.JButton();
-        jScrollPane3 = new javax.swing.JScrollPane();
-        itemTable = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Items");
+        setBackground(new java.awt.Color(255, 255, 255));
 
-        addItemButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
-        addItemButton.setText("Add");
-        addItemButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                addItemButtonActionPerformed(evt);
-            }
-        });
-
-        editItemButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
-        editItemButton.setText("Edit");
-        editItemButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                editItemButtonActionPerformed(evt);
-            }
-        });
-
-        deleteItemButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
-        deleteItemButton.setText("Delete");
-
-        searchField.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
-        searchField.setForeground(new java.awt.Color(102, 102, 102));
-        searchField.setText("Enter Item ID");
-        searchField.setToolTipText("");
-        searchField.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                searchFieldMouseClicked(evt);
-            }
-        });
-
-        searchButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
-        searchButton.setText("Search");
-        searchButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                searchButtonActionPerformed(evt);
-            }
-        });
+        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
 
         itemTable.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
         itemTable.setModel(new javax.swing.table.DefaultTableModel(
@@ -172,7 +139,7 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
                 java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.Double.class, java.lang.Double.class
             };
             boolean[] canEdit = new boolean [] {
-                true, false, false, true, false, false
+                false, false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -183,49 +150,134 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
+        itemTable.setGridColor(new java.awt.Color(102, 102, 102));
+        itemTable.setRowHeight(25);
+        itemTable.setSelectionBackground(new java.awt.Color(51, 51, 51));
+        itemTable.setSelectionForeground(new java.awt.Color(255, 255, 255));
         jScrollPane3.setViewportView(itemTable);
         if (itemTable.getColumnModel().getColumnCount() > 0) {
             itemTable.getColumnModel().getColumn(0).setPreferredWidth(50);
             itemTable.getColumnModel().getColumn(0).setMaxWidth(50);
             itemTable.getColumnModel().getColumn(1).setMinWidth(200);
+            itemTable.getColumnModel().getColumn(2).setMinWidth(80);
+            itemTable.getColumnModel().getColumn(2).setPreferredWidth(80);
+            itemTable.getColumnModel().getColumn(2).setMaxWidth(80);
         }
+
+        backButton.setBackground(new java.awt.Color(102, 102, 102));
+        backButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        backButton.setForeground(new java.awt.Color(255, 255, 255));
+        backButton.setText("<");
+        backButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                backButtonActionPerformed(evt);
+            }
+        });
+
+        addItemButton.setBackground(new java.awt.Color(255, 51, 51));
+        addItemButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        addItemButton.setForeground(new java.awt.Color(255, 255, 255));
+        addItemButton.setText("Add");
+        addItemButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addItemButtonActionPerformed(evt);
+            }
+        });
+
+        editItemButton.setBackground(new java.awt.Color(255, 204, 0));
+        editItemButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        editItemButton.setText("Edit");
+        editItemButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                editItemButtonActionPerformed(evt);
+            }
+        });
+
+        deleteItemButton.setBackground(new java.awt.Color(51, 51, 51));
+        deleteItemButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        deleteItemButton.setForeground(new java.awt.Color(255, 255, 255));
+        deleteItemButton.setText("Delete");
+        deleteItemButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteItemButtonActionPerformed(evt);
+            }
+        });
+
+        searchField.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        searchField.setForeground(new java.awt.Color(51, 51, 51));
+        searchField.setText("Enter Item ID");
+        searchField.setToolTipText("");
+        searchField.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                searchFieldMouseClicked(evt);
+            }
+        });
+
+        searchButton.setBackground(new java.awt.Color(102, 102, 102));
+        searchButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        searchButton.setForeground(new java.awt.Color(255, 255, 255));
+        searchButton.setText("Search");
+        searchButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                searchButtonActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(34, 34, 34)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 549, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(1, 1, 1)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(backButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(searchField, javax.swing.GroupLayout.PREFERRED_SIZE, 404, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(deleteItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(addItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(searchButton, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(editItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(21, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(43, 43, 43)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(searchButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(searchField)
+                        .addComponent(backButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(deleteItemButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(editItemButton)
+                    .addComponent(addItemButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 288, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(33, 33, 33))
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap(28, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(deleteItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(addItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(searchField))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(searchButton, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(editItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 549, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(27, 27, 27))
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(41, 41, 41)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(searchField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(searchButton))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(deleteItemButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(editItemButton)
-                    .addComponent(addItemButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 289, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(29, Short.MAX_VALUE))
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         pack();
@@ -233,10 +285,12 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void addItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addItemButtonActionPerformed
-        // TODO add your handling code here:
+        supplierDataList = Supplier.loadSuppliers();
+        salesManager.AddItem(this, itemDataList, supplierDataList, itemTable);
     }//GEN-LAST:event_addItemButtonActionPerformed
 
     private void editItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editItemButtonActionPerformed
+        supplierDataList = Supplier.loadSuppliers();
         int selectedRow = itemTable.getSelectedRow(); // Get selected row index
 
         if (selectedRow != -1) { // -1 means no row selected
@@ -253,7 +307,7 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
             if (confirm == JOptionPane.YES_OPTION) {
                 for (Item item : itemDataList) {
                     if (item.getItemID().equalsIgnoreCase(selectedItemID)) {
-                        salesManager.editItem(item); // Open the edit form
+                        salesManager.editItem(item, itemDataList, supplierDataList, itemTable); // Open the edit form
                         Item.updateItemTableInUI(itemDataList, itemTable); // Refresh the table
                         break;
                     }
@@ -275,6 +329,15 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
         Item.searchAndDisplayItemInTable(searchField, itemTable, itemDataList);
     }//GEN-LAST:event_searchButtonActionPerformed
 
+    private void deleteItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteItemButtonActionPerformed
+        salesManager.deleteItem(this, itemDataList, itemTable);
+    }//GEN-LAST:event_deleteItemButtonActionPerformed
+
+    private void backButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backButtonActionPerformed
+        // Update JTable to the latest
+        Item.updateItemTableInUI(itemDataList, itemTable);
+    }//GEN-LAST:event_backButtonActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -282,9 +345,11 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addItemButton;
+    private javax.swing.JButton backButton;
     private javax.swing.JButton deleteItemButton;
     private javax.swing.JButton editItemButton;
     private javax.swing.JTable itemTable;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JButton searchButton;
     private javax.swing.JTextField searchField;

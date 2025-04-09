@@ -4,6 +4,13 @@
  */
 package com.mycompany.owsb.model;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author timi
@@ -13,6 +20,9 @@ public class Supplier {
     private String supplierName;
     private String itemId;
     private String email;
+    
+    // String representing the file path for item data
+    private static final String SUPPLIER_FILE = "data/suppliers.txt";
 
     public Supplier(String supplierID, String supplierName, String itemId, String email) {
         this.supplierID = supplierID;
@@ -54,4 +64,22 @@ public class Supplier {
             parts[3]   // email
         );
     }
+    
+    // Method to load Items from a file
+    public static List<Supplier> loadSuppliers() {
+        List<Supplier> supplierList = new ArrayList<>();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(SUPPLIER_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                Supplier supplier = Supplier.fromString(line);
+                supplierList.add(supplier);
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Error loading suppliers: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        return supplierList;
+    }
+    
 }
