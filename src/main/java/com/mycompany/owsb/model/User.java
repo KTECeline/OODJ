@@ -18,6 +18,8 @@ public class User {
     
     private static int lastUserId = 0;  // To track the last assigned ID
 
+    
+    
     public User(String username, String password, String role) {
         this.username = username;
         this.password = password;

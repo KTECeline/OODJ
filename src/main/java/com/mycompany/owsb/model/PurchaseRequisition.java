@@ -1,5 +1,12 @@
 package com.mycompany.owsb.model;
 
+import static com.mycompany.owsb.model.PurchaseOrder.loadPurchaseOrders;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
@@ -68,7 +75,9 @@ public class PurchaseRequisition {
     public String getStatus() {
         return status;
     }
-    
+    public void setStatus(String status){
+        this.status=status;
+    }
     // Convert object to string to save it in file
     @Override
     public String toString() {
@@ -90,5 +99,25 @@ public class PurchaseRequisition {
             parts[8]                        // status (skip parts[7] since totalCost is calculated)
         );
     }
+    
+    public static List<PurchaseRequisition> loadPurchaseRequisition() {
+        List<PurchaseRequisition> prList = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(PURCHASE_REQUISITION_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                PurchaseRequisition pr = PurchaseRequisition.fromString(line);
+                prList.add(pr);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return prList;
+    }
+    public static PurchaseRequisition findById(String prId) {
+    List<PurchaseRequisition> allOrders = loadPurchaseRequisition();
+    return allOrders.stream()
+            .filter(po -> po.getPrID().equals(prId))
+            .findFirst()
+            .orElse(null);
 }
 

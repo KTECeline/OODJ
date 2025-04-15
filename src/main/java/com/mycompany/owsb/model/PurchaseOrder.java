@@ -33,12 +33,37 @@ public class PurchaseOrder {
     private double totalPrice;
     private String orderDate;
     private String status;
+    private String createdBy;
+    private String prId;
     
     // String representing the file path for purchase order data
     private static final String PURCHASE_ORDER_FILE = "data/purchase_order.txt";
     
     // Constructor
-    public PurchaseOrder(String orderID, String itemID, int quantity, String supplierID, double unitPrice, String orderDate, String status) {
+    public PurchaseOrder(String orderID, String itemID, int quantity, String supplierID, double unitPrice, String orderDate, String status,
+                        String prId, String createdBy) {
+        
+            if (orderID == null || orderID.isEmpty()) {
+            throw new IllegalArgumentException("Order ID cannot be null or empty");
+        }
+        if (itemID == null || itemID.isEmpty()) {
+            throw new IllegalArgumentException("Item ID cannot be null or empty");
+        }
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be positive");
+        }
+        if (supplierID == null || supplierID.isEmpty()) {
+            throw new IllegalArgumentException("Supplier ID cannot be null or empty");
+        }
+        if (unitPrice <= 0) {
+            throw new IllegalArgumentException("Unit price must be positive");
+        }
+        if (orderDate == null || orderDate.isEmpty()) {
+            throw new IllegalArgumentException("Order date cannot be null or empty");
+        }
+        if (!isValidStatus(status)) {
+            throw new IllegalArgumentException("Invalid status value");
+        }
         this.orderID = orderID;
         this.itemID = itemID;
         this.quantity = quantity;
@@ -47,7 +72,18 @@ public class PurchaseOrder {
         this.totalPrice = quantity * unitPrice;
         this.orderDate = orderDate;
         this.status = status;
+        this.prId= prId;
+        this.supplierID= supplierID;
+        this.createdBy=createdBy;
     }
+    
+    private boolean isValidStatus(String status) {
+    return status != null && 
+           (status.equals("PENDING") || 
+            status.equals("APPROVED") || 
+            status.equals("REJECTED") || 
+            status.equals("FULFILLED"));
+}
     
     public String getOrderID() {
         return orderID;
@@ -80,12 +116,33 @@ public class PurchaseOrder {
     public String getStatus() {
         return status;
     }
-
+    public String getPrId(){
+        return prId;
+    }
+    public String getCreatedBy(){
+        return createdBy;
+    }
+    
+    public void setStatus(String status){
+        this.status=status;
+    }
+    public void setQuantity(int quantity){
+        this.quantity= quantity;
+        
+    }
+    public void setTotalPrice(double totalPrice){
+        this.totalPrice=totalPrice;
+    }
+    
+    public void setSupplierID(String supplierID){
+        this.supplierID=supplierID;
+    }
     
     // Method to convert a Purchase Order to a String for saving to a file
     @Override
     public String toString() {
-        return orderID + "," + itemID + "," + quantity + "," + supplierID + "," + unitPrice + "," + totalPrice + "," + orderDate + "," + status;
+        return orderID + "," + itemID + "," + quantity + "," + supplierID + "," + unitPrice + "," + totalPrice + "," + orderDate + "," + status +
+                "," + prId + "," + createdBy;
     }
 
     public static PurchaseOrder fromString(String orderString) {
@@ -99,9 +156,10 @@ public class PurchaseOrder {
         double unitPrice = Double.parseDouble(orderData[4]); // Unit Price
         String orderDate = orderData[6];                     // Order Date (as a String)
         String status = orderData[7];                        // Order Status (Pending, Approved, etc.)
-
+        String prId =orderData[8];
+        String createdBy = orderData[9];
         // Return a new PurchaseOrder object
-        return new PurchaseOrder(orderID, itemID, quantity, supplierID, unitPrice, orderDate, status);
+        return new PurchaseOrder(orderID, itemID, quantity, supplierID, unitPrice, orderDate, status,prId,createdBy);
     }
     
     public String getFormattedDetails() {
@@ -112,12 +170,15 @@ public class PurchaseOrder {
                "Unit Price: " + getUnitPrice() + "\n\n" +
                "Total Price: " + getTotalPrice() + "\n\n" +
                "Order Date: " + orderDate + "\n\n" +
-               "Status: " + getStatus();
+               "Status: " + getStatus() +
+               "PO Id: " + getPrId()+ "\n\n"+ 
+               "Created By: " + getCreatedBy();
+               
     }
 
     public static List<PurchaseOrder> loadPurchaseOrders() {
         List<PurchaseOrder> poList = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(PURCHASE_ORDER_FILE))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(PO_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 PurchaseOrder po = PurchaseOrder.fromString(line);
@@ -184,5 +245,24 @@ public class PurchaseOrder {
             JOptionPane.showMessageDialog(null, "Failed to save purchase orders.");
         }
     }
-
+    
+    public static PurchaseOrder findById(String orderId) {
+    List<PurchaseOrder> allOrders = loadPurchaseOrders();
+    return allOrders.stream()
+            .filter(po -> po.getOrderID().equals(orderId))
+            .findFirst()
+            .orElse(null);
+}
+    
+    private static int lastOrderId=0;
+    public static String generateNewOrderId(){
+        if(lastOrderId ==0){
+            List<PurchaseOrder> allOrders = loadPurchaseOrders();
+            lastOrderId= allOrders.stream()
+                    .mapToInt(po ->Integer.parseInt(po.getOrderID().substring(2)))
+                    .max()
+                    .orElse(0);
+        }
+        return "PO" + (++lastOrderId);
+    }
 }

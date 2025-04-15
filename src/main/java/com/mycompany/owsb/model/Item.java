@@ -4,6 +4,7 @@
  */
 package com.mycompany.owsb.model;
 
+import static com.mycompany.owsb.model.PurchaseOrder.loadPurchaseOrders;
 import java.awt.Component;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -209,7 +210,26 @@ public class Item {
         }
     }
     
-    
+     public static List<Item> loadItem() {
+        List<Item> itemList = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(PURCHASE_ITEM_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                PurchaseOrder po = PurchaseOrder.fromString(line);
+                itemList.add(item);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return itemList;
+    }
+     
+    public static Item findById(String itemId) {
+    List<Item> allOrders = loadItem();
+    return allOrders.stream()
+            .filter(item -> item.getItemID().equals(itemId))
+            .findFirst()
+            .orElse(null);
     
 
 }
