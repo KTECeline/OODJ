@@ -178,7 +178,7 @@ public class PurchaseOrder {
 
     public static List<PurchaseOrder> loadPurchaseOrders() {
         List<PurchaseOrder> poList = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(PO_FILE))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(PURCHASE_ORDER_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 PurchaseOrder po = PurchaseOrder.fromString(line);
@@ -264,5 +264,42 @@ public class PurchaseOrder {
                     .orElse(0);
         }
         return "PO" + (++lastOrderId);
+    }
+    
+    public static void update(PurchaseOrder updatedPo) {
+        List<PurchaseOrder> orders = loadPurchaseOrders();
+        boolean found = false;
+
+        // Update the matching purchase order
+        for (int i = 0; i < orders.size(); i++) {
+            if (orders.get(i).getOrderID().equals(updatedPo.getOrderID())) {
+                orders.set(i, updatedPo);
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            throw new IllegalArgumentException("Purchase Order not found for update");
+        }
+
+        // Rewrite the file with updated data
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("data/purchase_order.txt"))) {
+            for (PurchaseOrder po : orders) {
+                writer.write(String.format("%s,%s,%d,%s,%.2f,%s,%s,%s,%s",
+                        po.getOrderID(),
+                        po.getItemID(),
+                        po.getQuantity(),
+                        po.getSupplierID(),
+                        po.getUnitPrice(),
+                        po.getOrderDate(),
+                        po.getStatus(),
+                        po.getPrId(),
+                        po.getCreatedBy()));
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error updating purchase order file: " + e.getMessage());
+        }
     }
 }

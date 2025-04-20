@@ -2,7 +2,9 @@ package com.mycompany.owsb.model;
 
 import static com.mycompany.owsb.model.PurchaseOrder.loadPurchaseOrders;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +29,9 @@ public class PurchaseRequisition {
     private double totalCost;
     private String status;
 
+    private static final String PURCHASE_REQUISITION_FILE = "data/purchase_requisition.txt";
+    
+    
     public PurchaseRequisition(String prID, String itemID, int quantity, String requiredDate, String supplierID,
                                String raisedBy, double unitCost, String status) {
         this.prID = prID;
@@ -120,4 +125,39 @@ public class PurchaseRequisition {
             .findFirst()
             .orElse(null);
 }
+    
+    public static void update(PurchaseRequisition updatedPr) {
+        List<PurchaseRequisition> all = loadPurchaseRequisition();
+        for (int i = 0; i < all.size(); i++) {
+            if (all.get(i).getPrID().equals(updatedPr.getPrID())) {
+                all.set(i, updatedPr);
+                break;
+            }
+        }
+        saveAll(all);
+    }
 
+public static void saveAll(List<PurchaseRequisition> requisitions) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(PURCHASE_REQUISITION_FILE))) {
+            for (PurchaseRequisition pr : requisitions) {
+                writer.write(pr.toString());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.err.println("Error saving purchase requisitions: " + e.getMessage());
+        }
+    }
+public static String generateNewPrId() {
+        List<PurchaseRequisition> all = loadPurchaseRequisition();
+        int maxId = 0;
+        for (PurchaseRequisition pr : all) {
+            try {
+                int idNum = Integer.parseInt(pr.getPrID().substring(2));
+                if (idNum > maxId) maxId = idNum;
+            } catch (NumberFormatException e) {
+                // Skip if ID format is invalid
+            }
+        }
+        return String.format("PR%04d", maxId + 1);
+    }
+}

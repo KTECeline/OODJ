@@ -212,10 +212,10 @@ public class Item {
     
      public static List<Item> loadItem() {
         List<Item> itemList = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(PURCHASE_ITEM_FILE))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(ITEM_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                PurchaseOrder po = PurchaseOrder.fromString(line);
+                Item item = Item.fromString(line);
                 itemList.add(item);
             }
         } catch (IOException e) {
@@ -232,5 +232,5 @@ public class Item {
             .orElse(null);
     
 
-}
+}}
 
