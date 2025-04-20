@@ -43,7 +43,7 @@ public class PurchaseOrder {
     public PurchaseOrder(String orderID, String itemID, int quantity, String supplierID, double unitPrice, String orderDate, String status,
                         String prId, String createdBy) {
         
-            if (orderID == null || orderID.isEmpty()) {
+        if (orderID == null || orderID.isEmpty()) {
             throw new IllegalArgumentException("Order ID cannot be null or empty");
         }
         if (itemID == null || itemID.isEmpty()) {
@@ -170,7 +170,7 @@ public class PurchaseOrder {
                "Unit Price: " + getUnitPrice() + "\n\n" +
                "Total Price: " + getTotalPrice() + "\n\n" +
                "Order Date: " + orderDate + "\n\n" +
-               "Status: " + getStatus() +
+               "Status: " + getStatus() + "\n\n"+ 
                "PO Id: " + getPrId()+ "\n\n"+ 
                "Created By: " + getCreatedBy();
                
