@@ -5,6 +5,7 @@
 package com.mycompany.owsb.model;
 
 import static com.mycompany.owsb.model.PurchaseOrder.loadPurchaseOrders;
+import java.awt.Color;
 import java.awt.Component;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -16,6 +17,7 @@ import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
@@ -25,23 +27,25 @@ import javax.swing.table.TableColumnModel;
  * @author timi
  */
 public class Item {
-    private String itemID;
+    private final String itemID;
     private String itemName;
     private String supplierId;
     private int stock;
     private double cost;
     private double price;
+    private boolean stockLevel;
     
     // String representing the file path for item data
     private static final String ITEM_FILE = "data/items.txt";
 
-    public Item(String itemID, String itemName, String supplierId, int stock, double cost, double price) {
+    public Item(String itemID, String itemName, String supplierId, int stock, double cost, double price, boolean stockLevel) {
         this.itemID = itemID;
         this.itemName = itemName;
         this.supplierId = supplierId;
         this.stock = stock;
         this.cost = cost;
         this.price = price;
+        this.stockLevel = stockLevel;
     }
     
     //Getter
@@ -63,6 +67,10 @@ public class Item {
     public double getPrice() {
         return price;
     }
+    public String getStockLevel() {
+        return stock < 5 ? "Low" : "Normal";
+    }
+
     
     
     //Setter
@@ -81,11 +89,14 @@ public class Item {
     public void setPrice(double price) { 
         this.price = price; 
     }
+    public void setStockLevel(boolean stockLevel) { 
+        this.stockLevel = stockLevel; 
+    }
     
     // Convert object to string to save it in file
     @Override
     public String toString() {
-        return itemID + "," + itemName + "," + supplierId + "," + stock + "," + cost + "," + price;
+        return itemID + "," + itemName + "," + supplierId + "," + stock + "," + cost + "," + price + "," + stockLevel;
     }
     
     // Convert the line in the file from String to object
@@ -97,10 +108,15 @@ public class Item {
         int stock = Integer.parseInt(parts[3]);
         double cost = Double.parseDouble(parts[4]);
         double price = Double.parseDouble(parts[5]);
+        boolean stockLevel = Boolean.parseBoolean(parts[6]);
         
-        return new Item(itemID, itemName, supplierId, stock, cost, price);  // Return a new Item object
+        return new Item(itemID, itemName, supplierId, stock, cost, price, stockLevel);  // Return a new Item object
     }
     
+    public static boolean isLowStock(int stock) {
+        return stock < 5;
+    }
+
 
     // Method to load Items from a file
     public static List<Item> loadItems() {
@@ -109,6 +125,10 @@ public class Item {
             String line;
             while ((line = reader.readLine()) != null) {
                 Item item = Item.fromString(line);
+                
+                // Update lowStockAlert based on current stock
+                item.setStockLevel(Item.isLowStock(item.getStock()));
+            
                 itemList.add(item);
             }
         } catch (IOException e) {
@@ -120,7 +140,7 @@ public class Item {
     
     // Method to update item table in the UI
     public static void updateItemTableInUI(List<Item> itemList, JTable targetTable) {
-        String[] columnNames = {"Item ID", "Name", "Supplier ID", "Stock", "Cost (RM)", "Price (RM)"};
+        String[] columnNames = {"Item ID", "Name", "Supplier ID", "Stock", "Cost (RM)", "Price (RM)", "Stock Level"};
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
 
         for (Item item : itemList) {
@@ -130,13 +150,15 @@ public class Item {
                 item.getSupplierId(),
                 item.getStock(),
                 item.getCost(),
-                item.getPrice()
+                item.getPrice(),
+                item.getStockLevel()
             };
             tableModel.addRow(row);
         }
 
         targetTable.setModel(tableModel);
         autoResizeColumnWidths(targetTable);
+        applyRowColorBasedOnStockLevel(targetTable);
         
     }
 
@@ -161,7 +183,8 @@ public class Item {
                     item.getSupplierId(),
                     item.getStock(),
                     item.getCost(),
-                    item.getPrice()
+                    item.getPrice(),
+                    item.getStockLevel()
                 };
                 model.addRow(row); // Add matched item to the table
                 found = true;
@@ -196,6 +219,32 @@ public class Item {
     }
 
 
+    public static void applyRowColorBasedOnStockLevel(JTable table) {
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                                                           boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+                String stockLevel = table.getModel().getValueAt(row, 6).toString(); // Column index 6 = "Stock Level"
+
+                if (stockLevel.equalsIgnoreCase("Low")) {
+                    c.setBackground(new Color(255, 204, 204)); // Light red
+                } else if (stockLevel.equalsIgnoreCase("Normal")) {
+                    c.setBackground(new Color(204, 255, 204)); // Light green
+                } else {
+                    c.setBackground(Color.WHITE);
+                }
+
+                if (isSelected) {
+                    c.setBackground(table.getSelectionBackground());
+                }
+
+                return c;
+            }
+        });
+    }
+
 
 
     // Method to save Items to a file
@@ -225,12 +274,14 @@ public class Item {
     }
      
     public static Item findById(String itemId) {
-    List<Item> allOrders = loadItem();
-    return allOrders.stream()
-            .filter(item -> item.getItemID().equals(itemId))
-            .findFirst()
-            .orElse(null);
+        List<Item> allItems = loadItem();
+        for (Item item : allItems) {
+            if (item.getItemID().equals(itemId)) {
+                return item;
+            }
+        }
+        return null;
     }  
-    
+
 }
 

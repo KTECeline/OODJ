@@ -193,15 +193,34 @@ public class SalesManager {
             try {
                 price = Double.parseDouble(priceStr);
                 if (price < 0) throw new NumberFormatException();
+                
+                // Show warning if price is lower than cost
+                if (price < cost) {
+                    int response = JOptionPane.showConfirmDialog(
+                        dialog,
+                        "Warning: Price is lower than cost.\nDo you want to continue?",
+                        "Low Price Warning",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE
+                    );
+
+                    if (response != JOptionPane.YES_OPTION) {
+                        return; // Stop further execution if user selects "No"
+                    }
+                }
+                
             } catch (NumberFormatException ex) {
                 priceError.setForeground(errorColor);
                 priceError.setText("*Invalid price.");
                 isValid = false;
             }
-
+            
+            
             // If all fields are valid, add the item
             if (isValid) {
-                Item newItem = new Item(nextItemID, itemName, supplierId, stock, cost, price);
+                boolean lowStockAlert = Item.isLowStock(stock);
+                
+                Item newItem = new Item(nextItemID, itemName, supplierId, stock, cost, price,lowStockAlert);
                 itemList.add(newItem);
                 Item.saveToFile(itemList);
                 Item.updateItemTableInUI(itemList, itemTable);
