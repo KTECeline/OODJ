@@ -83,6 +83,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
             }
         });
 
+        ManageSuppliersButton.setBackground(new java.awt.Color(176, 176, 249));
         ManageSuppliersButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
         ManageSuppliersButton.setText("Manage Suppliers");
         ManageSuppliersButton.addActionListener(new java.awt.event.ActionListener() {
@@ -197,7 +198,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_ManageItemsButtonActionPerformed
 
     private void ManageSuppliersButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ManageSuppliersButtonActionPerformed
-        SmManageSuppliersWindow manageSuppliersWindow = new SmManageSuppliersWindow(this);
+        SmManageSuppliersWindow manageSuppliersWindow = new SmManageSuppliersWindow(this, salesManager);
         manageSuppliersWindow.setVisible(true);
         this.setVisible(false); // Hide current window
     }//GEN-LAST:event_ManageSuppliersButtonActionPerformed

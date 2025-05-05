@@ -16,12 +16,11 @@ import java.util.List;
 
 public class SalesManager {
     public SalesManager() {
-
     }
     
     //ITEM SECTION
     
-    // Method to auto generate ITEM ID from the last one
+    // Method to auto GENERATE ITEM ID from the last one
     public static String generateNextItemID(List<Item> itemList) {
         int maxNumber = 0;
         for (Item item : itemList) {
@@ -39,7 +38,8 @@ public class SalesManager {
     }
 
     
-    public void AddItem(JFrame parent, List<Item> itemList, List<Supplier> supplierList, JTable itemTable) {
+    // Method to ADD new item
+    public void addItem(JFrame parent, List<Item> itemList, List<Supplier> supplierList, JTable itemTable) {
         String nextItemID = generateNextItemID(itemList);
 
         // Input fields
@@ -215,9 +215,8 @@ public class SalesManager {
         dialog.setVisible(true);
     }
 
-
-
-
+    
+    // Method to EDIT item details
     public void editItem(Item itemToEdit, List<Item> itemList, List<Supplier> supplierList, JTable itemTable) {
        // Input fields
        JTextField nameField = new JTextField(itemToEdit.getItemName(), 20);
@@ -385,7 +384,7 @@ public class SalesManager {
    }
 
     
-    
+    // Method to DELETE item
     public void deleteItem(JFrame parent, List<Item> itemList, JTable itemTable) {
         int selectedRow = itemTable.getSelectedRow();
 
@@ -431,22 +430,276 @@ public class SalesManager {
         }
     }
 
-
     
+    
+    
+    //SUPPLIER SECTION
+    
+    // Method to auto GENERATE SUPPLIER ID from the last one
+    public static String generateNextSupplierID(List<Supplier> supplierList) {
+        int maxNumber = 0;
+        for (Supplier supplier : supplierList) {
+            String id = supplier.getSupplierID();
+            if (id.startsWith("SP")) {
+                try {
+                    int num = Integer.parseInt(id.substring(2));
+                    if (num > maxNumber) {
+                        maxNumber = num;
+                    }
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+        return String.format("SP%04d", maxNumber + 1);
+    }
+    
+    // Method to ADD new supplier
+    public void addSupplier(JFrame parent, List<Supplier> supplierList, JTable supplierTable) {
+        String nextSupplierID = generateNextSupplierID(supplierList);
+        
+        // Input fields
+        JTextField supplierNameField = new JTextField(20);
+        JTextField emailField = new JTextField(20);
 
-    // Separate method to save changes to file
-    public void saveItemChanges(Item updatedItem) {
-        java.util.List<Item> currentItemList = Item.loadItems();
+        // Error labels
+        JLabel supplierNameError = new JLabel();
+        JLabel emailError = new JLabel();
 
-        for (int i = 0; i < currentItemList.size(); i++) {
-            if (currentItemList.get(i).getItemID().equalsIgnoreCase(updatedItem.getItemID())) {
-                currentItemList.set(i, updatedItem);
+        Color errorColor = Color.RED;
+
+        JPanel panel = new JPanel(new GridLayout(0, 2, 0, 5));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        panel.setBackground(Color.white);
+
+        panel.add(new JLabel("Supplier ID:"));
+        panel.add(new JLabel(nextSupplierID));
+
+        panel.add(new JLabel("Supplier Name:"));
+        panel.add(supplierNameField);
+        panel.add(new JLabel());
+        panel.add(supplierNameError);
+
+        panel.add(new JLabel("Email:"));
+        panel.add(emailField);
+        panel.add(new JLabel());
+        panel.add(emailError);
+
+        JDialog dialog = new JDialog(parent, "Add New Supplier", true);
+        dialog.getContentPane().add(panel, BorderLayout.CENTER);
+
+        JButton submit = new JButton("Add");
+        JButton cancel = new JButton("Cancel");
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(submit);
+        buttonPanel.add(cancel);
+        buttonPanel.setBackground(Color.white);
+
+        submit.setBackground(Color.red);
+        submit.setForeground(Color.white);
+        cancel.setBackground(Color.black);
+        cancel.setForeground(Color.white);
+
+        dialog.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
+
+        dialog.pack();
+        dialog.setLocationRelativeTo(parent);
+
+        submit.addActionListener(e -> {
+            supplierNameError.setText("");
+            emailError.setText("");
+
+            String supplierName = supplierNameField.getText().trim();
+            String email = emailField.getText().trim();
+
+            boolean isValid = true;
+
+
+            // Supplier Name validation
+            if (supplierName.isEmpty()) {
+                supplierNameError.setForeground(errorColor);
+                supplierNameError.setText("*Supplier name is required.");
+                isValid = false;
+            }
+
+
+            // Email validation
+            if (email.isEmpty() || !email.matches("^[\\w.-]+@[\\w.-]+\\.\\w+$")) {
+                emailError.setForeground(errorColor);
+                emailError.setText("*Invalid email format.");
+                isValid = false;
+            }
+
+            if (isValid) {
+                Supplier newSupplier = new Supplier(nextSupplierID, supplierName, email);
+                supplierList.add(newSupplier);
+                Supplier.saveToFile(supplierList);
+                Supplier.updateSupplierTableInUI(supplierList, supplierTable);
+                JOptionPane.showMessageDialog(dialog, "Supplier added successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                dialog.dispose();
+            }
+        });
+
+        cancel.addActionListener(e -> dialog.dispose());
+
+        dialog.setVisible(true);
+    }
+
+    // Method to EDIT supplier
+    public void editSupplier(Supplier supplierToEdit, List<Supplier> supplierList, JTable supplierTable) {
+        // Input fields
+        JTextField nameField = new JTextField(supplierToEdit.getSupplierName(), 20);
+        JTextField emailField = new JTextField(supplierToEdit.getEmail(), 20);
+
+        // Error labels
+        JLabel nameError = new JLabel();
+        JLabel emailError = new JLabel();
+        Color errorColor = Color.RED;
+
+        JPanel panel = new JPanel(new GridLayout(0, 2, 0, 5));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        panel.setBackground(Color.white);
+
+        // Supplier ID (not editable)
+        panel.add(new JLabel("Supplier ID:"));
+        JTextField idField = new JTextField(supplierToEdit.getSupplierID());
+        idField.setEditable(false);
+        idField.setBackground(Color.LIGHT_GRAY);
+        panel.add(idField);
+
+        // Supplier Name
+        panel.add(new JLabel("Supplier Name:"));
+        panel.add(nameField);
+        panel.add(new JLabel());
+        panel.add(nameError);
+        
+        // Email
+        panel.add(new JLabel("Email:"));
+        panel.add(emailField);
+        panel.add(new JLabel());
+        panel.add(emailError);
+
+        // Buttons
+        JButton saveBtn = new JButton("Save");
+        JButton cancelBtn = new JButton("Cancel");
+        JPanel btnPanel = new JPanel();
+        btnPanel.add(saveBtn);
+        btnPanel.add(cancelBtn);
+
+        // Dialog
+        JDialog dialog = new JDialog((Frame) null, "Edit Supplier", true);
+        dialog.getContentPane().add(panel, BorderLayout.CENTER);
+        dialog.getContentPane().add(btnPanel, BorderLayout.SOUTH);
+        dialog.pack();
+        dialog.setLocationRelativeTo(null);
+
+        // Save action
+        saveBtn.addActionListener(e -> {
+            // Clear previous error messages
+            nameError.setText("");
+            emailError.setText("");
+
+            String name = nameField.getText().trim();
+            String email = emailField.getText().trim();
+
+            boolean isValid = true;
+
+            // Validation: name
+            if (name.isEmpty()) {
+                nameError.setForeground(errorColor);
+                nameError.setText("*Supplier name is required.");
+                isValid = false;
+            }
+
+            // Validation: email format
+            if (email.isEmpty()) {
+                emailError.setForeground(errorColor);
+                emailError.setText("*Email is required.");
+                isValid = false;
+            } else if (!email.matches("^[\\w.-]+@[\\w.-]+\\.\\w+$")) {
+                emailError.setForeground(errorColor);
+                emailError.setText("*Invalid email format.");
+                isValid = false;
+            }
+
+            // Save if all valid
+            if (isValid) {
+                supplierToEdit.setSupplierName(name);
+                supplierToEdit.setEmail(email);
+
+                Supplier.saveToFile(supplierList);
+                Supplier.updateSupplierTableInUI(supplierList, supplierTable);
+                JOptionPane.showMessageDialog(dialog, "Supplier updated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                dialog.dispose();
+            }
+        });
+
+        cancelBtn.addActionListener(e -> dialog.dispose());
+
+        dialog.setVisible(true);
+    }
+
+    // Method to DELETE supplier
+    public void deleteSupplier(JFrame parent, List<Supplier> supplierList, List<Item> itemList, JTable supplierTable) {
+        int selectedRow = supplierTable.getSelectedRow();
+
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(parent, "Please select a supplier to delete.", "No Selection", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String supplierId = supplierTable.getValueAt(selectedRow, 0).toString();
+
+        // Check if this supplier is linked to any item
+        boolean isLinked = false;
+        for (Item item : itemList) {
+            if (item.getSupplierId().trim().equalsIgnoreCase(supplierId)) {
+                isLinked = true;
                 break;
             }
         }
 
-        Item.saveToFile(currentItemList);
+        if (isLinked) {
+            JOptionPane.showMessageDialog(parent,
+                "This supplier is linked to one or more items and cannot be deleted.\nPlease update or remove related items first.",
+                "Deletion Not Allowed", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Confirm deletion
+        int response = JOptionPane.showConfirmDialog(
+            parent,
+            "Are you sure you want to delete this supplier?",
+            "Confirm Deletion",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (response == JOptionPane.YES_OPTION) {
+            Supplier supplierToDelete = null;
+            for (Supplier supplier : supplierList) {
+                if (supplier.getSupplierID().equals(supplierId)) {
+                    supplierToDelete = supplier;
+                    break;
+                }
+            }
+
+            if (supplierToDelete != null) {
+                supplierList.remove(supplierToDelete);
+                Supplier.saveToFile(supplierList); // Assumes this method exists
+                Supplier.updateSupplierTableInUI(supplierList, supplierTable); // Assumes this method exists
+
+                JOptionPane.showMessageDialog(parent, "Supplier deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(parent, "Supplier not found.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            JOptionPane.showMessageDialog(parent, "Supplier deletion canceled.", "Canceled", JOptionPane.INFORMATION_MESSAGE);
+        }
     }
+
+
+    //DAILY SALES SECTION
+    
 }
 
 

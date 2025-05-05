@@ -4,9 +4,13 @@
  */
 package com.mycompany.owsb.view;
 
-import com.mycompany.owsb.view.SalesManagerWindow;
+import com.mycompany.owsb.model.Item;
+import com.mycompany.owsb.model.SalesManager;
+import com.mycompany.owsb.model.Supplier;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -14,14 +18,26 @@ import java.awt.event.WindowEvent;
  */
 public class SmManageSuppliersWindow extends javax.swing.JFrame {
     private final SalesManagerWindow parentWindow;
+    
+    // Instance of SalesManager to call sales-related methods
+    private final SalesManager salesManager;
+    
+    private java.util.List<Supplier> supplierDataList = new ArrayList<>();
+    private java.util.List<Item> itemDataList = new ArrayList<>();
+    
+    // String representing the file path for purchase order data
+    private static final String SUPPLIER_FILE = "data/suppliers.txt";
 
     /**
      * Creates new form SmManageSuppliersWindow
      * @param parentWindow
+     * @param salesManager
      */
-    public SmManageSuppliersWindow(SalesManagerWindow parentWindow) {
+    public SmManageSuppliersWindow(SalesManagerWindow parentWindow, SalesManager salesManager) {
         this.parentWindow = parentWindow;
+        this.salesManager = salesManager;
         initComponents();
+        loadSuppliersIntoList(); 
         setupWindowListener();
     }
     
@@ -35,6 +51,47 @@ public class SmManageSuppliersWindow extends javax.swing.JFrame {
             }
         });
     }
+    
+    // Method to load Items from file and display them in the UI list
+    private void loadSuppliersIntoList() {
+        // Load the list of Purchase Orders from the purchase order file
+        supplierDataList = Supplier.loadSuppliers();
+        
+        // Update JTable to the latest
+        Supplier.updateSupplierTableInUI(supplierDataList, supplierTable);
+    }
+    
+    
+    
+    private void promptForSupplierID() {
+        String inputID = JOptionPane.showInputDialog(
+            null, 
+            "Enter the Supplier ID to edit:", 
+            "Supplier ID", 
+            JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (inputID != null && !inputID.trim().isEmpty()) {
+            inputID = inputID.trim().toUpperCase();
+            boolean found = false;
+
+            // Search for the item based on input ID
+            for (Supplier supplier : supplierDataList) {
+                if (supplier.getSupplierID().equalsIgnoreCase(inputID)) {
+                    salesManager.editSupplier(supplier, supplierDataList, supplierTable); // Call editItem method in Sales Manager Class if item found
+                    Supplier.updateSupplierTableInUI(supplierDataList, supplierTable);
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                JOptionPane.showMessageDialog(null, "Item ID not found.");
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Please enter a valid Item ID.");
+        }
+    }
 
 
     /**
@@ -46,59 +103,258 @@ public class SmManageSuppliersWindow extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel3 = new javax.swing.JPanel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        supplierTable = new javax.swing.JTable();
+        backButton = new javax.swing.JButton();
+        addSupplierButton = new javax.swing.JButton();
+        editSupplierButton = new javax.swing.JButton();
+        deleteSupplierButton = new javax.swing.JButton();
+        searchField = new javax.swing.JTextField();
+        searchButton = new javax.swing.JButton();
+
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Suppliers");
+
+        jPanel3.setBackground(new java.awt.Color(255, 255, 255));
+
+        supplierTable.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        supplierTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Supplier ID", "Supplier Name", "Item ID", "Email"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        supplierTable.setGridColor(new java.awt.Color(102, 102, 102));
+        supplierTable.setRowHeight(25);
+        supplierTable.setSelectionBackground(new java.awt.Color(51, 51, 51));
+        supplierTable.setSelectionForeground(new java.awt.Color(255, 255, 255));
+        jScrollPane3.setViewportView(supplierTable);
+
+        backButton.setBackground(new java.awt.Color(102, 102, 102));
+        backButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        backButton.setForeground(new java.awt.Color(255, 255, 255));
+        backButton.setText("<");
+        backButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                backButtonActionPerformed(evt);
+            }
+        });
+
+        addSupplierButton.setBackground(new java.awt.Color(255, 51, 51));
+        addSupplierButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        addSupplierButton.setForeground(new java.awt.Color(255, 255, 255));
+        addSupplierButton.setText("Add");
+        addSupplierButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addSupplierButtonActionPerformed(evt);
+            }
+        });
+
+        editSupplierButton.setBackground(new java.awt.Color(255, 204, 0));
+        editSupplierButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        editSupplierButton.setText("Edit");
+        editSupplierButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                editSupplierButtonActionPerformed(evt);
+            }
+        });
+
+        deleteSupplierButton.setBackground(new java.awt.Color(51, 51, 51));
+        deleteSupplierButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        deleteSupplierButton.setForeground(new java.awt.Color(255, 255, 255));
+        deleteSupplierButton.setText("Delete");
+        deleteSupplierButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteSupplierButtonActionPerformed(evt);
+            }
+        });
+
+        searchField.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        searchField.setForeground(new java.awt.Color(51, 51, 51));
+        searchField.setText("Enter Supplier ID");
+        searchField.setToolTipText("");
+        searchField.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                searchFieldMouseClicked(evt);
+            }
+        });
+
+        searchButton.setBackground(new java.awt.Color(102, 102, 102));
+        searchButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        searchButton.setForeground(new java.awt.Color(255, 255, 255));
+        searchButton.setText("Search");
+        searchButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                searchButtonActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addGap(34, 34, 34)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 549, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addGap(1, 1, 1)
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(jPanel3Layout.createSequentialGroup()
+                                .addComponent(backButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(searchField, javax.swing.GroupLayout.PREFERRED_SIZE, 404, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel3Layout.createSequentialGroup()
+                                .addComponent(deleteSupplierButton, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(addSupplierButton, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(searchButton, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(editSupplierButton, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(53, Short.MAX_VALUE))
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addGap(43, 43, 43)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(searchButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(searchField)
+                        .addComponent(backButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(editSupplierButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(addSupplierButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(deleteSupplierButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 288, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(33, 33, 33))
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
+    private void backButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backButtonActionPerformed
+        // Update JTable to the latest
+        Supplier.updateSupplierTableInUI(supplierDataList, supplierTable);
+    }//GEN-LAST:event_backButtonActionPerformed
+
+    private void addSupplierButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addSupplierButtonActionPerformed
+        salesManager.addSupplier(this, supplierDataList, supplierTable);
+    }//GEN-LAST:event_addSupplierButtonActionPerformed
+
+    private void editSupplierButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editSupplierButtonActionPerformed
+        supplierDataList = Supplier.loadSuppliers();
+        int selectedRow = supplierTable.getSelectedRow(); // Get selected row index
+
+        if (selectedRow != -1) { // -1 means no row selected
+            String selectedItemID = supplierTable.getValueAt(selectedRow, 0).toString(); // Assuming item ID is in column 0
+
+            int confirm = JOptionPane.showConfirmDialog(
+                null,
+                "Are you sure you want to edit item " + selectedItemID + "?",
+                "Confirm Edit",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+            );
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                for (Supplier supplier : supplierDataList) {
+                    if (supplier.getSupplierID().equalsIgnoreCase(selectedItemID)) {
+                        salesManager.editSupplier(supplier, supplierDataList, supplierTable); // Open the edit form
+                        Supplier.updateSupplierTableInUI(supplierDataList, supplierTable); // Refresh the table
+                        break;
+                    }
+                }
+            }
+
+        } else {
+            promptForSupplierID();
+        }
+
+    }//GEN-LAST:event_editSupplierButtonActionPerformed
+
+    private void deleteSupplierButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteSupplierButtonActionPerformed
+        itemDataList = Item.loadItem(); 
+        salesManager.deleteSupplier(this, supplierDataList, itemDataList, supplierTable);
+    }//GEN-LAST:event_deleteSupplierButtonActionPerformed
+
+    private void searchFieldMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_searchFieldMouseClicked
+        searchField.setText("");
+    }//GEN-LAST:event_searchFieldMouseClicked
+
+    private void searchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchButtonActionPerformed
+        Supplier.searchAndDisplaySupplierInTable(searchField, supplierTable, supplierDataList);
+    }//GEN-LAST:event_searchButtonActionPerformed
+
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(SmManageSuppliersWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(SmManageSuppliersWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(SmManageSuppliersWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(SmManageSuppliersWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new SmManageSuppliersWindow(null).setVisible(true);
-            }
-        });
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton addItemButton1;
+    private javax.swing.JButton addItemButton2;
+    private javax.swing.JButton addSupplierButton;
+    private javax.swing.JButton backButton;
+    private javax.swing.JButton backButton1;
+    private javax.swing.JButton backButton2;
+    private javax.swing.JButton deleteItemButton1;
+    private javax.swing.JButton deleteItemButton2;
+    private javax.swing.JButton deleteSupplierButton;
+    private javax.swing.JButton editItemButton1;
+    private javax.swing.JButton editItemButton2;
+    private javax.swing.JButton editSupplierButton;
+    private javax.swing.JTable itemTable1;
+    private javax.swing.JTable itemTable2;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JScrollPane jScrollPane5;
+    private javax.swing.JButton searchButton;
+    private javax.swing.JButton searchButton1;
+    private javax.swing.JButton searchButton2;
+    private javax.swing.JTextField searchField;
+    private javax.swing.JTextField searchField1;
+    private javax.swing.JTextField searchField2;
+    private javax.swing.JTable supplierTable;
     // End of variables declaration//GEN-END:variables
 }
