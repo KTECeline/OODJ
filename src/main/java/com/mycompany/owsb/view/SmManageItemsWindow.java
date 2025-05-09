@@ -225,7 +225,7 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
         });
 
         lowStockCheckbox.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
-        lowStockCheckbox.setText("Low Stock Item");
+        lowStockCheckbox.setText("Low Stock Filter");
         lowStockCheckbox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 lowStockCheckboxActionPerformed(evt);

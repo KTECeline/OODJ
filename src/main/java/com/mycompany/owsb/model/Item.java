@@ -52,21 +52,27 @@ public class Item {
     public String getItemID() {
         return itemID;
     }
+    
     public String getItemName() {
         return itemName;
     }
+    
     public String getSupplierId() {
         return supplierId;
     }
+    
     public int getStock() {
         return stock;
     }
+    
     public double getCost() {
         return cost;
     }
+    
     public double getPrice() {
         return price;
     }
+    
     public String getStockLevel() {
         return stock < 5 ? "Low" : "Normal";
     }
@@ -77,18 +83,23 @@ public class Item {
     public void setItemName(String itemName) { 
         this.itemName = itemName; 
     }
+    
     public void setSupplierId(String supplierId) { 
         this.supplierId = supplierId; 
     }
+    
     public void setStock(int stock) { 
         this.stock = stock; 
     }
+    
     public void setCost(double cost) { 
         this.cost = cost; 
     }
+    
     public void setPrice(double price) { 
         this.price = price; 
     }
+    
     public void setStockLevel(boolean stockLevel) { 
         this.stockLevel = stockLevel; 
     }
@@ -258,23 +269,9 @@ public class Item {
             JOptionPane.showMessageDialog(null, "Failed to save items.");
         }
     }
-    
-     public static List<Item> loadItem() {
-        List<Item> itemList = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(ITEM_FILE))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                Item item = Item.fromString(line);
-                itemList.add(item);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return itemList;
-    }
      
     public static Item findById(String itemId) {
-        List<Item> allItems = loadItem();
+        List<Item> allItems = loadItems();
         for (Item item : allItems) {
             if (item.getItemID().equals(itemId)) {
                 return item;

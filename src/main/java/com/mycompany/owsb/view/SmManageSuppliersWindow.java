@@ -312,7 +312,7 @@ public class SmManageSuppliersWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_editSupplierButtonActionPerformed
 
     private void deleteSupplierButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteSupplierButtonActionPerformed
-        itemDataList = Item.loadItem(); 
+        itemDataList = Item.loadItems(); 
         salesManager.deleteSupplier(this, supplierDataList, itemDataList, supplierTable);
     }//GEN-LAST:event_deleteSupplierButtonActionPerformed
 
