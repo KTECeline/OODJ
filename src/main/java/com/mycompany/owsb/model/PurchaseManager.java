@@ -66,7 +66,28 @@ public class PurchaseManager extends User {
         return po;
     }
 
-    
+      public PurchaseOrder editPurchaseOrder(String poId, int newQuantity, String newSupplierId) {
+        // 1. Find the PO
+        PurchaseOrder po = PurchaseOrder.findById(poId);
+        if (po == null) {
+            throw new IllegalArgumentException("Purchase Order not found");
+        }
+        
+        // 2. Validate PO can be edited
+        if (!po.getStatus().equals("PENDING")) {
+            throw new IllegalStateException("Only pending orders can be modified");
+        }
+        
+        // 3. Update the PO
+        po.setQuantity(newQuantity);
+        po.setSupplierID(newSupplierId);
+        po.setTotalPrice(newQuantity * po.getUnitPrice());
+        
+        // 4. Save changes
+        PurchaseOrder.update(po);
+        
+        return po;
+    }
 
     public PurchaseOrder approvePurchaseOrder(String poId) {
         PurchaseOrder po = PurchaseOrder.findById(poId);
