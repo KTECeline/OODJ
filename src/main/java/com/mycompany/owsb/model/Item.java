@@ -129,6 +129,24 @@ public class Item {
     }
 
 
+    // Method to auto GENERATE ITEM ID from the last one
+    public static String generateNextItemID(List<Item> itemList) {
+        int maxNumber = 0;
+        for (Item item : itemList) {
+            String id = item.getItemID();
+            if (id.startsWith("IT")) {
+                try {
+                    int num = Integer.parseInt(id.substring(2));
+                    if (num > maxNumber) {
+                        maxNumber = num;
+                    }
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+        return String.format("IT%04d", maxNumber + 1);
+    }
+    
+    
     // Method to load Items from a file
     public static List<Item> loadItems() {
         List<Item> itemList = new ArrayList<>();
@@ -258,17 +276,7 @@ public class Item {
 
 
 
-    // Method to save Items to a file
-    public static void saveToFile(List<Item> itemList) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(ITEM_FILE))) {
-            for (Item item : itemList) {
-                writer.write(item.toString());
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "Failed to save items.");
-        }
-    }
+    
      
     public static Item findById(String itemId) {
         List<Item> allItems = loadItems();

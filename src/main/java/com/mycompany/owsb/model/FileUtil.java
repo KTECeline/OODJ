@@ -10,6 +10,7 @@ package com.mycompany.owsb.model;
  */
 import java.io.*;
 import java.util.*;
+import javax.swing.JOptionPane;
 
 public class FileUtil {
 
@@ -35,5 +36,15 @@ public class FileUtil {
         return lines;
     }
     
+    public static void saveListToFile(String filename, List<?> objects) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+            for (Object obj : objects) {
+                writer.write(obj.toString());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Failed to save data to file: " + filename);
+        }
+    }
    
 }

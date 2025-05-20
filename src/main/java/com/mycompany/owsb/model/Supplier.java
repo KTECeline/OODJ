@@ -28,7 +28,7 @@ public class Supplier {
     private String supplierName;
     private String email;
     
-    // String representing the file path for item data
+    // String representing the file path for supplier data
     private static final String SUPPLIER_FILE = "data/suppliers.txt";
 
     public Supplier(String supplierID, String supplierName, String email) {
@@ -80,6 +80,24 @@ public class Supplier {
             parts[1],  // supplierName
             parts[2]  // email
         );
+    }
+    
+        
+    // Method to auto GENERATE SUPPLIER ID from the last one
+    public static String generateNextSupplierID(List<Supplier> supplierList) {
+        int maxNumber = 0;
+        for (Supplier supplier : supplierList) {
+            String id = supplier.getSupplierID();
+            if (id.startsWith("SP")) {
+                try {
+                    int num = Integer.parseInt(id.substring(2));
+                    if (num > maxNumber) {
+                        maxNumber = num;
+                    }
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+        return String.format("SP%04d", maxNumber + 1);
     }
     
     

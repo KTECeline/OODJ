@@ -264,7 +264,7 @@ public class LoginWindow extends javax.swing.JFrame {
         this.dispose(); // Close the login UI
 
         if ("Sales Manager".equals(role)) {
-            SalesManager sm = new SalesManager();
+            SalesManager sm = new SalesManager(loggedInUser);
             SalesManagerWindow window = new SalesManagerWindow(loggedInUser, sm);
             window.showSmWindow();
         } else if ("Purchase Manager".equals(role)) {
