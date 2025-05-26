@@ -204,7 +204,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_ManageSuppliersButtonActionPerformed
 
     private void CreatePRButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CreatePRButtonActionPerformed
-        SmManagePrWindow createPrWindow = new SmManagePrWindow(this);
+        SmManagePrWindow createPrWindow = new SmManagePrWindow(this, salesManager);
         createPrWindow.setVisible(true);
         this.setVisible(false); // Hide current window
     }//GEN-LAST:event_CreatePRButtonActionPerformed

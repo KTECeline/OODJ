@@ -1,6 +1,7 @@
 package com.mycompany.owsb.model;
 
 import static com.mycompany.owsb.model.PurchaseOrder.loadPurchaseOrders;
+import java.awt.Component;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
@@ -8,6 +9,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumnModel;
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
@@ -137,7 +144,7 @@ public class PurchaseRequisition {
         saveAll(all);
     }
 
-public static void saveAll(List<PurchaseRequisition> requisitions) {
+    public static void saveAll(List<PurchaseRequisition> requisitions) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(PURCHASE_REQUISITION_FILE))) {
             for (PurchaseRequisition pr : requisitions) {
                 writer.write(pr.toString());
@@ -147,7 +154,8 @@ public static void saveAll(List<PurchaseRequisition> requisitions) {
             System.err.println("Error saving purchase requisitions: " + e.getMessage());
         }
     }
-public static String generateNewPrId() {
+    
+    public static String generateNextPRId() {
         List<PurchaseRequisition> all = loadPurchaseRequisition();
         int maxId = 0;
         for (PurchaseRequisition pr : all) {
@@ -160,4 +168,87 @@ public static String generateNewPrId() {
         }
         return String.format("PR%04d", maxId + 1);
     }
+    
+    // Update PR table in UI
+    public static void updatePRTableInUI(List<PurchaseRequisition> prList, JTable targetTable) {
+        String[] columnNames = {"PR ID", "Item ID", "Quantity", "Required Date", "Supplier ID", "Raised By", "Unit Cost (RM)", "Total Cost (RM)", "Status"};
+        DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
+
+        for (PurchaseRequisition pr : prList) {
+            Object[] row = {
+                pr.getPrID(),
+                pr.getItemID(),
+                pr.getQuantity(),
+                pr.getRequiredDate(),
+                pr.getSupplierID(),
+                pr.getRaisedBy(),
+                pr.getUnitCost(),
+                pr.getTotalCost(),
+                pr.getStatus()
+            };
+            tableModel.addRow(row);
+        }
+
+        targetTable.setModel(tableModel);
+        autoResizeColumnWidths(targetTable);
+        // If you want, you can add color coding based on status or quantity here
+    }
+
+    // Search and display PR by PR ID
+    public static void searchAndDisplayPRInTable(JTextField searchField, JTable table, List<PurchaseRequisition> prList) {
+        String searchPRID = searchField.getText().trim().toUpperCase();
+        boolean found = false;
+
+        if (prList.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "No purchase requisitions loaded.", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0); // Clear previous data
+
+        for (PurchaseRequisition pr : prList) {
+            if (pr.getPrID().equalsIgnoreCase(searchPRID)) {
+                Object[] row = {
+                    pr.getPrID(),
+                    pr.getItemID(),
+                    pr.getQuantity(),
+                    pr.getRequiredDate(),
+                    pr.getSupplierID(),
+                    pr.getRaisedBy(),
+                    pr.getUnitCost(),
+                    pr.getTotalCost(),
+                    pr.getStatus()
+                };
+                model.addRow(row);
+                found = true;
+                searchField.setText(""); // Reset search field
+                break;
+            }
+        }
+
+        if (!found) {
+            JOptionPane.showMessageDialog(null, "Purchase Requisition ID not found.", "Not Found", JOptionPane.INFORMATION_MESSAGE);
+            // Reload full PR list
+            updatePRTableInUI(prList, table);
+        }
+        // Reset search field prompt
+        searchField.setText("Enter PR ID");
+    }
+
+    
+    
+    public static void autoResizeColumnWidths(JTable table) {
+        final TableColumnModel columnModel = table.getColumnModel();
+        for (int column = 0; column < table.getColumnCount(); column++) {
+            int width = 50; // Minimum width
+            for (int row = 0; row < table.getRowCount(); row++) {
+                TableCellRenderer renderer = table.getCellRenderer(row, column);
+                Component comp = table.prepareRenderer(renderer, row, column);
+                width = Math.max(comp.getPreferredSize().width + 10, width);
+            }
+            columnModel.getColumn(column).setPreferredWidth(width);
+        }
+    }
+    
 }

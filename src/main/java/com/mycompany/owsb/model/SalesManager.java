@@ -21,6 +21,9 @@ public class SalesManager extends Manager implements ManageItemInterface{
     // String representing the file path for supplier data
     private static final String SUPPLIER_FILE = "data/suppliers.txt";
     
+    // String representing the file path for pr data
+    private static final String PURCHASE_REQUISITION_FILE = "data/purchase_requisition.txt";
+    
     public SalesManager(User loggedInUser) {
         super(loggedInUser);
     }
@@ -789,7 +792,186 @@ public class SalesManager extends Manager implements ManageItemInterface{
     }
 
 
-    //DAILY SALES SECTION
+    //PURCHASE REQUISITION SECTION
+    public void addPurchaseRequisition(JFrame parent, List<Item> itemList, List<PurchaseRequisition> prList, List<Supplier> supplierList, JTable prTable) {
+        if (!isAllowedToPerform("add pr")) {
+            JOptionPane.showMessageDialog(parent, "Not authorized to add purchase requisition.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        String nextPrId = PurchaseRequisition.generateNextPRId();
+        String raisedBy = getLoggedInUser().getUsername();
+        
+        JTextField itemIDField = new JTextField(20);
+        JTextField quantityField = new JTextField(20);
+        JTextField requiredDateField = new JTextField(20); // Expected format: YYYY-MM-DD
+        JTextField supplierIDField = new JTextField(20);
+        JTextField unitCostField = new JTextField(20);
+
+        // Error labels
+        JLabel itemIDError = new JLabel();
+        JLabel quantityError = new JLabel();
+        JLabel dateError = new JLabel();
+        JLabel supplierIDError = new JLabel();
+        JLabel costError = new JLabel();
+
+        Color errorColor = Color.RED;
+
+        JPanel panel = new JPanel(new GridLayout(0, 2, 0, 5));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        panel.setBackground(Color.white);
+
+        panel.add(new JLabel("PR ID:"));
+        panel.add(new JLabel(nextPrId));
+
+        panel.add(new JLabel("Item ID:"));
+        panel.add(itemIDField); panel.add(new JLabel()); panel.add(itemIDError);
+
+        panel.add(new JLabel("Quantity:"));
+        panel.add(quantityField); panel.add(new JLabel()); panel.add(quantityError);
+
+        panel.add(new JLabel("Required Date (YYYY-MM-DD):"));
+        panel.add(requiredDateField); panel.add(new JLabel()); panel.add(dateError);
+
+        panel.add(new JLabel("Supplier ID:"));
+        panel.add(supplierIDField); panel.add(new JLabel()); panel.add(supplierIDError);
+
+        panel.add(new JLabel("Unit Cost (RM):"));
+        panel.add(unitCostField); panel.add(new JLabel()); panel.add(costError);
+
+        JDialog dialog = new JDialog(parent, "Add Purchase Requisition", true);
+        dialog.getContentPane().add(panel, BorderLayout.CENTER);
+
+        JButton addBtn = new JButton("Add");
+        JButton cancelBtn = new JButton("Cancel");
+        JPanel btnPanel = new JPanel();
+        btnPanel.add(addBtn); btnPanel.add(cancelBtn);
+        dialog.getContentPane().add(btnPanel, BorderLayout.SOUTH);
+
+        dialog.pack();
+        dialog.setLocationRelativeTo(parent);
+
+        addBtn.addActionListener(e -> {
+            // Reset errors
+            itemIDError.setText(""); quantityError.setText("");
+            dateError.setText(""); supplierIDError.setText(""); costError.setText("");
+
+            String itemID = itemIDField.getText().trim().toUpperCase();
+            String quantityStr = quantityField.getText().trim();
+            String requiredDate = requiredDateField.getText().trim();
+            String supplierID = supplierIDField.getText().trim().toUpperCase();
+            String costStr = unitCostField.getText().trim();
+
+            boolean valid = true;
+            int quantity = 0;
+            double unitCost = 0;
+            
+
+            // Item ID validation
+            if (itemID.isEmpty()) {
+                itemIDError.setForeground(errorColor);
+                itemIDError.setText("*Item ID cannot be empty.");
+                valid = false;
+            } else {
+                if (!itemID.matches("IT\\d{4}")) {
+                    itemIDError.setForeground(errorColor);
+                    itemIDError.setText("*Format must be (ex:IT0001).");
+                    valid = false;
+                } else {
+                    boolean itemExists = false;
+                    for (Item item : itemList) {
+                        if (item.getItemID().equalsIgnoreCase(itemID)) {
+                            itemExists = true;
+                            break;
+                        }
+                    }
+
+                    if (!itemExists) {
+                        itemIDError.setForeground(errorColor);  // Set error color
+                        itemIDError.setText("*Item ID does not exist.");
+                        valid = false;  // Mark as invalid to prevent further submission
+                    } else {
+                        itemIDError.setText("");  // Clear any previous error messages if valid
+                    }
+                }
+            }
+
+
+            // Validate quantity
+            try {
+                quantity = Integer.parseInt(quantityStr);
+                if (quantity <= 0) throw new NumberFormatException();
+            } catch (NumberFormatException ex) {
+                quantityError.setForeground(errorColor);
+                quantityError.setText("*Quantity must be positive.");
+                valid = false;
+            }
+
+            // Validate requiredDate (basic format check)
+            if (!requiredDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                dateError.setForeground(errorColor);
+                dateError.setText("*Date must be YYYY-MM-DD.");
+                valid = false;
+            }
+
+            // Supplier ID validation
+            if (supplierID.isEmpty()) {
+                supplierIDError.setForeground(errorColor);
+                supplierIDError.setText("*Supplier ID cannot be empty.");
+                valid = false;
+            } else {
+                if (!supplierID.matches("SP\\d{4}")) {
+                    supplierIDError.setForeground(errorColor);
+                    supplierIDError.setText("*Format must be (ex:SP0001).");
+                    valid = false;
+                } else {
+                    boolean supplierExists = false;
+                    for (Supplier supplier : supplierList) {
+                        if (supplier.getSupplierID().equalsIgnoreCase(supplierID)) {
+                            supplierExists = true;
+                            break;
+                        }
+                    }
+
+                    if (!supplierExists) {
+                        supplierIDError.setForeground(errorColor);  // Set error color
+                        supplierIDError.setText("*Supplier ID does not exist.");
+                        valid = false;  // Mark as invalid to prevent further submission
+                    } else {
+                        supplierIDError.setText("");  // Clear any previous error messages if valid
+                    }
+                }
+            }
+
+
+            // Validate unit cost
+            try {
+                unitCost = Double.parseDouble(costStr);
+                if (unitCost < 0) throw new NumberFormatException();
+            } catch (NumberFormatException ex) {
+                costError.setForeground(errorColor);
+                costError.setText("*Invalid cost.");
+                valid = false;
+            }
+
+             // If all fields are valid, add the pr
+            if (valid) {
+                PurchaseRequisition newPr = new PurchaseRequisition(nextPrId, itemID, quantity, requiredDate, supplierID,
+                               raisedBy, unitCost, "PENDING");
+                prList.add(newPr);
+                FileUtil.saveListToFile(PURCHASE_REQUISITION_FILE, prList);
+                PurchaseRequisition.updatePRTableInUI(prList, prTable);
+                JOptionPane.showMessageDialog(dialog, "Purchase requisition added successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                dialog.dispose();
+            }
+        });
+
+        cancelBtn.addActionListener(e -> dialog.dispose());
+        dialog.setVisible(true);
+    }
+    
+    public void editPurchaseRequisition(JFrame parent, List<PurchaseRequisition> prList, JTable prTable) {}
+
     
 }
 

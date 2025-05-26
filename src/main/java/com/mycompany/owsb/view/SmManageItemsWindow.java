@@ -38,7 +38,7 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
         this.parentWindow = parentWindow;
         this.salesManager = salesManager;
         initComponents();
-        loadItemsIntoList(); 
+        loadItemsIntoTable(); 
         setupWindowListener();
         
     }
@@ -56,7 +56,7 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
     }
     
     // Method to load Items from file and display them in the UI list
-    private void loadItemsIntoList() {
+    private void loadItemsIntoTable() {
         // Load the list of Purchase Orders from the purchase order file
         itemDataList = Item.loadItems();
         
