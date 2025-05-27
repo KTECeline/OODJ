@@ -1,6 +1,7 @@
 package com.mycompany.owsb.model;
 
 import static com.mycompany.owsb.model.PurchaseOrder.loadPurchaseOrders;
+import java.awt.Color;
 import java.awt.Component;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -8,10 +9,14 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
@@ -27,41 +32,30 @@ import javax.swing.table.TableColumnModel;
  */
 public class PurchaseRequisition {
     private String prID;
-    private String itemID;
-    private int quantity;
+    private List<PurchaseRequisitionItem> items;
     private String requiredDate;
     private String supplierID;
     private String raisedBy;
-    private double unitCost;
-    private double totalCost;
     private String status;
 
     private static final String PURCHASE_REQUISITION_FILE = "data/purchase_requisition.txt";
-    
-    
-    public PurchaseRequisition(String prID, String itemID, int quantity, String requiredDate, String supplierID,
-                               String raisedBy, double unitCost, String status) {
+
+    public PurchaseRequisition(String prID, String requiredDate, String supplierID, String raisedBy, String status) {
         this.prID = prID;
-        this.itemID = itemID;
-        this.quantity = quantity;
         this.requiredDate = requiredDate;
         this.supplierID = supplierID;
         this.raisedBy = raisedBy;
-        this.unitCost = unitCost;
-        this.totalCost = quantity * unitCost;
         this.status = status;
+        this.items = new ArrayList<>();  // <== make sure you initialize this!
     }
-    
+
+
     public String getPrID() {
         return prID;
     }
 
-    public String getItemID() {
-        return itemID;
-    }
-
-    public int getQuantity() {
-        return quantity;
+    public List<PurchaseRequisitionItem> getItems() {
+        return items;
     }
 
     public String getRequiredDate() {
@@ -76,41 +70,44 @@ public class PurchaseRequisition {
         return raisedBy;
     }
 
-    public double getUnitCost() {
-        return unitCost;
-    }
-
-    public double getTotalCost() {
-        return totalCost;
-    }
-
     public String getStatus() {
         return status;
     }
-    public void setStatus(String status){
-        this.status=status;
+
+    public void setStatus(String status) {
+        this.status = status;
     }
-    // Convert object to string to save it in file
+
+    public double getTotalCost() {
+        double total = 0.0;
+        for (PurchaseRequisitionItem item : items) {
+            total += item.getTotalCost();
+        }
+        return total;
+    }
+
     @Override
     public String toString() {
-        return prID + "," + itemID + "," + quantity + "," + requiredDate + "," + supplierID + "," +
-               raisedBy + "," + unitCost + "," + totalCost + "," + status;
+        return prID + "," + requiredDate + "," + supplierID + "," + raisedBy + "," + status;
     }
-    
-    // Convert the line in the file from String to object
+
     public static PurchaseRequisition fromString(String line) {
-        String[] parts = line.split(",");
-        return new PurchaseRequisition(
-            parts[0],                       // prId
-            parts[1],                       // itemCode
-            Integer.parseInt(parts[2]),     // quantity
-            parts[3],                       // requiredDate
-            parts[4],                       // supplierId
-            parts[5],                       // raisedBy
-            Double.parseDouble(parts[6]),   // unitCost
-            parts[8]                        // status (skip parts[7] since totalCost is calculated)
-        );
+        String[] parts = line.split(",", 5);
+        String prId = parts[0];
+        String requiredDate = parts[1];
+        String supplierId = parts[2];
+        String raisedBy = parts[3];
+        String status = parts[4];
+
+        PurchaseRequisition pr = new PurchaseRequisition(prId, requiredDate, supplierId, raisedBy, status);
+
+        return pr;
     }
+
+    public void addItem(PurchaseRequisitionItem item) {
+    this.items.add(item);
+    }
+
     
     public static List<PurchaseRequisition> loadPurchaseRequisition() {
         List<PurchaseRequisition> prList = new ArrayList<>();
@@ -125,6 +122,7 @@ public class PurchaseRequisition {
         }
         return prList;
     }
+    
     public static PurchaseRequisition findById(String prId) {
     List<PurchaseRequisition> allOrders = loadPurchaseRequisition();
     return allOrders.stream()
@@ -169,33 +167,36 @@ public class PurchaseRequisition {
         return String.format("PR%04d", maxId + 1);
     }
     
-    // Update PR table in UI
-    public static void updatePRTableInUI(List<PurchaseRequisition> prList, JTable targetTable) {
+    public static void updatePRTableInUI(List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, JTable targetTable) {
         String[] columnNames = {"PR ID", "Item ID", "Quantity", "Required Date", "Supplier ID", "Raised By", "Unit Cost (RM)", "Total Cost (RM)", "Status"};
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
 
         for (PurchaseRequisition pr : prList) {
-            Object[] row = {
-                pr.getPrID(),
-                pr.getItemID(),
-                pr.getQuantity(),
-                pr.getRequiredDate(),
-                pr.getSupplierID(),
-                pr.getRaisedBy(),
-                pr.getUnitCost(),
-                pr.getTotalCost(),
-                pr.getStatus()
-            };
-            tableModel.addRow(row);
+            for (PurchaseRequisitionItem item : prItemList) {
+                if (item.getPrID().equals(pr.getPrID())) {
+                    Object[] row = {
+                        pr.getPrID(),
+                        item.getItemID(),
+                        item.getQuantity(),
+                        pr.getRequiredDate(),
+                        pr.getSupplierID(),
+                        pr.getRaisedBy(),
+                        item.getUnitCost(),
+                        item.getTotalCost(),
+                        pr.getStatus()
+                    };
+                    tableModel.addRow(row);
+                }
+            }
         }
 
         targetTable.setModel(tableModel);
         autoResizeColumnWidths(targetTable);
-        // If you want, you can add color coding based on status or quantity here
     }
 
+
     // Search and display PR by PR ID
-    public static void searchAndDisplayPRInTable(JTextField searchField, JTable table, List<PurchaseRequisition> prList) {
+    public static void searchAndDisplayPRInTable(JTextField searchField, JTable table, List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList) {
         String searchPRID = searchField.getText().trim().toUpperCase();
         boolean found = false;
 
@@ -209,34 +210,34 @@ public class PurchaseRequisition {
 
         for (PurchaseRequisition pr : prList) {
             if (pr.getPrID().equalsIgnoreCase(searchPRID)) {
-                Object[] row = {
-                    pr.getPrID(),
-                    pr.getItemID(),
-                    pr.getQuantity(),
-                    pr.getRequiredDate(),
-                    pr.getSupplierID(),
-                    pr.getRaisedBy(),
-                    pr.getUnitCost(),
-                    pr.getTotalCost(),
-                    pr.getStatus()
-                };
-                model.addRow(row);
+                for (PurchaseRequisitionItem item : pr.getItems()) {
+                    Object[] row = {
+                        pr.getPrID(),
+                        item.getItemID(),
+                        item.getQuantity(),
+                        pr.getRequiredDate(),
+                        pr.getSupplierID(),
+                        pr.getRaisedBy(),
+                        item.getUnitCost(),
+                        item.getTotalCost(),
+                        pr.getStatus()
+                    };
+                    model.addRow(row);
+                }
                 found = true;
-                searchField.setText(""); // Reset search field
-                break;
+                break; // Found, no need to keep looping
             }
         }
 
         if (!found) {
             JOptionPane.showMessageDialog(null, "Purchase Requisition ID not found.", "Not Found", JOptionPane.INFORMATION_MESSAGE);
             // Reload full PR list
-            updatePRTableInUI(prList, table);
+            updatePRTableInUI(prList, prItemList, table);
         }
         // Reset search field prompt
         searchField.setText("Enter PR ID");
     }
 
-    
     
     public static void autoResizeColumnWidths(JTable table) {
         final TableColumnModel columnModel = table.getColumnModel();

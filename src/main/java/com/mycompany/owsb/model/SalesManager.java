@@ -5,6 +5,9 @@
 package com.mycompany.owsb.model;
 
 import java.awt.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import javax.swing.*;
 import java.util.List;
 
@@ -23,6 +26,9 @@ public class SalesManager extends Manager implements ManageItemInterface{
     
     // String representing the file path for pr data
     private static final String PURCHASE_REQUISITION_FILE = "data/purchase_requisition.txt";
+    
+    // String representing the file path for pr data
+    private static final String PURCHASE_REQUISITION_ITEM_FILE = "data/purchase_requisition_item.txt";
     
     public SalesManager(User loggedInUser) {
         super(loggedInUser);
@@ -793,36 +799,28 @@ public class SalesManager extends Manager implements ManageItemInterface{
 
 
     //PURCHASE REQUISITION SECTION
-    public void addPurchaseRequisition(JFrame parent, List<Item> itemList, List<PurchaseRequisition> prList, List<Supplier> supplierList, JTable prTable) {
+    public void addPurchaseRequisition(JFrame parent, List<Item> itemList, List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, List<Supplier> supplierList, JTable prTable) {
         if (!isAllowedToPerform("add pr")) {
             JOptionPane.showMessageDialog(parent, "Not authorized to add purchase requisition.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
             return;
         }
         
-        String nextPrId = PurchaseRequisition.generateNextPRId();
         String raisedBy = getLoggedInUser().getUsername();
         
         JTextField itemIDField = new JTextField(20);
         JTextField quantityField = new JTextField(20);
         JTextField requiredDateField = new JTextField(20); // Expected format: YYYY-MM-DD
-        JTextField supplierIDField = new JTextField(20);
-        JTextField unitCostField = new JTextField(20);
 
         // Error labels
         JLabel itemIDError = new JLabel();
         JLabel quantityError = new JLabel();
         JLabel dateError = new JLabel();
-        JLabel supplierIDError = new JLabel();
-        JLabel costError = new JLabel();
-
+        
         Color errorColor = Color.RED;
 
         JPanel panel = new JPanel(new GridLayout(0, 2, 0, 5));
         panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
         panel.setBackground(Color.white);
-
-        panel.add(new JLabel("PR ID:"));
-        panel.add(new JLabel(nextPrId));
 
         panel.add(new JLabel("Item ID:"));
         panel.add(itemIDField); panel.add(new JLabel()); panel.add(itemIDError);
@@ -832,12 +830,6 @@ public class SalesManager extends Manager implements ManageItemInterface{
 
         panel.add(new JLabel("Required Date (YYYY-MM-DD):"));
         panel.add(requiredDateField); panel.add(new JLabel()); panel.add(dateError);
-
-        panel.add(new JLabel("Supplier ID:"));
-        panel.add(supplierIDField); panel.add(new JLabel()); panel.add(supplierIDError);
-
-        panel.add(new JLabel("Unit Cost (RM):"));
-        panel.add(unitCostField); panel.add(new JLabel()); panel.add(costError);
 
         JDialog dialog = new JDialog(parent, "Add Purchase Requisition", true);
         dialog.getContentPane().add(panel, BorderLayout.CENTER);
@@ -853,18 +845,45 @@ public class SalesManager extends Manager implements ManageItemInterface{
 
         addBtn.addActionListener(e -> {
             // Reset errors
-            itemIDError.setText(""); quantityError.setText("");
-            dateError.setText(""); supplierIDError.setText(""); costError.setText("");
+            itemIDError.setText(""); 
+            quantityError.setText("");
+            dateError.setText(""); 
 
             String itemID = itemIDField.getText().trim().toUpperCase();
             String quantityStr = quantityField.getText().trim();
             String requiredDate = requiredDateField.getText().trim();
-            String supplierID = supplierIDField.getText().trim().toUpperCase();
-            String costStr = unitCostField.getText().trim();
+            
+
+            
+            String supplierId = null;
+            for (Item item : itemList) {
+                if (item.getItemID().equalsIgnoreCase(itemID)) {
+                    supplierId = item.getSupplierId();
+                    break;
+                }
+            }
+
+            if (supplierId == null) {
+                JOptionPane.showMessageDialog(dialog, "Failed to find supplier for the given Item ID.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        
+            // Get unitCost from itemID
+            double unitCost = 0;
+            for (Item item : itemList) {
+                if (item.getItemID().equalsIgnoreCase(itemID)) {
+                    unitCost = item.getCost();  // Assuming getUnitCost() returns Double or double
+                    break;
+                }
+            }
+
+            if (unitCost == 0) {
+                JOptionPane.showMessageDialog(dialog, "Failed to find unit cost for the given Item ID.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
             boolean valid = true;
             int quantity = 0;
-            double unitCost = 0;
             
 
             // Item ID validation
@@ -895,6 +914,28 @@ public class SalesManager extends Manager implements ManageItemInterface{
                     }
                 }
             }
+            
+            // Check for duplicate PR entry
+            boolean itemAlreadyRequested = false;
+            for (PurchaseRequisition pr : prList) {
+                if ("PENDING".equalsIgnoreCase(pr.getStatus())) {
+                    for (PurchaseRequisitionItem item : pr.getItems()) {
+                        if (item.getItemID().equalsIgnoreCase(itemID)) {
+                            itemAlreadyRequested = true;
+                            break;
+                        }
+                    }
+                }
+                if (itemAlreadyRequested) break;
+            }
+
+            if (itemAlreadyRequested) {
+                itemIDError.setForeground(errorColor);
+                itemIDError.setText("*A pending PR for this Item ID already exists.");
+                valid = false;
+            } else {
+                itemIDError.setText("");  // Clear error if no conflict
+            }
 
 
             // Validate quantity
@@ -907,60 +948,71 @@ public class SalesManager extends Manager implements ManageItemInterface{
                 valid = false;
             }
 
-            // Validate requiredDate (basic format check)
-            if (!requiredDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
-                dateError.setForeground(errorColor);
-                dateError.setText("*Date must be YYYY-MM-DD.");
-                valid = false;
-            }
+            
+            // Validate requiredDate 
+            LocalDate today = LocalDate.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-            // Supplier ID validation
-            if (supplierID.isEmpty()) {
-                supplierIDError.setForeground(errorColor);
-                supplierIDError.setText("*Supplier ID cannot be empty.");
-                valid = false;
-            } else {
-                if (!supplierID.matches("SP\\d{4}")) {
-                    supplierIDError.setForeground(errorColor);
-                    supplierIDError.setText("*Format must be (ex:SP0001).");
+            try {
+                LocalDate parsedDate = LocalDate.parse(requiredDate, formatter);
+                if (!parsedDate.isAfter(today)) {
+                    dateError.setForeground(errorColor);
+                    dateError.setText("*Date must be after today.");
                     valid = false;
                 } else {
-                    boolean supplierExists = false;
-                    for (Supplier supplier : supplierList) {
-                        if (supplier.getSupplierID().equalsIgnoreCase(supplierID)) {
-                            supplierExists = true;
-                            break;
-                        }
-                    }
-
-                    if (!supplierExists) {
-                        supplierIDError.setForeground(errorColor);  // Set error color
-                        supplierIDError.setText("*Supplier ID does not exist.");
-                        valid = false;  // Mark as invalid to prevent further submission
-                    } else {
-                        supplierIDError.setText("");  // Clear any previous error messages if valid
-                    }
+                    dateError.setText("");  // Clear error if valid
+                }
+            } catch (DateTimeParseException ex) {
+                dateError.setForeground(errorColor);
+                dateError.setText("*Date must be in YYYY-MM-DD format.");
+                valid = false;
+            }
+            
+            // Check if there's an existing pending PR for this supplier
+            String prId = null;
+            for (PurchaseRequisition pr : prList) {
+                if ("PENDING".equalsIgnoreCase(pr.getStatus()) && pr.getSupplierID().equalsIgnoreCase(supplierId)) {
+                    prId = pr.getPrID();
+                    break;
                 }
             }
 
-
-            // Validate unit cost
-            try {
-                unitCost = Double.parseDouble(costStr);
-                if (unitCost < 0) throw new NumberFormatException();
-            } catch (NumberFormatException ex) {
-                costError.setForeground(errorColor);
-                costError.setText("*Invalid cost.");
-                valid = false;
+            // If no existing PR, generate a new one and add to prList
+            if (prId == null) {
+                prId = PurchaseRequisition.generateNextPRId();
+                PurchaseRequisition newPr = new PurchaseRequisition(
+                    prId,
+                    requiredDate,
+                    supplierId,
+                    raisedBy,
+                    "PENDING"
+                );
+                prList.add(newPr);
             }
 
-             // If all fields are valid, add the pr
+            // If all fields are valid, add the pr
             if (valid) {
-                PurchaseRequisition newPr = new PurchaseRequisition(nextPrId, itemID, quantity, requiredDate, supplierID,
-                               raisedBy, unitCost, "PENDING");
-                prList.add(newPr);
+                PurchaseRequisition newPr = new PurchaseRequisition(
+                    prId,  // prId
+                    requiredDate,
+                    supplierId,
+                    raisedBy,
+                    "PENDING"
+                );
+                
+                PurchaseRequisitionItem newItem = new PurchaseRequisitionItem(
+                    prId,   // prId to link item to this PR
+                    itemID,
+                    quantity,
+                    unitCost
+                );
+                
+
+                prItemList.add(newItem);
+
                 FileUtil.saveListToFile(PURCHASE_REQUISITION_FILE, prList);
-                PurchaseRequisition.updatePRTableInUI(prList, prTable);
+                FileUtil.saveListToFile(PURCHASE_REQUISITION_ITEM_FILE, prItemList);
+                PurchaseRequisition.updatePRTableInUI(prList, prItemList, prTable);
                 JOptionPane.showMessageDialog(dialog, "Purchase requisition added successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
                 dialog.dispose();
             }

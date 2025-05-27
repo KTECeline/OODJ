@@ -4,20 +4,14 @@
  */
 package com.mycompany.owsb.view;
 
-import com.mycompany.owsb.model.FileUtil;
 import com.mycompany.owsb.model.Item;
 import com.mycompany.owsb.model.PurchaseRequisition;
+import com.mycompany.owsb.model.PurchaseRequisitionItem;
 import com.mycompany.owsb.model.SalesManager;
 import com.mycompany.owsb.model.Supplier;
-import com.mycompany.owsb.view.SalesManagerWindow;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
-import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 
 /**
@@ -34,6 +28,7 @@ public class SmManagePrWindow extends javax.swing.JFrame {
     private final String PR_FILE = "data/purchase_requisition.txt";
 
     private java.util.List<PurchaseRequisition> prDataList = new ArrayList<>();
+    private java.util.List<PurchaseRequisitionItem> prItemDataList = new ArrayList<>();
     private java.util.List<Item> itemDataList = new ArrayList<>();
     private java.util.List<Supplier> supplierDataList = new ArrayList<>();
 
@@ -45,9 +40,8 @@ public class SmManagePrWindow extends javax.swing.JFrame {
         this.parentWindow = parentWindow;
         this.salesManager = salesManager;
         initComponents();
-        loadPRsIntoTable(); 
-        setupWindowListener();
-        
+        loadPRsIntoTable();
+        setupWindowListener();        
     }
     
     // close button go back to menu instead of close system  
@@ -61,14 +55,25 @@ public class SmManagePrWindow extends javax.swing.JFrame {
         });
     }
     
-    // Method to load Purchase Requisitions from file and display them in the UI table
+    // Load PRs and their items, stitch them, display in table
     private void loadPRsIntoTable() {
-        // Load the list of Purchase Requisitions from the PR file
-        prDataList = PurchaseRequisition.loadPurchaseRequisition();  // You need to implement this static method
+        prDataList = PurchaseRequisition.loadPurchaseRequisition();
+        prItemDataList = PurchaseRequisitionItem.loadPurchaseRequisitionItems();
 
-        // Update JTable to the latest PR data
-        PurchaseRequisition.updatePRTableInUI(prDataList, prTable); // prTable is your JTable for PRs
+        // Attach items to their parent PR
+        for (PurchaseRequisitionItem item : prItemDataList) {
+            for (PurchaseRequisition pr : prDataList) {
+                if (pr.getPrID().equals(item.getPrID())) {
+                    pr.addItem(item);
+                    break;
+                }
+            }
+        }
+
+        // Update JTable with stitched data
+        PurchaseRequisition.updatePRTableInUI(prDataList, prItemDataList, prTable);
     }
+
 
     // Prompt user for PR ID to edit
     private void promptForPRID() {
@@ -89,7 +94,7 @@ public class SmManagePrWindow extends javax.swing.JFrame {
                     salesManager.editPurchaseRequisition(this, prDataList, prTable); 
                     // Implement editPurchaseRequisition in SalesManager class
 
-                    PurchaseRequisition.updatePRTableInUI(prDataList, prTable); // Refresh table after edit
+                    PurchaseRequisition.updatePRTableInUI(prDataList, prItemDataList, prTable); // Refresh table after edit
                     found = true;
                     break;
                 }
@@ -254,7 +259,7 @@ public class SmManagePrWindow extends javax.swing.JFrame {
 
     private void backButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backButtonActionPerformed
         // Update JTable to the latest
-        PurchaseRequisition.updatePRTableInUI(prDataList, prTable);
+        PurchaseRequisition.updatePRTableInUI(prDataList, prItemDataList, prTable);
     }//GEN-LAST:event_backButtonActionPerformed
 
     private void searchFieldMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_searchFieldMouseClicked
@@ -262,13 +267,13 @@ public class SmManagePrWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_searchFieldMouseClicked
 
     private void searchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchButtonActionPerformed
-        PurchaseRequisition.searchAndDisplayPRInTable(searchField, prTable, prDataList);
+        PurchaseRequisition.searchAndDisplayPRInTable(searchField, prTable, prDataList, prItemDataList);
     }//GEN-LAST:event_searchButtonActionPerformed
 
     private void addPRButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addPRButtonActionPerformed
         supplierDataList = Supplier.loadSuppliers();
         itemDataList = Item.loadItems();
-        salesManager.addPurchaseRequisition(this, itemDataList, prDataList, supplierDataList, prTable);
+        salesManager.addPurchaseRequisition(this, itemDataList, prDataList, prItemDataList, supplierDataList, prTable);
     }//GEN-LAST:event_addPRButtonActionPerformed
 
     /**
