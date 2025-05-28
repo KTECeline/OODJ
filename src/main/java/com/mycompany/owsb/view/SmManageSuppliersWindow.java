@@ -4,9 +4,9 @@
  */
 package com.mycompany.owsb.view;
 
-import com.mycompany.owsb.model.Item;
 import com.mycompany.owsb.model.SalesManager;
 import com.mycompany.owsb.model.Supplier;
+import com.mycompany.owsb.model.SupplierItem;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ public class SmManageSuppliersWindow extends javax.swing.JFrame {
     private final SalesManager salesManager;
     
     private java.util.List<Supplier> supplierDataList = new ArrayList<>();
-    private java.util.List<Item> itemDataList = new ArrayList<>();
+    private java.util.List<SupplierItem> supplierItemDataList = new ArrayList<>();
     
     // String representing the file path for purchase order data
     private static final String SUPPLIER_FILE = "data/suppliers.txt";
@@ -37,7 +37,7 @@ public class SmManageSuppliersWindow extends javax.swing.JFrame {
         this.parentWindow = parentWindow;
         this.salesManager = salesManager;
         initComponents();
-        loadSuppliersIntoList(); 
+        loadDataIntoList(); 
         setupWindowListener();
     }
     
@@ -53,9 +53,10 @@ public class SmManageSuppliersWindow extends javax.swing.JFrame {
     }
     
     // Method to load Items from file and display them in the UI list
-    private void loadSuppliersIntoList() {
+    private void loadDataIntoList() {
         // Load the list of Purchase Orders from the purchase order file
         supplierDataList = Supplier.loadSuppliers();
+        supplierItemDataList = SupplierItem.loadSupplierItems();
         
         // Update JTable to the latest
         Supplier.updateSupplierTableInUI(supplierDataList, supplierTable);
@@ -312,8 +313,8 @@ public class SmManageSuppliersWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_editSupplierButtonActionPerformed
 
     private void deleteSupplierButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteSupplierButtonActionPerformed
-        itemDataList = Item.loadItems(); 
-        salesManager.deleteSupplier(this, supplierDataList, itemDataList, supplierTable);
+        supplierItemDataList = SupplierItem.loadSupplierItems(); 
+        salesManager.deleteSupplier(this, supplierDataList, supplierItemDataList, supplierTable);
     }//GEN-LAST:event_deleteSupplierButtonActionPerformed
 
     private void searchFieldMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_searchFieldMouseClicked

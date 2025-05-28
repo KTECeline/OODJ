@@ -115,14 +115,12 @@ public class SalesManager extends Manager implements ManageItemInterface{
 
         // Input fields
         JTextField itemNameField = new JTextField(20);
-        JTextField supplierIdField = new JTextField(20);
         JTextField stockField = new JTextField(20);
         JTextField costField = new JTextField(20);
         JTextField priceField = new JTextField(20);
 
         // Error labels
         JLabel itemNameError = new JLabel();
-        JLabel supplierIdError = new JLabel();
         JLabel stockError = new JLabel();
         JLabel costError = new JLabel();
         JLabel priceError = new JLabel();
@@ -141,11 +139,6 @@ public class SalesManager extends Manager implements ManageItemInterface{
         panel.add(itemNameField);
         panel.add(new JLabel());
         panel.add(itemNameError);
-
-        panel.add(new JLabel("Supplier ID:"));
-        panel.add(supplierIdField);
-        panel.add(new JLabel());
-        panel.add(supplierIdError);
 
         panel.add(new JLabel("Stock:"));
         panel.add(stockField);
@@ -188,13 +181,11 @@ public class SalesManager extends Manager implements ManageItemInterface{
         submit.addActionListener(e -> {
             // Reset error messages
             itemNameError.setText("");
-            supplierIdError.setText("");
             stockError.setText("");
             costError.setText("");
             priceError.setText("");
 
             String itemName = itemNameField.getText().trim();
-            String supplierId = supplierIdField.getText().trim().toUpperCase();
             String stockStr = stockField.getText().trim();
             String costStr = costField.getText().trim();
             String priceStr = priceField.getText().trim();
@@ -206,35 +197,6 @@ public class SalesManager extends Manager implements ManageItemInterface{
                 itemNameError.setForeground(errorColor);
                 itemNameError.setText("*Item name is required.");
                 isValid = false;
-            }
-
-            // Supplier ID validation
-            if (supplierId.isEmpty()) {
-                supplierIdError.setForeground(errorColor);
-                supplierIdError.setText("*Supplier ID cannot be empty.");
-                isValid = false;
-            } else {
-                if (!supplierId.matches("SP\\d{4}")) {
-                    supplierIdError.setForeground(errorColor);
-                    supplierIdError.setText("*Format must be (ex:SP0001).");
-                    isValid = false;
-                } else {
-                    boolean supplierExists = false;
-                    for (Supplier supplier : supplierList) {
-                        if (supplier.getSupplierID().equalsIgnoreCase(supplierId)) {
-                            supplierExists = true;
-                            break;
-                        }
-                    }
-
-                    if (!supplierExists) {
-                        supplierIdError.setForeground(errorColor);  // Set error color
-                        supplierIdError.setText("*Supplier ID does not exist.");
-                        isValid = false;  // Mark as invalid to prevent further submission
-                    } else {
-                        supplierIdError.setText("");  // Clear any previous error messages if valid
-                    }
-                }
             }
 
             // Stock validation
@@ -291,7 +253,7 @@ public class SalesManager extends Manager implements ManageItemInterface{
             if (isValid) {
                 boolean lowStockAlert = Item.isLowStock(stock);
                 
-                Item newItem = new Item(nextItemID, itemName, supplierId, stock, cost, price,lowStockAlert);
+                Item newItem = new Item(nextItemID, itemName, stock, cost, price,lowStockAlert);
                 itemList.add(newItem);
                 FileUtil.saveListToFile(ITEM_FILE, itemList);
                 Item.updateItemTableInUI(itemList, itemTable);
@@ -316,14 +278,12 @@ public class SalesManager extends Manager implements ManageItemInterface{
         
         // Input fields
         JTextField nameField = new JTextField(itemToEdit.getItemName(), 20);
-        JTextField supplierField = new JTextField(itemToEdit.getSupplierId(), 20);
         JTextField stockField = new JTextField(String.valueOf(itemToEdit.getStock()), 20);
         JTextField costField = new JTextField(String.valueOf(itemToEdit.getCost()), 20);
         JTextField priceField = new JTextField(String.valueOf(itemToEdit.getPrice()), 20);
 
         // Error labels
         JLabel nameError = new JLabel();
-        JLabel supplierIdError = new JLabel();
         JLabel stockError = new JLabel();
         JLabel costError = new JLabel();
         JLabel priceError = new JLabel();
@@ -343,11 +303,6 @@ public class SalesManager extends Manager implements ManageItemInterface{
         panel.add(nameField);
         panel.add(new JLabel());
         panel.add(nameError);
-
-        panel.add(new JLabel("Supplier ID:"));
-        panel.add(supplierField);
-        panel.add(new JLabel());
-        panel.add(supplierIdError);
 
         panel.add(new JLabel("Stock:"));
         panel.add(stockField);
@@ -382,13 +337,11 @@ public class SalesManager extends Manager implements ManageItemInterface{
         saveBtn.addActionListener(e -> {
              // Clear previous error messages
              nameError.setText("");
-             supplierIdError.setText("");
              stockError.setText("");
              costError.setText("");
              priceError.setText("");
 
              String name = nameField.getText().trim();
-             String supplierId = supplierField.getText().trim();
              String stockStr = stockField.getText().trim();
              String costStr = costField.getText().trim();
              String priceStr = priceField.getText().trim();
@@ -399,35 +352,6 @@ public class SalesManager extends Manager implements ManageItemInterface{
                  nameError.setForeground(errorColor);
                  nameError.setText("Item name is required.");
                  isValid = false;
-             }
-
-             // Supplier ID validation
-             if (supplierId.isEmpty()) {
-                 supplierIdError.setForeground(errorColor);
-                 supplierIdError.setText("*Supplier ID cannot be empty.");
-                 isValid = false;
-             } else {
-                 if (!supplierId.matches("SP\\d{4}")) {
-                     supplierIdError.setForeground(errorColor);
-                     supplierIdError.setText("*Format must be (ex:SP0001).");
-                     isValid = false;
-                 } else {
-                     boolean supplierExists = false;
-                     for (Supplier supplier : supplierList) {
-                         if (supplier.getSupplierID().equalsIgnoreCase(supplierId)) {
-                             supplierExists = true;
-                             break;
-                         }
-                     }
-
-                     if (!supplierExists) {
-                         supplierIdError.setForeground(errorColor);  // Set error color
-                         supplierIdError.setText("*Supplier ID does not exist.");
-                         isValid = false;  // Mark as invalid to prevent further submission
-                     } else {
-                         supplierIdError.setText("");  // Clear any previous error messages if valid
-                     }
-                 }
              }
 
             int stock = 0;
@@ -462,7 +386,6 @@ public class SalesManager extends Manager implements ManageItemInterface{
 
             if (isValid) {
                 itemToEdit.setItemName(name);
-                itemToEdit.setSupplierId(supplierId);
                 itemToEdit.setStock(stock);
                 itemToEdit.setCost(cost);
                 itemToEdit.setPrice(price);
@@ -734,7 +657,7 @@ public class SalesManager extends Manager implements ManageItemInterface{
     }
 
     // Method to DELETE supplier
-    public void deleteSupplier(JFrame parent, List<Supplier> supplierList, List<Item> itemList, JTable supplierTable) {
+    public void deleteSupplier(JFrame parent, List<Supplier> supplierList, List<SupplierItem> supplierItemList, JTable supplierTable) {
         if (!isAllowedToPerform("delete supplier")) {
             JOptionPane.showMessageDialog(null, "Not authorized to delete suppliers.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
             return;
@@ -751,8 +674,8 @@ public class SalesManager extends Manager implements ManageItemInterface{
 
         // Check if this supplier is linked to any item
         boolean isLinked = false;
-        for (Item item : itemList) {
-            if (item.getSupplierId().trim().equalsIgnoreCase(supplierId)) {
+        for (SupplierItem supplierItem : supplierItemList) {
+            if (supplierItem.getSupplierID().trim().equalsIgnoreCase(supplierId)) {
                 isLinked = true;
                 break;
             }
@@ -786,7 +709,7 @@ public class SalesManager extends Manager implements ManageItemInterface{
             if (supplierToDelete != null) {
                 supplierList.remove(supplierToDelete);
                 FileUtil.saveListToFile(SUPPLIER_FILE, supplierList);
-                Supplier.updateSupplierTableInUI(supplierList, supplierTable); // Assumes this method exists
+                Supplier.updateSupplierTableInUI(supplierList, supplierTable);
 
                 JOptionPane.showMessageDialog(parent, "Supplier deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
             } else {
@@ -799,7 +722,7 @@ public class SalesManager extends Manager implements ManageItemInterface{
 
 
     //PURCHASE REQUISITION SECTION
-    public void addPurchaseRequisition(JFrame parent, List<Item> itemList, List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, List<Supplier> supplierList, JTable prTable) {
+    public void addPurchaseRequisition(JFrame parent, List<Item> itemList, List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, List<Supplier> supplierList, List<SupplierItem> supplierItemList, JTable prTable) {
         if (!isAllowedToPerform("add pr")) {
             JOptionPane.showMessageDialog(parent, "Not authorized to add purchase requisition.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
             return;
@@ -856,9 +779,9 @@ public class SalesManager extends Manager implements ManageItemInterface{
 
             
             String supplierId = null;
-            for (Item item : itemList) {
-                if (item.getItemID().equalsIgnoreCase(itemID)) {
-                    supplierId = item.getSupplierId();
+            for (SupplierItem supplierItem : supplierItemList) {
+                if (supplierItem.getItemID().equalsIgnoreCase(itemID)) {
+                    supplierId = supplierItem.getSupplierID();
                     break;
                 }
             }

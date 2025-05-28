@@ -4,13 +4,10 @@
  */
 package com.mycompany.owsb.model;
 
-import static com.mycompany.owsb.model.PurchaseOrder.loadPurchaseOrders;
 import java.awt.Color;
 import java.awt.Component;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +26,6 @@ import javax.swing.table.TableColumnModel;
 public class Item {
     private final String itemID;
     private String itemName;
-    private String supplierId;
     private int stock;
     private double cost;
     private double price;
@@ -38,10 +34,9 @@ public class Item {
     // String representing the file path for item data
     private static final String ITEM_FILE = "data/items.txt";
 
-    public Item(String itemID, String itemName, String supplierId, int stock, double cost, double price, boolean stockLevel) {
+    public Item(String itemID, String itemName, int stock, double cost, double price, boolean stockLevel) {
         this.itemID = itemID;
         this.itemName = itemName;
-        this.supplierId = supplierId;
         this.stock = stock;
         this.cost = cost;
         this.price = price;
@@ -55,10 +50,6 @@ public class Item {
     
     public String getItemName() {
         return itemName;
-    }
-    
-    public String getSupplierId() {
-        return supplierId;
     }
     
     public int getStock() {
@@ -84,10 +75,6 @@ public class Item {
         this.itemName = itemName; 
     }
     
-    public void setSupplierId(String supplierId) { 
-        this.supplierId = supplierId; 
-    }
-    
     public void setStock(int stock) { 
         this.stock = stock; 
     }
@@ -107,7 +94,7 @@ public class Item {
     // Convert object to string to save it in file
     @Override
     public String toString() {
-        return itemID + "," + itemName + "," + supplierId + "," + stock + "," + cost + "," + price + "," + stockLevel;
+        return itemID + "," + itemName + "," + stock + "," + cost + "," + price + "," + stockLevel;
     }
     
     // Convert the line in the file from String to object
@@ -115,13 +102,12 @@ public class Item {
         String[] parts = line.split(",");  // Split the line by commas
         String itemID = parts[0];
         String itemName = parts[1];
-        String supplierId = parts[2];
-        int stock = Integer.parseInt(parts[3]);
-        double cost = Double.parseDouble(parts[4]);
-        double price = Double.parseDouble(parts[5]);
-        boolean stockLevel = Boolean.parseBoolean(parts[6]);
+        int stock = Integer.parseInt(parts[2]);
+        double cost = Double.parseDouble(parts[3]);
+        double price = Double.parseDouble(parts[4]);
+        boolean stockLevel = Boolean.parseBoolean(parts[5]);
         
-        return new Item(itemID, itemName, supplierId, stock, cost, price, stockLevel);  // Return a new Item object
+        return new Item(itemID, itemName, stock, cost, price, stockLevel);  // Return a new Item object
     }
     
     public static boolean isLowStock(int stock) {
@@ -169,14 +155,13 @@ public class Item {
     
     // Method to update item table in the UI
     public static void updateItemTableInUI(List<Item> itemList, JTable targetTable) {
-        String[] columnNames = {"Item ID", "Name", "Supplier ID", "Stock", "Cost (RM)", "Price (RM)", "Stock Level"};
+        String[] columnNames = {"Item ID", "Name", "Stock", "Cost (RM)", "Price (RM)", "Stock Level"};
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
 
         for (Item item : itemList) {
             Object[] row = {
                 item.getItemID(),
                 item.getItemName(),
-                item.getSupplierId(),
                 item.getStock(),
                 item.getCost(),
                 item.getPrice(),
@@ -209,7 +194,6 @@ public class Item {
                 Object[] row = {
                     item.getItemID(),
                     item.getItemName(),
-                    item.getSupplierId(),
                     item.getStock(),
                     item.getCost(),
                     item.getPrice(),
@@ -255,7 +239,7 @@ public class Item {
                                                            boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
-                String stockLevel = table.getModel().getValueAt(row, 6).toString(); // Column index 6 = "Stock Level"
+                String stockLevel = table.getModel().getValueAt(row, 5).toString(); // Column index 6 = "Stock Level"
 
                 if (stockLevel.equalsIgnoreCase("Low")) {
                     c.setBackground(new Color(255, 204, 204)); // Light red

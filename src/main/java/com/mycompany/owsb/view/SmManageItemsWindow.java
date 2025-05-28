@@ -127,20 +127,20 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
         itemTable.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
         itemTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null}
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null}
             },
             new String [] {
-                "Item ID", "Item Name", "Supplier ID", "Stock", "Cost", "Price", "Stock Level"
+                "Item ID", "Item Name", "Stock", "Cost", "Price", "Stock Level"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.Double.class, java.lang.Double.class, java.lang.Boolean.class
+                java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.Double.class, java.lang.Double.class, java.lang.Boolean.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false
+                false, false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -160,9 +160,6 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
             itemTable.getColumnModel().getColumn(0).setPreferredWidth(50);
             itemTable.getColumnModel().getColumn(0).setMaxWidth(50);
             itemTable.getColumnModel().getColumn(1).setMinWidth(150);
-            itemTable.getColumnModel().getColumn(2).setMinWidth(80);
-            itemTable.getColumnModel().getColumn(2).setPreferredWidth(80);
-            itemTable.getColumnModel().getColumn(2).setMaxWidth(80);
         }
 
         backButton.setBackground(new java.awt.Color(102, 102, 102));

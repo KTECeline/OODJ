@@ -9,6 +9,7 @@ import com.mycompany.owsb.model.PurchaseRequisition;
 import com.mycompany.owsb.model.PurchaseRequisitionItem;
 import com.mycompany.owsb.model.SalesManager;
 import com.mycompany.owsb.model.Supplier;
+import com.mycompany.owsb.model.SupplierItem;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ public class SmManagePrWindow extends javax.swing.JFrame {
     private java.util.List<PurchaseRequisitionItem> prItemDataList = new ArrayList<>();
     private java.util.List<Item> itemDataList = new ArrayList<>();
     private java.util.List<Supplier> supplierDataList = new ArrayList<>();
+    private java.util.List<SupplierItem> supplierItemDataList = new ArrayList<>();
 
     /**
      * Creates new form NewJFrame
@@ -272,8 +274,9 @@ public class SmManagePrWindow extends javax.swing.JFrame {
 
     private void addPRButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addPRButtonActionPerformed
         supplierDataList = Supplier.loadSuppliers();
+        supplierItemDataList = SupplierItem.loadSupplierItems();
         itemDataList = Item.loadItems();
-        salesManager.addPurchaseRequisition(this, itemDataList, prDataList, prItemDataList, supplierDataList, prTable);
+        salesManager.addPurchaseRequisition(this, itemDataList, prDataList, prItemDataList, supplierDataList, supplierItemDataList, prTable);
     }//GEN-LAST:event_addPRButtonActionPerformed
 
     /**
