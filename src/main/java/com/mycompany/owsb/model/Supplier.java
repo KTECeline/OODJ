@@ -102,26 +102,40 @@ public class Supplier {
     
     
     // Method to update supplier table in the UI
-    public static void updateSupplierTableInUI(List<Supplier> supplierList, JTable targetTable) {
-        String[] columnNames = {"Supplier ID", "Supplier Name", "Email"};
+    public static void updateSupplierTableInUI(List<Supplier> supplierList, List<SupplierItem> supplierItemList, JTable targetTable) {
+        String[] columnNames = {"Supplier ID", "Supplier Name", "Email", "Item IDs"};
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
 
         for (Supplier supplier : supplierList) {
+            String supplierId = supplier.getSupplierID();
+
+            // Collect all item IDs linked to this supplier
+            StringBuilder itemIds = new StringBuilder();
+            for (SupplierItem supplierItem : supplierItemList) {
+                if (supplierItem.getSupplierID().equalsIgnoreCase(supplierId)) {
+                    if (itemIds.length() > 0) {
+                        itemIds.append(", ");
+                    }
+                    itemIds.append(supplierItem.getItemID());
+                }
+            }
+
             Object[] row = {
                 supplier.getSupplierID(),
                 supplier.getSupplierName(),
-                supplier.getEmail()
+                supplier.getEmail(),
+                itemIds.toString()
             };
             tableModel.addRow(row);
         }
 
         targetTable.setModel(tableModel);
         autoResizeColumnWidths(targetTable);
-        
     }
 
 
-    public static void searchAndDisplaySupplierInTable(JTextField searchField, JTable table, List<Supplier> supplierList) {
+
+    public static void searchAndDisplaySupplierInTable(JTextField searchField, JTable table, List<Supplier> supplierList, List<SupplierItem> supplierItemList) {
         String searchID = searchField.getText().trim().toUpperCase();
         boolean found = false;
 
@@ -152,7 +166,7 @@ public class Supplier {
             JOptionPane.showMessageDialog(null, "Supplier ID not found.", "Not Found", JOptionPane.INFORMATION_MESSAGE);
             
             // Reload full supplier list into table
-            updateSupplierTableInUI(supplierList, table);
+            updateSupplierTableInUI(supplierList, supplierItemList, table);
         }
         // Reset Search Field
         searchField.setText("Enter Supplier ID");

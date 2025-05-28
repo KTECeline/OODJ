@@ -269,6 +269,9 @@ public class SmManagePrWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_searchFieldMouseClicked
 
     private void searchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchButtonActionPerformed
+        // Reload data from file
+        loadPRsIntoTable();
+        
         PurchaseRequisition.searchAndDisplayPRInTable(searchField, prTable, prDataList, prItemDataList);
     }//GEN-LAST:event_searchButtonActionPerformed
 

@@ -1,7 +1,5 @@
 package com.mycompany.owsb.model;
 
-import static com.mycompany.owsb.model.PurchaseOrder.loadPurchaseOrders;
-import java.awt.Color;
 import java.awt.Component;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -9,14 +7,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
