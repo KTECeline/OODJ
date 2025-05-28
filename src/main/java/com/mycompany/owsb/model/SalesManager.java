@@ -111,7 +111,7 @@ public class SalesManager extends Manager implements ManageItemInterface{
     
     // Method to ADD new item
     @Override
-    public void addItem(JFrame parent, List<Item> itemList, List<Supplier> supplierList, JTable itemTable) {
+    public void addItem(JFrame parent, List<Item> itemList, JTable itemTable) {
         if (!isAllowedToPerform("add item")) {
             JOptionPane.showMessageDialog(parent, "Not authorized to add items.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
             return;
@@ -276,7 +276,7 @@ public class SalesManager extends Manager implements ManageItemInterface{
     
     // Method to EDIT item details
     @Override
-    public void editItem(Item itemToEdit, List<Item> itemList, List<Supplier> supplierList, JTable itemTable) {
+    public void editItem(Item itemToEdit, List<Item> itemList, JTable itemTable) {
         if (!isAllowedToPerform("edit item")) {
             JOptionPane.showMessageDialog(null, "Not authorized to edit items.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
             return;
@@ -411,12 +411,12 @@ public class SalesManager extends Manager implements ManageItemInterface{
     
     // Method to DELETE item
     @Override
-    public void deleteItem(JFrame parent, List<Item> itemList, JTable itemTable) {
+    public void deleteItem(JFrame parent, List<Item> itemList, List<SupplierItem> supplierItemList, JTable itemTable) {
         if (!isAllowedToPerform("delete item")) {
             JOptionPane.showMessageDialog(parent, "Not authorized to delete items.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+
         int selectedRow = itemTable.getSelectedRow();
 
         if (selectedRow == -1) {
@@ -426,43 +426,74 @@ public class SalesManager extends Manager implements ManageItemInterface{
 
         String itemId = itemTable.getValueAt(selectedRow, 0).toString();
 
-        // Ask for confirmation before deleting the item
+        // Check how many supplier links this item has
+        int linkedCount = 0;
+        for (SupplierItem supplierItem : supplierItemList) {
+            if (supplierItem.getItemID().equalsIgnoreCase(itemId)) {
+                linkedCount++;
+            }
+        }
+
+        // Confirm deletion with warning about linked suppliers
+        String message = "Are you sure you want to delete item " + itemId + "?";
+        if (linkedCount > 0) {
+            message += "\nThis will also remove " + linkedCount + " linked supplier(s).";
+        }
+
         int response = JOptionPane.showConfirmDialog(
-            parent, // Parent frame
-            "Are you sure you want to delete this item?", // Confirmation message
-            "Confirm Deletion", // Dialog title
-            JOptionPane.YES_NO_OPTION, // Options: Yes or No
-            JOptionPane.QUESTION_MESSAGE // Message type
+            parent,
+            message,
+            "Confirm Deletion",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
         );
 
-        // If the user clicks Yes, proceed with the deletion
         if (response == JOptionPane.YES_OPTION) {
-            // Remove item from list
+            // Remove item from itemList
             Item itemToDelete = null;
             for (Item item : itemList) {
-                if (item.getItemID().equals(itemId)) {
+                if (item.getItemID().equalsIgnoreCase(itemId)) {
                     itemToDelete = item;
                     break;
                 }
             }
 
             if (itemToDelete != null) {
-                itemList.remove(itemToDelete); // Remove the item from the list
-                FileUtil.saveListToFile(ITEM_FILE, itemList); // Save the updated list to the file
-                Item.updateItemTableInUI(itemList, itemTable); // Update the table after deletion
+                itemList.remove(itemToDelete);
 
-                JOptionPane.showMessageDialog(parent, "Item deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                // Remove related SupplierItem links
+                boolean supplierItemChanged = false;
+                for (int i = 0; i < supplierItemList.size(); ) {
+                    SupplierItem supplierItem = supplierItemList.get(i);
+                    if (supplierItem.getItemID().equalsIgnoreCase(itemId)) {
+                        supplierItemList.remove(i);
+                        supplierItemChanged = true;
+                    } else {
+                        i++;
+                    }
+                }
+
+                // Save files
+                FileUtil.saveListToFile(ITEM_FILE, itemList);
+                if (supplierItemChanged) {
+                    FileUtil.saveListToFile(SUPPLIER_ITEM_FILE, supplierItemList);
+                }
+
+                // Update UI tables
+                Item.updateItemTableInUI(itemList, itemTable);
+
+                JOptionPane.showMessageDialog(parent, "Item and related supplier links deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                System.out.println("Deleted item " + itemId + " and removed " + linkedCount + " supplier link(s).");
+
             } else {
                 JOptionPane.showMessageDialog(parent, "Item not found.", "Error", JOptionPane.ERROR_MESSAGE);
             }
+
         } else {
-            // If the user clicks No, show cancellation message
             JOptionPane.showMessageDialog(parent, "Item deletion canceled.", "Canceled", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 
-    
-    
     
     //SUPPLIER SECTION
     
@@ -648,7 +679,9 @@ public class SalesManager extends Manager implements ManageItemInterface{
         itemPanel.setBackground(Color.white);
 
         for (Item item : itemList) {
-            JCheckBox itemCheckbox = new JCheckBox(item.getItemID());
+            // Display both ID and name, e.g., IT0001 - Laptop
+            JCheckBox itemCheckbox = new JCheckBox(item.getItemID() + " - " + item.getItemName());
+
 
             // Check if this item is already linked to the supplier
             boolean isLinked = false;
@@ -731,7 +764,8 @@ public class SalesManager extends Manager implements ManageItemInterface{
                 supplierItemList.removeIf(si -> si.getSupplierID().equalsIgnoreCase(supplierToEdit.getSupplierID()));
                 for (JCheckBox cb : itemCheckboxes) {
                     if (cb.isSelected()) {
-                        supplierItemList.add(new SupplierItem(supplierToEdit.getSupplierID(), cb.getText()));
+                        String itemId = cb.getText().split(" - ")[0];  // Only take the ID part before the dash
+                        supplierItemList.add(new SupplierItem(supplierToEdit.getSupplierID(), itemId));
                     }
                 }
 

@@ -7,6 +7,7 @@ package com.mycompany.owsb.view;
 import com.mycompany.owsb.model.Item;
 import com.mycompany.owsb.model.SalesManager;
 import com.mycompany.owsb.model.Supplier;
+import com.mycompany.owsb.model.SupplierItem;
 import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
@@ -22,7 +23,7 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
     private final SalesManager salesManager;
     
     private java.util.List<Item> itemDataList = new ArrayList<>();
-    private java.util.List<Supplier> supplierDataList = new ArrayList<>();
+    private java.util.List<SupplierItem> supplierItemDataList = new ArrayList<>();
     
     // String representing the file path for purchase order data
     private static final String ITEM_FILE = "data/items.txt";
@@ -81,7 +82,7 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
             // Search for the item based on input ID
             for (Item item : itemDataList) {
                 if (item.getItemID().equalsIgnoreCase(inputID)) {
-                    salesManager.editItem(item, itemDataList, supplierDataList, itemTable); // Call editItem method in Sales Manager Class if item found
+                    salesManager.editItem(item, itemDataList, itemTable); // Call editItem method in Sales Manager Class if item found
                     Item.updateItemTableInUI(itemDataList, itemTable);
                     found = true;
                     break;
@@ -294,12 +295,10 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void addItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addItemButtonActionPerformed
-        supplierDataList = Supplier.loadSuppliers();
-        salesManager.addItem(this, itemDataList, supplierDataList, itemTable);
+        salesManager.addItem(this, itemDataList, itemTable);
     }//GEN-LAST:event_addItemButtonActionPerformed
 
     private void editItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editItemButtonActionPerformed
-        supplierDataList = Supplier.loadSuppliers();
         int selectedRow = itemTable.getSelectedRow(); // Get selected row index
 
         if (selectedRow != -1) { // -1 means no row selected
@@ -316,7 +315,7 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
             if (confirm == JOptionPane.YES_OPTION) {
                 for (Item item : itemDataList) {
                     if (item.getItemID().equalsIgnoreCase(selectedItemID)) {
-                        salesManager.editItem(item, itemDataList, supplierDataList, itemTable); // Open the edit form
+                        salesManager.editItem(item, itemDataList, itemTable); // Open the edit form
                         Item.updateItemTableInUI(itemDataList, itemTable); // Refresh the table
                         break;
                     }
@@ -339,7 +338,9 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_searchButtonActionPerformed
 
     private void deleteItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteItemButtonActionPerformed
-        salesManager.deleteItem(this, itemDataList, itemTable);
+        supplierItemDataList = SupplierItem.loadSupplierItems();
+        
+        salesManager.deleteItem(this, itemDataList, supplierItemDataList, itemTable);
     }//GEN-LAST:event_deleteItemButtonActionPerformed
 
     private void backButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backButtonActionPerformed

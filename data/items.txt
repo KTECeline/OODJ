@@ -1,4 +1,3 @@
 IT0001,Medium Size Tupperware,20,22.5,30.0,false
 IT0002,Kuromi T-shirt,2,2.0,2.0,true
-IT0003,dfdfddffd,2,2.0,2.0,true
 IT0004,Rabbit Pink Bag,30,15.0,25.0,false
