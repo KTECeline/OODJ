@@ -1312,6 +1312,86 @@ public class SalesManager extends Manager implements ManageItemInterface{
         dialog.setVisible(true);
     }
 
+    
+    public void deletePurchaseRequisition(JFrame parent, List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, List<Item> itemList, JTable prTable) {
+        if (!isAllowedToPerform("delete pr")) {
+            JOptionPane.showMessageDialog(null, "Not authorized to delete purchase requisitions.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int selectedRow = prTable.getSelectedRow();
+
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(parent, "Please select a purchase requisition to delete.", "No Selection", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String prId = prTable.getValueAt(selectedRow, 0).toString();
+        String itemIdWithName = prTable.getValueAt(selectedRow, 1).toString();
+        String itemId = itemIdWithName.split(" - ")[0];  // get only the item ID part
+        String supplierId = prTable.getValueAt(selectedRow, 2).toString();
+
+        // Confirm deletion
+        int response = JOptionPane.showConfirmDialog(
+            parent,
+            "Are you sure you want to delete this PR? \n\nItem: " + itemIdWithName + "\nSupplier: " + supplierId,
+            "Confirm Deletion",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (response == JOptionPane.YES_OPTION) {
+            // Step 1: Remove the PurchaseRequisitionItem (the line entry)
+            PurchaseRequisitionItem itemToDelete = null;
+            for (PurchaseRequisitionItem item : prItemList) {
+                if (item.getPrID().equalsIgnoreCase(prId) && item.getItemID().equalsIgnoreCase(itemId)) {
+                    itemToDelete = item;
+                    break;
+                }
+            }
+
+            if (itemToDelete != null) {
+                prItemList.remove(itemToDelete);
+
+                // Step 2: If no more items under this PR, remove the PR itself
+                boolean hasOtherItems = false;
+                for (PurchaseRequisitionItem item : prItemList) {
+                    if (item.getPrID().equalsIgnoreCase(prId)) {
+                        hasOtherItems = true;
+                        break;
+                    }
+                }
+
+                if (!hasOtherItems) {
+                    // Remove the parent PR
+                    PurchaseRequisition prToDelete = null;
+                    for (PurchaseRequisition pr : prList) {
+                        if (pr.getPrID().equalsIgnoreCase(prId)) {
+                            prToDelete = pr;
+                            break;
+                        }
+                    }
+
+                    if (prToDelete != null) {
+                        prList.remove(prToDelete);
+                    }
+                }
+
+                // Step 3: Save updates
+                FileUtil.saveListToFile(PURCHASE_REQUISITION_FILE, prList);
+                FileUtil.saveListToFile(PURCHASE_REQUISITION_ITEM_FILE, prItemList);
+
+                // Step 4: Update UI table
+                PurchaseRequisition.updatePRTableInUI(prList, prItemList, itemList, prTable);
+
+                JOptionPane.showMessageDialog(parent, "Purchase requisition record deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(parent, "Purchase requisition record not found.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            JOptionPane.showMessageDialog(parent, "Purchase requisition deletion canceled.", "Canceled", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
 
 
     

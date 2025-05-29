@@ -187,10 +187,11 @@ public class SmManagePrWindow extends javax.swing.JFrame {
         jScrollPane3 = new javax.swing.JScrollPane();
         prTable = new javax.swing.JTable();
         backButton = new javax.swing.JButton();
-        addPRButton = new javax.swing.JButton();
+        addPrButton = new javax.swing.JButton();
         searchField = new javax.swing.JTextField();
         searchButton = new javax.swing.JButton();
-        editItemButton = new javax.swing.JButton();
+        editPButton = new javax.swing.JButton();
+        deletePrButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Purchase Requisition");
@@ -206,7 +207,7 @@ public class SmManagePrWindow extends javax.swing.JFrame {
                 {null, null, null, null, null, null, null}
             },
             new String [] {
-                "PR ID", "Item ID", "Quantity", "Supplier ID", "Raised By", "Unit Cost", "Total Cost"
+                "PR ID", "Item", "Quantity", "Supplier ID", "Raised By", "Unit Cost", "Total Cost"
             }
         ) {
             Class[] types = new Class [] {
@@ -240,13 +241,13 @@ public class SmManagePrWindow extends javax.swing.JFrame {
             }
         });
 
-        addPRButton.setBackground(new java.awt.Color(255, 51, 51));
-        addPRButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
-        addPRButton.setForeground(new java.awt.Color(255, 255, 255));
-        addPRButton.setText("Add");
-        addPRButton.addActionListener(new java.awt.event.ActionListener() {
+        addPrButton.setBackground(new java.awt.Color(255, 51, 51));
+        addPrButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        addPrButton.setForeground(new java.awt.Color(255, 255, 255));
+        addPrButton.setText("Add");
+        addPrButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                addPRButtonActionPerformed(evt);
+                addPrButtonActionPerformed(evt);
             }
         });
 
@@ -270,12 +271,22 @@ public class SmManagePrWindow extends javax.swing.JFrame {
             }
         });
 
-        editItemButton.setBackground(new java.awt.Color(255, 204, 0));
-        editItemButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
-        editItemButton.setText("Edit");
-        editItemButton.addActionListener(new java.awt.event.ActionListener() {
+        editPButton.setBackground(new java.awt.Color(255, 204, 0));
+        editPButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        editPButton.setText("Edit");
+        editPButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                editItemButtonActionPerformed(evt);
+                editPButtonActionPerformed(evt);
+            }
+        });
+
+        deletePrButton.setBackground(new java.awt.Color(51, 51, 51));
+        deletePrButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        deletePrButton.setForeground(new java.awt.Color(255, 255, 255));
+        deletePrButton.setText("Delete");
+        deletePrButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deletePrButtonActionPerformed(evt);
             }
         });
 
@@ -288,9 +299,11 @@ public class SmManagePrWindow extends javax.swing.JFrame {
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 741, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(addPRButton, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(deletePrButton, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(editItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(addPrButton, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(editPButton, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addComponent(backButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -309,11 +322,12 @@ public class SmManagePrWindow extends javax.swing.JFrame {
                     .addComponent(searchButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(addPRButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(editItemButton))
-                .addGap(18, 18, 18)
+                    .addComponent(addPrButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(editPButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(deletePrButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 288, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(43, 43, 43))
+                .addGap(39, 39, 39))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -347,14 +361,14 @@ public class SmManagePrWindow extends javax.swing.JFrame {
         PurchaseRequisition.searchAndDisplayPRInTable(searchField, prTable, prDataList, itemDataList, prItemDataList);
     }//GEN-LAST:event_searchButtonActionPerformed
 
-    private void addPRButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addPRButtonActionPerformed
+    private void addPrButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addPrButtonActionPerformed
         supplierDataList = Supplier.loadSuppliers();
         supplierItemDataList = SupplierItem.loadSupplierItems();
         itemDataList = Item.loadItems();
         salesManager.addPurchaseRequisition(this, itemDataList, prDataList, prItemDataList, supplierDataList, supplierItemDataList, prTable);
-    }//GEN-LAST:event_addPRButtonActionPerformed
+    }//GEN-LAST:event_addPrButtonActionPerformed
 
-    private void editItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editItemButtonActionPerformed
+    private void editPButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editPButtonActionPerformed
         itemDataList = Item.loadItems();
         supplierDataList = Supplier.loadSuppliers();
         
@@ -415,7 +429,15 @@ public class SmManagePrWindow extends javax.swing.JFrame {
         } else {
             promptForPRID();
         }
-    }//GEN-LAST:event_editItemButtonActionPerformed
+    }//GEN-LAST:event_editPButtonActionPerformed
+
+    private void deletePrButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deletePrButtonActionPerformed
+        prDataList = PurchaseRequisition.loadPurchaseRequisition();
+        prItemDataList = PurchaseRequisitionItem.loadPurchaseRequisitionItems();
+        itemDataList = Item.loadItems();
+
+        salesManager.deletePurchaseRequisition(this, prDataList, prItemDataList, itemDataList, prTable);
+    }//GEN-LAST:event_deletePrButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -423,9 +445,10 @@ public class SmManagePrWindow extends javax.swing.JFrame {
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton addPRButton;
+    private javax.swing.JButton addPrButton;
     private javax.swing.JButton backButton;
-    private javax.swing.JButton editItemButton;
+    private javax.swing.JButton deletePrButton;
+    private javax.swing.JButton editPButton;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTable prTable;
