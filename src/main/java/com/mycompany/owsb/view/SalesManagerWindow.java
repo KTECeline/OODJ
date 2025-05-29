@@ -48,7 +48,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
         purchaseOrderList = PurchaseOrder.loadPurchaseOrders();
         
         // Update the JList and details area in the UI with the loaded Purchase Orders
-        PurchaseOrder.updatePOListInUI(purchaseOrderList, poList, poDetails);
+        PurchaseOrder.updatePOListInUI(purchaseOrderList, poDetails);
     }
  
     /**
@@ -210,7 +210,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_CreatePRButtonActionPerformed
 
     private void searchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchButtonActionPerformed
-        PurchaseOrder.searchAndDisplayPO(searchField, poDetails, purchaseOrderList);
+        PurchaseOrder.searchAndDisplayPOInList(searchField, poDetails, purchaseOrderList);
     }//GEN-LAST:event_searchButtonActionPerformed
 
     private void searchFieldMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_searchFieldMouseClicked

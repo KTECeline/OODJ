@@ -1,6 +1,7 @@
 package com.mycompany.owsb.view;
 
 import com.mycompany.owsb.model.SalesManager;
+import com.mycompany.owsb.model.PurchaseManager;
 import com.mycompany.owsb.model.User;
 import com.mycompany.owsb.view.PurchaseManagerWindow;
 import com.mycompany.owsb.view.FinanceManagerWindow;
@@ -268,7 +269,9 @@ public class LoginWindow extends javax.swing.JFrame {
             SalesManagerWindow window = new SalesManagerWindow(loggedInUser, sm);
             window.showSmWindow();
         } else if ("Purchase Manager".equals(role)) {
-            new PurchaseManagerWindow(loggedInUser).setVisible(true);
+           PurchaseManager pm = new PurchaseManager(loggedInUser);
+           PurchaseManagerWindow window = new PurchaseManagerWindow(loggedInUser, pm);
+            window.showPmWindow();
         } else if ("Inventory Manager".equals(role)) {
             new InventoryManagerWindow(loggedInUser).setVisible(true);
         } else if ("Finance Manager".equals(role)) {
