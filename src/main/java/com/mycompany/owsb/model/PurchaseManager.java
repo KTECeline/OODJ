@@ -215,9 +215,11 @@ public class PurchaseManager extends User {
     }
 
     public void updatePRTable(JTable targetTable) {
-        PurchaseRequisition.updatePRTableInUI(getAllRequisitions(), PurchaseRequisitionItem.loadPurchaseRequisitionItems(), targetTable);
-    }
-
+    PurchaseRequisition.updatePRTableInUI(getAllRequisitions(), 
+                                         PurchaseRequisitionItem.loadPurchaseRequisitionItems(), 
+                                         getAllItems(), // Add Item list
+                                         targetTable);
+}
     public void updatePOTable(JTable targetTable) {
         PurchaseOrder.updatePOTableInUI(getAllPurchaseOrders(), targetTable);
     }
@@ -232,7 +234,7 @@ public class PurchaseManager extends User {
     }
 
     public void searchPR(JTextField searchField, JTable table) {
-        PurchaseRequisition.searchAndDisplayPRInTable(searchField, table, getAllRequisitions(), PurchaseRequisitionItem.loadPurchaseRequisitionItems());
+        PurchaseRequisition.searchAndDisplayPRInTable(searchField, table, getAllRequisitions(), getAllItems(),PurchaseRequisitionItem.loadPurchaseRequisitionItems());
     }
 
     public void searchPO(JTextField searchField, JTable table) {
