@@ -1,15 +1,13 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
 package com.mycompany.owsb.view;
 
+import com.mycompany.owsb.model.InventoryManager;
 import com.mycompany.owsb.model.User;
 
-/**
- *
- * @author timi
- */
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 public class InventoryManagerWindow extends javax.swing.JFrame {
     private final User loggedInUser;
 
@@ -30,22 +28,106 @@ public class InventoryManagerWindow extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        itemListBtn = new javax.swing.JButton();
+        updateStockBtn = new javax.swing.JButton();
+        stockReportBtn = new javax.swing.JButton();
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+
+        itemListBtn.setText("Item List");
+        itemListBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                itemListBtnActionPerformed(evt);
+            }
+        });
+
+        updateStockBtn.setText("Update Stock");
+        updateStockBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                updateStockBtnActionPerformed(evt);
+            }
+        });
+
+        stockReportBtn.setText("Stock Report");
+        stockReportBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                stockReportBtnActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(135, 135, 135)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(stockReportBtn)
+                    .addComponent(updateStockBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(itemListBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(165, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(99, 99, 99)
+                .addComponent(itemListBtn)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(updateStockBtn)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(stockReportBtn)
+                .addContainerGap(120, Short.MAX_VALUE))
         );
 
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
+
+    private void itemListBtnActionPerformed(java.awt.event.ActionEvent evt) {
+        InventoryManager im = new InventoryManager(loggedInUser);
+        if (im.isAllowedToPerform("ViewItemList")) {
+            new IM_ViewItemListWindow(loggedInUser).setVisible(true);
+            this.setVisible(false);
+        } else {
+            JOptionPane.showMessageDialog(this, "You are not authorized to view item list");
+        }
+    }
+
+    private void updateStockBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateStockBtnActionPerformed
+        InventoryManager im = new InventoryManager(loggedInUser);
+        if (im.isAllowedToPerform("UpdateStock")) {
+            new IM_UpdateStockWindow(loggedInUser).setVisible(true);
+            this.setVisible(false);
+        } else {
+            JOptionPane.showMessageDialog(this, "You are not authorized to view item list");
+        }
+    }//GEN-LAST:event_updateStockBtnActionPerformed
+
+    private void stockReportBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stockReportBtnActionPerformed
+        // Options for the dialog
+        String[] options = {"Overall Report", "Stock Movement Report"};
+
+        // Show option dialog
+        int choice = JOptionPane.showOptionDialog(
+            null,
+            "Choose report type:",
+            "Stock Report Selection",
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.INFORMATION_MESSAGE,
+            null,
+            options,
+            options[0]
+        );
+
+        // Handle option without using switch
+        if (choice == 0) {
+            new IM_StockReportWindow1(loggedInUser).setVisible(true);
+            this.setVisible(false);
+        } else if (choice == 1) {
+            new IM_StockReportWindow2(loggedInUser).setVisible(true);
+            this.setVisible(false);
+        }
+    }//GEN-LAST:event_stockReportBtnActionPerformed
 
     /**
      * @param args the command line arguments
@@ -83,5 +165,8 @@ public class InventoryManagerWindow extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton itemListBtn;
+    private javax.swing.JButton stockReportBtn;
+    private javax.swing.JButton updateStockBtn;
     // End of variables declaration//GEN-END:variables
 }

@@ -176,7 +176,6 @@ public class Item {
         
     }
 
-
     public static void searchAndDisplayItemInTable(JTextField searchField, JTable table, List<Item> itemList) {
         String searchID = searchField.getText().trim().toUpperCase();
         boolean found = false;
@@ -257,10 +256,6 @@ public class Item {
             }
         });
     }
-
-
-
-    
      
     public static Item findById(String itemId) {
         List<Item> allItems = loadItems();
@@ -272,5 +267,37 @@ public class Item {
         return null;
     }  
 
-}
+    public static boolean updateStock(String itemId, int qtyToAdd) {
+        String file = "data/items.txt";
+        List<String> updatedLines = new ArrayList<>();
+        boolean updated = false;
 
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts[0].equals(itemId)) {
+                    int qty = Integer.parseInt(parts[3]);
+                    parts[3] = String.valueOf(qty + qtyToAdd); // update quantity
+                    updated = true;
+                }
+                updatedLines.add(String.join(",", parts));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (String l : updatedLines) {
+                writer.write(l);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        return updated;
+    }
+}
