@@ -7,6 +7,7 @@ package com.mycompany.owsb.view;
 import com.mycompany.owsb.model.Item;
 import com.mycompany.owsb.model.SalesManager;
 import com.mycompany.owsb.model.Supplier;
+import com.mycompany.owsb.model.SupplierItem;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ public class SmManageSuppliersWindow extends javax.swing.JFrame {
     private final SalesManager salesManager;
     
     private java.util.List<Supplier> supplierDataList = new ArrayList<>();
+    private java.util.List<SupplierItem> supplierItemDataList = new ArrayList<>();
     private java.util.List<Item> itemDataList = new ArrayList<>();
     
     // String representing the file path for purchase order data
@@ -37,7 +39,7 @@ public class SmManageSuppliersWindow extends javax.swing.JFrame {
         this.parentWindow = parentWindow;
         this.salesManager = salesManager;
         initComponents();
-        loadSuppliersIntoList(); 
+        loadDataIntoList(); 
         setupWindowListener();
     }
     
@@ -53,12 +55,14 @@ public class SmManageSuppliersWindow extends javax.swing.JFrame {
     }
     
     // Method to load Items from file and display them in the UI list
-    private void loadSuppliersIntoList() {
+    private void loadDataIntoList() {
         // Load the list of Purchase Orders from the purchase order file
         supplierDataList = Supplier.loadSuppliers();
+        supplierItemDataList = SupplierItem.loadSupplierItems();
+        itemDataList = Item.loadItems();
         
         // Update JTable to the latest
-        Supplier.updateSupplierTableInUI(supplierDataList, supplierTable);
+        Supplier.updateSupplierTableInUI(supplierDataList, supplierItemDataList, supplierTable);
     }
     
     
@@ -78,18 +82,18 @@ public class SmManageSuppliersWindow extends javax.swing.JFrame {
             // Search for the item based on input ID
             for (Supplier supplier : supplierDataList) {
                 if (supplier.getSupplierID().equalsIgnoreCase(inputID)) {
-                    salesManager.editSupplier(supplier, supplierDataList, supplierTable); // Call editItem method in Sales Manager Class if item found
-                    Supplier.updateSupplierTableInUI(supplierDataList, supplierTable);
+                    salesManager.editSupplier(supplier, supplierDataList, supplierItemDataList, itemDataList, supplierTable); // Call editItem method in Sales Manager Class if item found
+                    Supplier.updateSupplierTableInUI(supplierDataList, supplierItemDataList, supplierTable);
                     found = true;
                     break;
                 }
             }
 
             if (!found) {
-                JOptionPane.showMessageDialog(null, "Item ID not found.");
+                JOptionPane.showMessageDialog(null, "Supplier ID not found.");
             }
         } else {
-            JOptionPane.showMessageDialog(null, "Please enter a valid Item ID.");
+            JOptionPane.showMessageDialog(null, "Please enter a valid Supplier ID.");
         }
     }
 
@@ -273,23 +277,22 @@ public class SmManageSuppliersWindow extends javax.swing.JFrame {
 
     private void backButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backButtonActionPerformed
         // Update JTable to the latest
-        Supplier.updateSupplierTableInUI(supplierDataList, supplierTable);
+        Supplier.updateSupplierTableInUI(supplierDataList, supplierItemDataList, supplierTable);
     }//GEN-LAST:event_backButtonActionPerformed
 
     private void addSupplierButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addSupplierButtonActionPerformed
-        salesManager.addSupplier(this, supplierDataList, supplierTable);
+        salesManager.addSupplier(this, supplierDataList, supplierItemDataList, itemDataList, supplierTable);
     }//GEN-LAST:event_addSupplierButtonActionPerformed
 
     private void editSupplierButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editSupplierButtonActionPerformed
-        supplierDataList = Supplier.loadSuppliers();
         int selectedRow = supplierTable.getSelectedRow(); // Get selected row index
 
         if (selectedRow != -1) { // -1 means no row selected
-            String selectedItemID = supplierTable.getValueAt(selectedRow, 0).toString(); // Assuming item ID is in column 0
+            String selectedSupplierID = supplierTable.getValueAt(selectedRow, 0).toString();
 
             int confirm = JOptionPane.showConfirmDialog(
                 null,
-                "Are you sure you want to edit item " + selectedItemID + "?",
+                "Are you sure you want to edit supplier " + selectedSupplierID + "?",
                 "Confirm Edit",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE
@@ -297,9 +300,9 @@ public class SmManageSuppliersWindow extends javax.swing.JFrame {
 
             if (confirm == JOptionPane.YES_OPTION) {
                 for (Supplier supplier : supplierDataList) {
-                    if (supplier.getSupplierID().equalsIgnoreCase(selectedItemID)) {
-                        salesManager.editSupplier(supplier, supplierDataList, supplierTable); // Open the edit form
-                        Supplier.updateSupplierTableInUI(supplierDataList, supplierTable); // Refresh the table
+                    if (supplier.getSupplierID().equalsIgnoreCase(selectedSupplierID)) {
+                        salesManager.editSupplier(supplier, supplierDataList, supplierItemDataList, itemDataList, supplierTable); // Open the edit form
+                        Supplier.updateSupplierTableInUI(supplierDataList, supplierItemDataList, supplierTable); // Refresh the table
                         break;
                     }
                 }
@@ -312,8 +315,8 @@ public class SmManageSuppliersWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_editSupplierButtonActionPerformed
 
     private void deleteSupplierButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteSupplierButtonActionPerformed
-        itemDataList = Item.loadItems(); 
-        salesManager.deleteSupplier(this, supplierDataList, itemDataList, supplierTable);
+        supplierItemDataList = SupplierItem.loadSupplierItems(); 
+        salesManager.deleteSupplier(this, supplierDataList, supplierItemDataList, supplierTable);
     }//GEN-LAST:event_deleteSupplierButtonActionPerformed
 
     private void searchFieldMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_searchFieldMouseClicked
@@ -321,7 +324,7 @@ public class SmManageSuppliersWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_searchFieldMouseClicked
 
     private void searchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchButtonActionPerformed
-        Supplier.searchAndDisplaySupplierInTable(searchField, supplierTable, supplierDataList);
+        Supplier.searchAndDisplaySupplierInTable(searchField, supplierTable, supplierDataList, supplierItemDataList);
     }//GEN-LAST:event_searchButtonActionPerformed
 
     /**

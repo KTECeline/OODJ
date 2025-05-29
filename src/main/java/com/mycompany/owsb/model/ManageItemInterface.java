@@ -14,9 +14,9 @@ import javax.swing.JTable;
  */
 public interface ManageItemInterface {  
     
-    void addItem(JFrame parent, List<Item> itemList, List<Supplier> supplierList, JTable itemTable);
+    void addItem(JFrame parent, List<Item> itemList, JTable itemTable);
     
-    void editItem(Item itemToEdit, List<Item> itemList, List<Supplier> supplierList, JTable itemTable);
+    void editItem(Item itemToEdit, List<Item> itemList, JTable itemTable);
     
-    void deleteItem(JFrame parent, List<Item> itemList, JTable itemTable);
+    public void deleteItem(JFrame parent, List<Item> itemList, List<SupplierItem> supplierItemList, List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, JTable itemTable);
 }

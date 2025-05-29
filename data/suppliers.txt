@@ -1,2 +1,4 @@
 SP0001,Tupperware Brands,business@tupperware.com
 SP0002,Sanrio,sanrio_official@gmail.com
+SP0003,Mr DIY,diy_official@gmail.com
+SP0004,tutu,tutu@g.com

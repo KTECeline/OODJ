@@ -5,8 +5,14 @@
 package com.mycompany.owsb.model;
 
 import java.awt.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import javax.swing.*;
 import java.util.List;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  *
@@ -20,6 +26,15 @@ public class SalesManager extends Manager implements ManageItemInterface{
     
     // String representing the file path for supplier data
     private static final String SUPPLIER_FILE = "data/suppliers.txt";
+    
+    // String representing the file path for supplier data
+    private static final String SUPPLIER_ITEM_FILE = "data/supplier_item.txt";
+    
+    // String representing the file path for pr data
+    private static final String PURCHASE_REQUISITION_FILE = "data/purchase_requisition.txt";
+    
+    // String representing the file path for pr data
+    private static final String PURCHASE_REQUISITION_ITEM_FILE = "data/purchase_requisition_item.txt";
     
     public SalesManager(User loggedInUser) {
         super(loggedInUser);
@@ -96,7 +111,7 @@ public class SalesManager extends Manager implements ManageItemInterface{
     
     // Method to ADD new item
     @Override
-    public void addItem(JFrame parent, List<Item> itemList, List<Supplier> supplierList, JTable itemTable) {
+    public void addItem(JFrame parent, List<Item> itemList, JTable itemTable) {
         if (!isAllowedToPerform("add item")) {
             JOptionPane.showMessageDialog(parent, "Not authorized to add items.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
             return;
@@ -106,14 +121,12 @@ public class SalesManager extends Manager implements ManageItemInterface{
 
         // Input fields
         JTextField itemNameField = new JTextField(20);
-        JTextField supplierIdField = new JTextField(20);
         JTextField stockField = new JTextField(20);
         JTextField costField = new JTextField(20);
         JTextField priceField = new JTextField(20);
 
         // Error labels
         JLabel itemNameError = new JLabel();
-        JLabel supplierIdError = new JLabel();
         JLabel stockError = new JLabel();
         JLabel costError = new JLabel();
         JLabel priceError = new JLabel();
@@ -132,11 +145,6 @@ public class SalesManager extends Manager implements ManageItemInterface{
         panel.add(itemNameField);
         panel.add(new JLabel());
         panel.add(itemNameError);
-
-        panel.add(new JLabel("Supplier ID:"));
-        panel.add(supplierIdField);
-        panel.add(new JLabel());
-        panel.add(supplierIdError);
 
         panel.add(new JLabel("Stock:"));
         panel.add(stockField);
@@ -179,13 +187,11 @@ public class SalesManager extends Manager implements ManageItemInterface{
         submit.addActionListener(e -> {
             // Reset error messages
             itemNameError.setText("");
-            supplierIdError.setText("");
             stockError.setText("");
             costError.setText("");
             priceError.setText("");
 
             String itemName = itemNameField.getText().trim();
-            String supplierId = supplierIdField.getText().trim().toUpperCase();
             String stockStr = stockField.getText().trim();
             String costStr = costField.getText().trim();
             String priceStr = priceField.getText().trim();
@@ -197,35 +203,6 @@ public class SalesManager extends Manager implements ManageItemInterface{
                 itemNameError.setForeground(errorColor);
                 itemNameError.setText("*Item name is required.");
                 isValid = false;
-            }
-
-            // Supplier ID validation
-            if (supplierId.isEmpty()) {
-                supplierIdError.setForeground(errorColor);
-                supplierIdError.setText("*Supplier ID cannot be empty.");
-                isValid = false;
-            } else {
-                if (!supplierId.matches("SP\\d{4}")) {
-                    supplierIdError.setForeground(errorColor);
-                    supplierIdError.setText("*Format must be (ex:SP0001).");
-                    isValid = false;
-                } else {
-                    boolean supplierExists = false;
-                    for (Supplier supplier : supplierList) {
-                        if (supplier.getSupplierID().equalsIgnoreCase(supplierId)) {
-                            supplierExists = true;
-                            break;
-                        }
-                    }
-
-                    if (!supplierExists) {
-                        supplierIdError.setForeground(errorColor);  // Set error color
-                        supplierIdError.setText("*Supplier ID does not exist.");
-                        isValid = false;  // Mark as invalid to prevent further submission
-                    } else {
-                        supplierIdError.setText("");  // Clear any previous error messages if valid
-                    }
-                }
             }
 
             // Stock validation
@@ -282,7 +259,7 @@ public class SalesManager extends Manager implements ManageItemInterface{
             if (isValid) {
                 boolean lowStockAlert = Item.isLowStock(stock);
                 
-                Item newItem = new Item(nextItemID, itemName, supplierId, stock, cost, price,lowStockAlert);
+                Item newItem = new Item(nextItemID, itemName, stock, cost, price,lowStockAlert);
                 itemList.add(newItem);
                 FileUtil.saveListToFile(ITEM_FILE, itemList);
                 Item.updateItemTableInUI(itemList, itemTable);
@@ -299,7 +276,7 @@ public class SalesManager extends Manager implements ManageItemInterface{
     
     // Method to EDIT item details
     @Override
-    public void editItem(Item itemToEdit, List<Item> itemList, List<Supplier> supplierList, JTable itemTable) {
+    public void editItem(Item itemToEdit, List<Item> itemList, JTable itemTable) {
         if (!isAllowedToPerform("edit item")) {
             JOptionPane.showMessageDialog(null, "Not authorized to edit items.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
             return;
@@ -307,14 +284,12 @@ public class SalesManager extends Manager implements ManageItemInterface{
         
         // Input fields
         JTextField nameField = new JTextField(itemToEdit.getItemName(), 20);
-        JTextField supplierField = new JTextField(itemToEdit.getSupplierId(), 20);
         JTextField stockField = new JTextField(String.valueOf(itemToEdit.getStock()), 20);
         JTextField costField = new JTextField(String.valueOf(itemToEdit.getCost()), 20);
         JTextField priceField = new JTextField(String.valueOf(itemToEdit.getPrice()), 20);
 
         // Error labels
         JLabel nameError = new JLabel();
-        JLabel supplierIdError = new JLabel();
         JLabel stockError = new JLabel();
         JLabel costError = new JLabel();
         JLabel priceError = new JLabel();
@@ -334,11 +309,6 @@ public class SalesManager extends Manager implements ManageItemInterface{
         panel.add(nameField);
         panel.add(new JLabel());
         panel.add(nameError);
-
-        panel.add(new JLabel("Supplier ID:"));
-        panel.add(supplierField);
-        panel.add(new JLabel());
-        panel.add(supplierIdError);
 
         panel.add(new JLabel("Stock:"));
         panel.add(stockField);
@@ -373,13 +343,11 @@ public class SalesManager extends Manager implements ManageItemInterface{
         saveBtn.addActionListener(e -> {
              // Clear previous error messages
              nameError.setText("");
-             supplierIdError.setText("");
              stockError.setText("");
              costError.setText("");
              priceError.setText("");
 
              String name = nameField.getText().trim();
-             String supplierId = supplierField.getText().trim();
              String stockStr = stockField.getText().trim();
              String costStr = costField.getText().trim();
              String priceStr = priceField.getText().trim();
@@ -390,35 +358,6 @@ public class SalesManager extends Manager implements ManageItemInterface{
                  nameError.setForeground(errorColor);
                  nameError.setText("Item name is required.");
                  isValid = false;
-             }
-
-             // Supplier ID validation
-             if (supplierId.isEmpty()) {
-                 supplierIdError.setForeground(errorColor);
-                 supplierIdError.setText("*Supplier ID cannot be empty.");
-                 isValid = false;
-             } else {
-                 if (!supplierId.matches("SP\\d{4}")) {
-                     supplierIdError.setForeground(errorColor);
-                     supplierIdError.setText("*Format must be (ex:SP0001).");
-                     isValid = false;
-                 } else {
-                     boolean supplierExists = false;
-                     for (Supplier supplier : supplierList) {
-                         if (supplier.getSupplierID().equalsIgnoreCase(supplierId)) {
-                             supplierExists = true;
-                             break;
-                         }
-                     }
-
-                     if (!supplierExists) {
-                         supplierIdError.setForeground(errorColor);  // Set error color
-                         supplierIdError.setText("*Supplier ID does not exist.");
-                         isValid = false;  // Mark as invalid to prevent further submission
-                     } else {
-                         supplierIdError.setText("");  // Clear any previous error messages if valid
-                     }
-                 }
              }
 
             int stock = 0;
@@ -453,7 +392,6 @@ public class SalesManager extends Manager implements ManageItemInterface{
 
             if (isValid) {
                 itemToEdit.setItemName(name);
-                itemToEdit.setSupplierId(supplierId);
                 itemToEdit.setStock(stock);
                 itemToEdit.setCost(cost);
                 itemToEdit.setPrice(price);
@@ -473,12 +411,13 @@ public class SalesManager extends Manager implements ManageItemInterface{
     
     // Method to DELETE item
     @Override
-    public void deleteItem(JFrame parent, List<Item> itemList, JTable itemTable) {
+    public void deleteItem(JFrame parent, List<Item> itemList, List<SupplierItem> supplierItemList, List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, JTable itemTable) {
+
         if (!isAllowedToPerform("delete item")) {
             JOptionPane.showMessageDialog(parent, "Not authorized to delete items.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+
         int selectedRow = itemTable.getSelectedRow();
 
         if (selectedRow == -1) {
@@ -488,100 +427,174 @@ public class SalesManager extends Manager implements ManageItemInterface{
 
         String itemId = itemTable.getValueAt(selectedRow, 0).toString();
 
-        // Ask for confirmation before deleting the item
+        // Count linked supplier entries
+        int linkedSupplierCount = 0;
+        for (SupplierItem supplierItem : supplierItemList) {
+            if (supplierItem.getItemID().equalsIgnoreCase(itemId)) {
+                linkedSupplierCount++;
+            }
+        }
+
+        // Count linked PR entries
+        int linkedPRCount = 0;
+        for (PurchaseRequisitionItem prItem : prItemList) {
+            if (prItem.getItemID().equalsIgnoreCase(itemId)) {
+                linkedPRCount++;
+            }
+        }
+
+        // Confirm deletion with full warning
+        StringBuilder message = new StringBuilder("Are you sure you want to delete item " + itemId + "?");
+        if (linkedSupplierCount > 0) {
+            message.append("\nThis will also remove ").append(linkedSupplierCount).append(" linked supplier(s).");
+        }
+        if (linkedPRCount > 0) {
+            message.append("\nThis will also remove ").append(linkedPRCount).append(" linked PR record(s).");
+        }
+
         int response = JOptionPane.showConfirmDialog(
-            parent, // Parent frame
-            "Are you sure you want to delete this item?", // Confirmation message
-            "Confirm Deletion", // Dialog title
-            JOptionPane.YES_NO_OPTION, // Options: Yes or No
-            JOptionPane.QUESTION_MESSAGE // Message type
+            parent,
+            message.toString(),
+            "Confirm Deletion",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
         );
 
-        // If the user clicks Yes, proceed with the deletion
         if (response == JOptionPane.YES_OPTION) {
-            // Remove item from list
+            // Remove from itemList
             Item itemToDelete = null;
             for (Item item : itemList) {
-                if (item.getItemID().equals(itemId)) {
+                if (item.getItemID().equalsIgnoreCase(itemId)) {
                     itemToDelete = item;
                     break;
                 }
             }
 
             if (itemToDelete != null) {
-                itemList.remove(itemToDelete); // Remove the item from the list
-                FileUtil.saveListToFile(ITEM_FILE, itemList); // Save the updated list to the file
-                Item.updateItemTableInUI(itemList, itemTable); // Update the table after deletion
+                itemList.remove(itemToDelete);
 
-                JOptionPane.showMessageDialog(parent, "Item deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                // Remove related SupplierItem links
+                supplierItemList.removeIf(si -> si.getItemID().equalsIgnoreCase(itemId));
+
+                // Remove related PurchaseRequisitionItem links
+                List<String> affectedPRIds = new ArrayList<>();
+                prItemList.removeIf(prItem -> {
+                    boolean match = prItem.getItemID().equalsIgnoreCase(itemId);
+                    if (match) {
+                        affectedPRIds.add(prItem.getPrID());
+                    }
+                    return match;
+                });
+
+                // Optionally, remove PRs with no items left
+                prList.removeIf(pr -> affectedPRIds.contains(pr.getPrID()) &&
+                    prItemList.stream().noneMatch(pi -> pi.getPrID().equalsIgnoreCase(pr.getPrID())));
+
+                // Save files
+                FileUtil.saveListToFile(ITEM_FILE, itemList);
+                FileUtil.saveListToFile(SUPPLIER_ITEM_FILE, supplierItemList);
+                FileUtil.saveListToFile(PURCHASE_REQUISITION_ITEM_FILE, prItemList);
+                FileUtil.saveListToFile(PURCHASE_REQUISITION_FILE, prList);
+
+                // Update UI tables
+                Item.updateItemTableInUI(itemList, itemTable);
+
+                JOptionPane.showMessageDialog(parent, "Item and related supplier/PR links deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                System.out.println("Deleted item " + itemId + ", removed " + linkedSupplierCount + " supplier link(s), and " + linkedPRCount + " PR record(s).");
+
             } else {
                 JOptionPane.showMessageDialog(parent, "Item not found.", "Error", JOptionPane.ERROR_MESSAGE);
             }
+
         } else {
-            // If the user clicks No, show cancellation message
             JOptionPane.showMessageDialog(parent, "Item deletion canceled.", "Canceled", JOptionPane.INFORMATION_MESSAGE);
         }
+
     }
 
-    
-    
     
     //SUPPLIER SECTION
     
     // Method to ADD new supplier
-    public void addSupplier(JFrame parent, List<Supplier> supplierList, JTable supplierTable) {
+    public void addSupplier(JFrame parent, List<Supplier> supplierList, List<SupplierItem> supplierItemList, List<Item> itemList, JTable supplierTable) {
         if (!isAllowedToPerform("add supplier")) {
             JOptionPane.showMessageDialog(null, "Not authorized to add suppliers.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+
         String nextSupplierID = Supplier.generateNextSupplierID(supplierList);
-        
-        // Input fields
+
         JTextField supplierNameField = new JTextField(20);
         JTextField emailField = new JTextField(20);
 
-        // Error labels
         JLabel supplierNameError = new JLabel();
         JLabel emailError = new JLabel();
-
         Color errorColor = Color.RED;
 
-        JPanel panel = new JPanel(new GridLayout(0, 2, 0, 5));
-        panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
-        panel.setBackground(Color.white);
+        JPanel outerPanel = new JPanel(new BorderLayout());
+        outerPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        outerPanel.setBackground(Color.white);
 
-        panel.add(new JLabel("Supplier ID:"));
-        panel.add(new JLabel(nextSupplierID));
+        // Form panel (top)
+        JPanel formPanel = new JPanel(new GridLayout(0, 2, 0, 5));
+        formPanel.setBackground(Color.white);
 
-        panel.add(new JLabel("Supplier Name:"));
-        panel.add(supplierNameField);
-        panel.add(new JLabel());
-        panel.add(supplierNameError);
+        formPanel.add(new JLabel("Supplier ID:"));
+        formPanel.add(new JLabel(nextSupplierID));
 
-        panel.add(new JLabel("Email:"));
-        panel.add(emailField);
-        panel.add(new JLabel());
-        panel.add(emailError);
+        formPanel.add(new JLabel("Supplier Name:"));
+        formPanel.add(supplierNameField);
+        formPanel.add(new JLabel());
+        formPanel.add(supplierNameError);
 
-        JDialog dialog = new JDialog(parent, "Add New Supplier", true);
-        dialog.getContentPane().add(panel, BorderLayout.CENTER);
+        formPanel.add(new JLabel("Email:"));
+        formPanel.add(emailField);
+        formPanel.add(new JLabel());
+        formPanel.add(emailError);
 
+        outerPanel.add(formPanel, BorderLayout.NORTH);
+
+        // Checkbox panel (center)
+        List<JCheckBox> itemCheckboxes = new ArrayList<>();
+        JPanel itemPanel = new JPanel();
+        itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.Y_AXIS));
+        itemPanel.setBackground(Color.white);
+
+        for (Item item : itemList) {
+            JCheckBox itemCheckbox = new JCheckBox(item.getItemID() + " - " + item.getItemName());
+            itemCheckbox.setBackground(Color.white);
+            itemCheckboxes.add(itemCheckbox);
+            itemPanel.add(itemCheckbox);
+        }
+
+        JScrollPane scrollPane = new JScrollPane(itemPanel);
+        scrollPane.setPreferredSize(new Dimension(300, 150));
+
+        JPanel checkboxContainer = new JPanel(new BorderLayout());
+        checkboxContainer.add(new JLabel("Linked Items:"), BorderLayout.NORTH);
+        checkboxContainer.add(scrollPane, BorderLayout.CENTER);
+        checkboxContainer.setBackground(Color.white);
+
+        outerPanel.add(checkboxContainer, BorderLayout.CENTER);
+
+        // Buttons (bottom)
         JButton submit = new JButton("Add");
         JButton cancel = new JButton("Cancel");
+        submit.setBackground(Color.RED);
+        submit.setForeground(Color.WHITE);
+        cancel.setBackground(Color.BLACK);
+        cancel.setForeground(Color.WHITE);
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(submit);
         buttonPanel.add(cancel);
         buttonPanel.setBackground(Color.white);
 
-        submit.setBackground(Color.red);
-        submit.setForeground(Color.white);
-        cancel.setBackground(Color.black);
-        cancel.setForeground(Color.white);
+        outerPanel.add(buttonPanel, BorderLayout.SOUTH);
 
-        dialog.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
-
+        // Dialog setup
+        JDialog dialog = new JDialog(parent, "Add New Supplier", true);
+        dialog.getContentPane().add(outerPanel);
         dialog.pack();
         dialog.setLocationRelativeTo(parent);
 
@@ -594,14 +607,12 @@ public class SalesManager extends Manager implements ManageItemInterface{
 
             boolean isValid = true;
 
-
-            // Supplier Name validation
+            // Supplier name validation
             if (supplierName.isEmpty()) {
                 supplierNameError.setForeground(errorColor);
                 supplierNameError.setText("*Supplier name is required.");
                 isValid = false;
             }
-
 
             // Email validation
             if (email.isEmpty() || !email.matches("^[\\w.-]+@[\\w.-]+\\.\\w+$")) {
@@ -613,8 +624,19 @@ public class SalesManager extends Manager implements ManageItemInterface{
             if (isValid) {
                 Supplier newSupplier = new Supplier(nextSupplierID, supplierName, email);
                 supplierList.add(newSupplier);
+
+                // Save linked supplier-item
+                for (JCheckBox cb : itemCheckboxes) {
+                    if (cb.isSelected()) {
+                        String itemId = cb.getText().split(" - ")[0];  // Only the item ID part
+                        supplierItemList.add(new SupplierItem(nextSupplierID, itemId));
+                    }
+                }
+
                 FileUtil.saveListToFile(SUPPLIER_FILE, supplierList);
-                Supplier.updateSupplierTableInUI(supplierList, supplierTable);
+                FileUtil.saveListToFile(SUPPLIER_ITEM_FILE, supplierItemList);
+                Supplier.updateSupplierTableInUI(supplierList, supplierItemList, supplierTable);
+
                 JOptionPane.showMessageDialog(dialog, "Supplier added successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
                 dialog.dispose();
             }
@@ -626,12 +648,12 @@ public class SalesManager extends Manager implements ManageItemInterface{
     }
 
     // Method to EDIT supplier
-    public void editSupplier(Supplier supplierToEdit, List<Supplier> supplierList, JTable supplierTable) {
+    public void editSupplier(Supplier supplierToEdit, List<Supplier> supplierList, List<SupplierItem> supplierItemList, List<Item> itemList, JTable supplierTable) {
         if (!isAllowedToPerform("edit supplier")) {
             JOptionPane.showMessageDialog(null, "Not authorized to edit suppliers.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+
         // Input fields
         JTextField nameField = new JTextField(supplierToEdit.getSupplierName(), 20);
         JTextField emailField = new JTextField(supplierToEdit.getEmail(), 20);
@@ -641,62 +663,107 @@ public class SalesManager extends Manager implements ManageItemInterface{
         JLabel emailError = new JLabel();
         Color errorColor = Color.RED;
 
-        JPanel panel = new JPanel(new GridLayout(0, 2, 0, 5));
-        panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
-        panel.setBackground(Color.white);
+        // Outer panel using BorderLayout
+        JPanel outerPanel = new JPanel(new BorderLayout());
+        outerPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        outerPanel.setBackground(Color.white);
 
-        // Supplier ID (not editable)
-        panel.add(new JLabel("Supplier ID:"));
+        // Form panel (top)
+        JPanel formPanel = new JPanel(new GridLayout(0, 2, 0, 5));
+        formPanel.setBackground(Color.white);
+
+        formPanel.add(new JLabel("Supplier ID:"));
         JTextField idField = new JTextField(supplierToEdit.getSupplierID());
         idField.setEditable(false);
         idField.setBackground(Color.LIGHT_GRAY);
-        panel.add(idField);
+        formPanel.add(idField);
 
-        // Supplier Name
-        panel.add(new JLabel("Supplier Name:"));
-        panel.add(nameField);
-        panel.add(new JLabel());
-        panel.add(nameError);
-        
-        // Email
-        panel.add(new JLabel("Email:"));
-        panel.add(emailField);
-        panel.add(new JLabel());
-        panel.add(emailError);
+        formPanel.add(new JLabel("Supplier Name:"));
+        formPanel.add(nameField);
+        formPanel.add(new JLabel());
+        formPanel.add(nameError);
 
-        // Buttons
+        formPanel.add(new JLabel("Email:"));
+        formPanel.add(emailField);
+        formPanel.add(new JLabel());
+        formPanel.add(emailError);
+
+        outerPanel.add(formPanel, BorderLayout.NORTH);
+
+        // Checkbox panel (center)
+        List<JCheckBox> itemCheckboxes = new ArrayList<>();
+        JPanel itemPanel = new JPanel();
+        itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.Y_AXIS));
+        itemPanel.setBackground(Color.white);
+
+        for (Item item : itemList) {
+            // Display both ID and name, e.g., IT0001 - Laptop
+            JCheckBox itemCheckbox = new JCheckBox(item.getItemID() + " - " + item.getItemName());
+
+
+            // Check if this item is already linked to the supplier
+            boolean isLinked = false;
+            for (SupplierItem si : supplierItemList) {
+                if (si.getSupplierID().equalsIgnoreCase(supplierToEdit.getSupplierID()) &&
+                    si.getItemID().equalsIgnoreCase(item.getItemID())) {
+                    isLinked = true;
+                    break;
+                }
+            }
+
+            itemCheckbox.setSelected(isLinked);
+            itemCheckboxes.add(itemCheckbox);
+            itemPanel.add(itemCheckbox);
+        }
+
+        JScrollPane scrollPane = new JScrollPane(itemPanel);
+        scrollPane.setPreferredSize(new Dimension(300, 150));
+
+        JPanel checkboxContainer = new JPanel(new BorderLayout());
+        checkboxContainer.add(new JLabel("Linked Items:"), BorderLayout.NORTH);
+        checkboxContainer.add(scrollPane, BorderLayout.CENTER);
+        checkboxContainer.setBackground(Color.white);
+
+        outerPanel.add(checkboxContainer, BorderLayout.CENTER);
+
+        // Buttons (bottom)
         JButton saveBtn = new JButton("Save");
         JButton cancelBtn = new JButton("Cancel");
+        
+        saveBtn.setBackground(Color.RED);
+        saveBtn.setForeground(Color.WHITE);
+
+        cancelBtn.setBackground(Color.BLACK);
+        cancelBtn.setForeground(Color.WHITE);
+
         JPanel btnPanel = new JPanel();
         btnPanel.add(saveBtn);
         btnPanel.add(cancelBtn);
+        btnPanel.setBackground(Color.white);
+        
+        outerPanel.add(btnPanel, BorderLayout.SOUTH);
 
-        // Dialog
+        // Dialog setup
         JDialog dialog = new JDialog((Frame) null, "Edit Supplier", true);
-        dialog.getContentPane().add(panel, BorderLayout.CENTER);
-        dialog.getContentPane().add(btnPanel, BorderLayout.SOUTH);
+        dialog.getContentPane().add(outerPanel);
         dialog.pack();
         dialog.setLocationRelativeTo(null);
 
         // Save action
         saveBtn.addActionListener(e -> {
-            // Clear previous error messages
             nameError.setText("");
             emailError.setText("");
 
             String name = nameField.getText().trim();
             String email = emailField.getText().trim();
-
             boolean isValid = true;
 
-            // Validation: name
             if (name.isEmpty()) {
                 nameError.setForeground(errorColor);
                 nameError.setText("*Supplier name is required.");
                 isValid = false;
             }
 
-            // Validation: email format
             if (email.isEmpty()) {
                 emailError.setForeground(errorColor);
                 emailError.setText("*Email is required.");
@@ -707,13 +774,23 @@ public class SalesManager extends Manager implements ManageItemInterface{
                 isValid = false;
             }
 
-            // Save if all valid
             if (isValid) {
                 supplierToEdit.setSupplierName(name);
                 supplierToEdit.setEmail(email);
 
+                // Update supplier-item links
+                supplierItemList.removeIf(si -> si.getSupplierID().equalsIgnoreCase(supplierToEdit.getSupplierID()));
+                for (JCheckBox cb : itemCheckboxes) {
+                    if (cb.isSelected()) {
+                        String itemId = cb.getText().split(" - ")[0];  // Only take the ID part before the dash
+                        supplierItemList.add(new SupplierItem(supplierToEdit.getSupplierID(), itemId));
+                    }
+                }
+
                 FileUtil.saveListToFile(SUPPLIER_FILE, supplierList);
-                Supplier.updateSupplierTableInUI(supplierList, supplierTable);
+                FileUtil.saveListToFile(SUPPLIER_ITEM_FILE, supplierItemList);
+
+                Supplier.updateSupplierTableInUI(supplierList, supplierItemList, supplierTable);
                 JOptionPane.showMessageDialog(dialog, "Supplier updated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
                 dialog.dispose();
             }
@@ -724,8 +801,9 @@ public class SalesManager extends Manager implements ManageItemInterface{
         dialog.setVisible(true);
     }
 
+
     // Method to DELETE supplier
-    public void deleteSupplier(JFrame parent, List<Supplier> supplierList, List<Item> itemList, JTable supplierTable) {
+    public void deleteSupplier(JFrame parent, List<Supplier> supplierList, List<SupplierItem> supplierItemList, JTable supplierTable) {
         if (!isAllowedToPerform("delete supplier")) {
             JOptionPane.showMessageDialog(null, "Not authorized to delete suppliers.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
             return;
@@ -742,8 +820,8 @@ public class SalesManager extends Manager implements ManageItemInterface{
 
         // Check if this supplier is linked to any item
         boolean isLinked = false;
-        for (Item item : itemList) {
-            if (item.getSupplierId().trim().equalsIgnoreCase(supplierId)) {
+        for (SupplierItem supplierItem : supplierItemList) {
+            if (supplierItem.getSupplierID().trim().equalsIgnoreCase(supplierId)) {
                 isLinked = true;
                 break;
             }
@@ -777,7 +855,7 @@ public class SalesManager extends Manager implements ManageItemInterface{
             if (supplierToDelete != null) {
                 supplierList.remove(supplierToDelete);
                 FileUtil.saveListToFile(SUPPLIER_FILE, supplierList);
-                Supplier.updateSupplierTableInUI(supplierList, supplierTable); // Assumes this method exists
+                Supplier.updateSupplierTableInUI(supplierList, supplierItemList, supplierTable);
 
                 JOptionPane.showMessageDialog(parent, "Supplier deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
             } else {
@@ -789,7 +867,533 @@ public class SalesManager extends Manager implements ManageItemInterface{
     }
 
 
-    //DAILY SALES SECTION
+    //PURCHASE REQUISITION SECTION
+    
+    // Method to add new purchase requisition
+    public void addPurchaseRequisition(JFrame parent, List<Item> itemList, List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, List<Supplier> supplierList, List<SupplierItem> supplierItemList, JTable prTable) {
+        if (!isAllowedToPerform("add pr")) {
+            JOptionPane.showMessageDialog(parent, "Not authorized to add purchase requisition.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        String raisedBy = getLoggedInUser().getUsername();
+        
+        JTextField itemIDField = new JTextField(20);
+        JTextField quantityField = new JTextField(20);
+        
+        JPanel supplierSelectorPanel = new JPanel(new CardLayout());
+        JButton selectSupplierBtn = new JButton("Select Supplier");
+        JComboBox<String> supplierComboBox = new JComboBox<>();
+        
+        supplierSelectorPanel.add(selectSupplierBtn, "BUTTON");
+        supplierSelectorPanel.add(supplierComboBox, "COMBO");
+        supplierSelectorPanel.setBackground(Color.white);
+
+        // Error labels
+        JLabel itemIDError = new JLabel();
+        JLabel supplierError = new JLabel();
+        JLabel quantityError = new JLabel();
+        
+        Color errorColor = Color.RED;
+
+        JPanel panel = new JPanel(new GridLayout(0, 2, 0, 5));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        panel.setBackground(Color.white);
+
+        panel.add(new JLabel("Item ID:"));
+        panel.add(itemIDField); panel.add(new JLabel()); panel.add(itemIDError);
+        
+        panel.add(new JLabel("Supplier:"));
+        panel.add(supplierSelectorPanel); panel.add(new JLabel()); panel.add(supplierError);
+        
+        panel.add(new JLabel("Quantity:"));
+        panel.add(quantityField); panel.add(new JLabel()); panel.add(quantityError);
+
+        JDialog dialog = new JDialog(parent, "Add Purchase Requisition", true);
+        dialog.getContentPane().add(panel, BorderLayout.CENTER);
+
+        JButton addBtn = new JButton("Add");
+        JButton cancelBtn = new JButton("Cancel");
+        
+        addBtn.setBackground(Color.RED);
+        addBtn.setForeground(Color.WHITE);
+
+        cancelBtn.setBackground(Color.BLACK);
+        cancelBtn.setForeground(Color.WHITE);
+        
+        JPanel btnPanel = new JPanel();
+        btnPanel.add(addBtn); 
+        btnPanel.add(cancelBtn);
+        btnPanel.setBackground(Color.white);
+        dialog.getContentPane().add(btnPanel, BorderLayout.SOUTH);
+
+        dialog.pack();
+        dialog.setLocationRelativeTo(parent);
+
+        CardLayout cl = (CardLayout) (supplierSelectorPanel.getLayout());
+        
+        // Reset to BUTTON whenever itemIDField changes
+        itemIDField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                resetSupplierSelector();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                resetSupplierSelector();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                resetSupplierSelector();
+            }
+
+            private void resetSupplierSelector() {
+                cl.show(supplierSelectorPanel, "BUTTON");  // show button again
+                supplierComboBox.removeAllItems();         // clear previous combo items
+            }
+        });
+
+        selectSupplierBtn.addActionListener(ev -> {
+            supplierComboBox.removeAllItems();
+
+            String itemID = itemIDField.getText().trim().toUpperCase();
+            if (itemID.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Please enter Item ID first.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            boolean hasSupplier = false;
+            for (SupplierItem supplierItem : supplierItemList) {
+                if (supplierItem.getItemID().equalsIgnoreCase(itemID)) {
+                    supplierComboBox.addItem(supplierItem.getSupplierID());
+                    hasSupplier = true;
+                }
+            }
+
+            if (hasSupplier) {
+                cl.show(supplierSelectorPanel, "COMBO");  // switch to combo box
+                dialog.pack();
+            } else {
+                supplierError.setForeground(errorColor);
+                supplierError.setText("*No suppliers found for this Item ID.");
+            }
+        });
+
+
+
+
+        addBtn.addActionListener(e -> {
+            // Reset errors
+            itemIDError.setText(""); 
+            quantityError.setText("");
+
+            String itemID = itemIDField.getText().trim().toUpperCase();
+            String quantityStr = quantityField.getText().trim();
+            
+            boolean valid = true;
+            int quantity = 0;
+
+            // Item ID validation
+            if (itemID.isEmpty()) {
+                itemIDError.setForeground(errorColor);
+                itemIDError.setText("*Item ID cannot be empty.");
+                valid = false;
+            } else {
+                if (!itemID.matches("IT\\d{4}")) {
+                    itemIDError.setForeground(errorColor);
+                    itemIDError.setText("*Format must be (ex:IT0001).");
+                    valid = false;
+                } else {
+                    boolean itemExists = false;
+                    for (Item item : itemList) {
+                        if (item.getItemID().equalsIgnoreCase(itemID)) {
+                            itemExists = true;
+                            break;
+                        }
+                    }
+
+                    if (!itemExists) {
+                        itemIDError.setForeground(errorColor);  // Set error color
+                        itemIDError.setText("*Item ID does not exist.");
+                        valid = false;  // Mark as invalid to prevent further submission
+                    } else {
+                        itemIDError.setText("");  // Clear any previous error messages if valid
+                    }
+                }
+            }
+            
+            // Supplier ID validation
+            String selectedSupplierId = (String) supplierComboBox.getSelectedItem();
+            if (selectedSupplierId == null || selectedSupplierId.isEmpty()) {
+                supplierError.setForeground(errorColor);
+                supplierError.setText("*Please select a supplier.");
+                valid = false;
+            } else {
+                supplierError.setText(""); // Clear if no error
+            }
+       
+            
+            // Validate quantity
+            try {
+                quantity = Integer.parseInt(quantityStr);
+                if (quantity <= 0) throw new NumberFormatException();
+            } catch (NumberFormatException ex) {
+                quantityError.setForeground(errorColor);
+                quantityError.setText("*Quantity must be positive.");
+                valid = false;
+            }
+
+            // Check for duplicate PR entry
+            boolean alreadyRequested = false;
+            for (PurchaseRequisition pr : prList) {
+                if ("PENDING".equalsIgnoreCase(pr.getStatus()) && pr.getSupplierID().equalsIgnoreCase(selectedSupplierId)) {
+                    for (PurchaseRequisitionItem item : pr.getItems()) {
+                        if (item.getItemID().equalsIgnoreCase(itemID)) {
+                            alreadyRequested = true;
+                            break;
+                        }
+                    }
+                }
+                if (alreadyRequested) break;
+            }
+
+            if (alreadyRequested) {
+                itemIDError.setForeground(errorColor);
+                itemIDError.setText("*A pending PR for this Item + Supplier already exists.");
+                valid = false;
+            }
+
+            // Get unitCost from itemID
+            double unitCost = 0;
+            for (Item item : itemList) {
+                if (item.getItemID().equalsIgnoreCase(itemID)) {
+                    unitCost = item.getCost();  // Assuming getUnitCost() returns Double or double
+                    break;
+                }
+            }
+
+            if (unitCost == 0) {
+                JOptionPane.showMessageDialog(dialog, "Failed to find unit cost for the given Item ID.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Check if there's an existing pending PR for this supplier
+            String prId = null;
+            for (PurchaseRequisition pr : prList) {
+                if ("PENDING".equalsIgnoreCase(pr.getStatus()) && pr.getSupplierID().equalsIgnoreCase(selectedSupplierId)) {
+                    prId = pr.getPrID();
+                    break;
+                }
+            }
+
+            // If no existing PR, generate a new one and add to prList
+            if (prId == null) {
+                prId = PurchaseRequisition.generateNextPRId();
+                PurchaseRequisition newPr = new PurchaseRequisition(
+                    prId,
+                    selectedSupplierId,
+                    raisedBy,
+                    "PENDING"
+                );
+                prList.add(newPr);
+            }
+
+            // If all fields are valid, add the pr
+            if (valid) {
+                PurchaseRequisition newPr = new PurchaseRequisition(
+                    prId,
+                    selectedSupplierId,
+                    raisedBy,
+                    "PENDING"
+                );
+                
+                PurchaseRequisitionItem newItem = new PurchaseRequisitionItem(
+                    prId,
+                    itemID,
+                    quantity,
+                    unitCost
+                );
+                
+
+                prItemList.add(newItem);
+
+                FileUtil.saveListToFile(PURCHASE_REQUISITION_FILE, prList);
+                FileUtil.saveListToFile(PURCHASE_REQUISITION_ITEM_FILE, prItemList);
+                PurchaseRequisition.updatePRTableInUI(prList, prItemList, itemList, prTable);
+                JOptionPane.showMessageDialog(dialog, "Purchase requisition added successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                dialog.dispose();
+            }
+        });
+
+        cancelBtn.addActionListener(e -> dialog.dispose());
+        dialog.setVisible(true);
+    }
+    
+    
+    public void editPurchaseRequisition(JFrame parent, PurchaseRequisition prToEdit, PurchaseRequisitionItem itemToEdit, List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, List<SupplierItem> supplierItemList, List<Item> itemList, List<Supplier> supplierList, JTable prTable) {
+        if (!isAllowedToPerform("edit supplier")) {
+            JOptionPane.showMessageDialog(null, "Not authorized to edit suppliers.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        final String prID = prToEdit.getPrID();
+        final String itemID = itemToEdit.getItemID();
+        
+        // get the item name from itemToEdit or item list:
+        String itemName = ""; 
+        for (Item item : itemList) {
+            if (item.getItemID().equalsIgnoreCase(itemID)) {
+                itemName = item.getItemName();
+                break;
+            }
+        }
+        
+
+        JLabel supplierError = new JLabel();
+        Color errorColor = Color.RED;
+
+        JComboBox<String> supplierComboBox = new JComboBox<>();
+        JPanel comboPanel = new JPanel();
+        comboPanel.add(supplierComboBox);
+        
+        for (SupplierItem supplierItem : supplierItemList) {
+            if (supplierItem.getItemID().equalsIgnoreCase(itemID)) {
+                // Find supplier name from supplier list
+                String supplierName = "";
+                for (Supplier supplier : supplierList) {
+                    if (supplier.getSupplierID().equalsIgnoreCase(supplierItem.getSupplierID())) {
+                        supplierName = supplier.getSupplierName();
+                        break;
+                    }
+                }
+                supplierComboBox.addItem(supplierItem.getSupplierID() + " - " + supplierName);
+            }
+        }
+
+        JPanel panel = new JPanel(new GridLayout(0, 2, 0, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        panel.setBackground(Color.white);
+        panel.setPreferredSize(new Dimension(500, 200));
+
+        panel.add(new JLabel("PR ID:"));
+        panel.add(new JLabel(prID));
+        panel.add(new JLabel("Item ID:"));
+        panel.add(new JLabel(itemID + " - " + itemName));
+        panel.add(new JLabel("Supplier:"));
+        panel.add(supplierComboBox); 
+        panel.add(supplierError);
+
+        JDialog dialog = new JDialog(parent, "Edit Purchase Requisition", true);
+        dialog.getContentPane().add(panel, BorderLayout.CENTER);
+
+        JButton saveBtn = new JButton("Save");
+        JButton cancelBtn = new JButton("Cancel");
+        JPanel btnPanel = new JPanel();
+        btnPanel.add(saveBtn);
+        btnPanel.add(cancelBtn);
+        
+        saveBtn.setBackground(Color.RED);
+        saveBtn.setForeground(Color.WHITE);
+
+        cancelBtn.setBackground(Color.BLACK);
+        cancelBtn.setForeground(Color.WHITE);
+        
+        btnPanel.setBackground(Color.white);
+        dialog.getContentPane().add(btnPanel, BorderLayout.SOUTH);
+
+        dialog.pack();
+        dialog.setLocationRelativeTo(parent);
+
+        // Select Supplier button action
+        if (supplierComboBox.getItemCount() > 0) {
+            // Pre-select the current supplier
+            for (int i = 0; i < supplierComboBox.getItemCount(); i++) {
+                String comboEntry = supplierComboBox.getItemAt(i);
+                if (comboEntry.startsWith(prToEdit.getSupplierID() + " -")) {
+                    supplierComboBox.setSelectedIndex(i);
+                    break;
+                }
+            }
+            dialog.pack();
+        } else {
+            supplierError.setForeground(errorColor);
+            supplierError.setText("*No suppliers found for this Item ID.");
+        }
+
+
+        // Save button action
+        saveBtn.addActionListener(e -> {
+            String selectedSupplier = (String) supplierComboBox.getSelectedItem();
+            String selectedSupplierID = selectedSupplier.split(" - ")[0];
+            boolean valid = true;
+
+            if (selectedSupplierID == null || selectedSupplierID.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Please select a supplier.", "Error", JOptionPane.ERROR_MESSAGE);
+                valid = false;
+            } else {
+                boolean supplierItemMatch = false;
+                for (SupplierItem si : supplierItemList) {
+                    if (si.getSupplierID().equalsIgnoreCase(selectedSupplierID) &&
+                        si.getItemID().equalsIgnoreCase(itemID)) {
+                        supplierItemMatch = true;
+                        break;
+                    }
+                }
+                if (!supplierItemMatch) {
+                    JOptionPane.showMessageDialog(dialog, "Selected supplier does not supply this item.", "Error", JOptionPane.ERROR_MESSAGE);
+                    valid = false;
+                }
+            }
+
+
+            if (valid) {
+                // Step 1: Look for existing PR for this supplier
+                String targetPrID = null;
+                for (PurchaseRequisition pr : prList) {
+                    if (pr.getSupplierID().equalsIgnoreCase(selectedSupplierID) &&
+                        pr.getStatus().equalsIgnoreCase("PENDING")) {
+                        targetPrID = pr.getPrID();
+                        break;
+                    }
+                }
+
+                // Step 2: If no existing, create a new PR
+                if (targetPrID == null) {
+                    targetPrID = PurchaseRequisition.generateNextPRId();
+                    PurchaseRequisition newPr = new PurchaseRequisition(
+                        targetPrID,
+                        selectedSupplierID,
+                        prToEdit.getRaisedBy(),
+                        "PENDING"
+                    );
+                    prList.add(newPr);
+                }
+
+                // Step 3: Update the item to point to the right PR ID
+                for (PurchaseRequisitionItem item : prItemList) {
+                    if (item.getPrID().equalsIgnoreCase(prToEdit.getPrID()) &&
+                        item.getItemID().equalsIgnoreCase(itemID)) {
+
+                        // Check if (targetPrID + itemID) already exists
+                        boolean duplicateExists = false;
+                        for (PurchaseRequisitionItem otherItem : prItemList) {
+                            if (!otherItem.equals(itemToEdit) &&
+                                otherItem.getPrID().equalsIgnoreCase(targetPrID) &&
+                                otherItem.getItemID().equalsIgnoreCase(itemID)) {
+                                duplicateExists = true;
+                                break;
+                            }
+                        }
+
+                        if (duplicateExists) {
+                            JOptionPane.showMessageDialog(dialog,
+                                "A purchase requisition with this PR ID and Item ID already exists.",
+                                "Duplicate Entry",
+                                JOptionPane.ERROR_MESSAGE);
+                            return; // stop further execution
+                        }
+
+                        item.setPrID(targetPrID);
+                    }
+                }
+
+                FileUtil.saveListToFile(PURCHASE_REQUISITION_FILE, prList);
+                FileUtil.saveListToFile(PURCHASE_REQUISITION_ITEM_FILE, prItemList);
+
+                PurchaseRequisition.updatePRTableInUI(prList, prItemList, itemList, prTable);
+                JOptionPane.showMessageDialog(dialog, "Purchase requisition updated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                dialog.dispose();
+            }
+
+        });
+        cancelBtn.addActionListener(e -> dialog.dispose());
+        dialog.setVisible(true);
+    }
+
+    
+    public void deletePurchaseRequisition(JFrame parent, List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, List<Item> itemList, JTable prTable) {
+        if (!isAllowedToPerform("delete pr")) {
+            JOptionPane.showMessageDialog(null, "Not authorized to delete purchase requisitions.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int selectedRow = prTable.getSelectedRow();
+
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(parent, "Please select a purchase requisition to delete.", "No Selection", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String prId = prTable.getValueAt(selectedRow, 0).toString();
+        String itemIdWithName = prTable.getValueAt(selectedRow, 1).toString();
+        String itemId = itemIdWithName.split(" - ")[0];  // get only the item ID part
+        String supplierId = prTable.getValueAt(selectedRow, 2).toString();
+
+        // Confirm deletion
+        int response = JOptionPane.showConfirmDialog(
+            parent,
+            "Are you sure you want to delete this PR? \n\nItem: " + itemIdWithName + "\nSupplier: " + supplierId,
+            "Confirm Deletion",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (response == JOptionPane.YES_OPTION) {
+            // Step 1: Remove the PurchaseRequisitionItem (the line entry)
+            PurchaseRequisitionItem itemToDelete = null;
+            for (PurchaseRequisitionItem item : prItemList) {
+                if (item.getPrID().equalsIgnoreCase(prId) && item.getItemID().equalsIgnoreCase(itemId)) {
+                    itemToDelete = item;
+                    break;
+                }
+            }
+
+            if (itemToDelete != null) {
+                prItemList.remove(itemToDelete);
+
+                // Step 2: If no more items under this PR, remove the PR itself
+                boolean hasOtherItems = false;
+                for (PurchaseRequisitionItem item : prItemList) {
+                    if (item.getPrID().equalsIgnoreCase(prId)) {
+                        hasOtherItems = true;
+                        break;
+                    }
+                }
+
+                if (!hasOtherItems) {
+                    // Remove the parent PR
+                    PurchaseRequisition prToDelete = null;
+                    for (PurchaseRequisition pr : prList) {
+                        if (pr.getPrID().equalsIgnoreCase(prId)) {
+                            prToDelete = pr;
+                            break;
+                        }
+                    }
+
+                    if (prToDelete != null) {
+                        prList.remove(prToDelete);
+                    }
+                }
+
+                // Step 3: Save updates
+                FileUtil.saveListToFile(PURCHASE_REQUISITION_FILE, prList);
+                FileUtil.saveListToFile(PURCHASE_REQUISITION_ITEM_FILE, prItemList);
+
+                // Step 4: Update UI table
+                PurchaseRequisition.updatePRTableInUI(prList, prItemList, itemList, prTable);
+
+                JOptionPane.showMessageDialog(parent, "Purchase requisition record deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(parent, "Purchase requisition record not found.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            JOptionPane.showMessageDialog(parent, "Purchase requisition deletion canceled.", "Canceled", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+
     
 }
 

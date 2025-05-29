@@ -4,17 +4,16 @@
  */
 package com.mycompany.owsb.view;
 
-import com.mycompany.owsb.model.FileUtil;
+import com.mycompany.owsb.model.Item;
 import com.mycompany.owsb.model.PurchaseRequisition;
-import com.mycompany.owsb.view.SalesManagerWindow;
+import com.mycompany.owsb.model.PurchaseRequisitionItem;
+import com.mycompany.owsb.model.SalesManager;
+import com.mycompany.owsb.model.Supplier;
+import com.mycompany.owsb.model.SupplierItem;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 
 /**
@@ -25,20 +24,27 @@ public class SmManagePrWindow extends javax.swing.JFrame {
     private final SalesManagerWindow parentWindow;
     
     private PurchaseRequisition pr;
+    private SalesManager salesManager;
         
     
     private final String PR_FILE = "data/purchase_requisition.txt";
 
-    private final List<PurchaseRequisition> purchaseRequisitionList = new ArrayList<>();
+    private java.util.List<PurchaseRequisition> prDataList = new ArrayList<>();
+    private java.util.List<PurchaseRequisitionItem> prItemDataList = new ArrayList<>();
+    private java.util.List<Item> itemDataList = new ArrayList<>();
+    private java.util.List<Supplier> supplierDataList = new ArrayList<>();
+    private java.util.List<SupplierItem> supplierItemDataList = new ArrayList<>();
 
     /**
      * Creates new form NewJFrame
      * @param parentWindow
      */
-    public SmManagePrWindow(SalesManagerWindow parentWindow) {
+    public SmManagePrWindow(SalesManagerWindow parentWindow, SalesManager salesManager) {
         this.parentWindow = parentWindow;
+        this.salesManager = salesManager;
         initComponents();
-        setupWindowListener();
+        loadPRsIntoTable();
+        setupWindowListener();        
     }
     
     // close button go back to menu instead of close system  
@@ -52,36 +58,119 @@ public class SmManagePrWindow extends javax.swing.JFrame {
         });
     }
     
-    public List<PurchaseRequisition> loadPurchaseRequisitions() {
-        List<PurchaseRequisition> purchaseRequisitionList = new ArrayList<>(); 
-        try (BufferedReader reader = new BufferedReader(new FileReader(PR_FILE))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                PurchaseRequisition pr = PurchaseRequisition.fromString(line);
-                purchaseRequisitionList.add(pr);
+    // Load PRs and their items, stitch them, display in table
+    private void loadPRsIntoTable() {
+        prDataList = PurchaseRequisition.loadPurchaseRequisition();
+        prItemDataList = PurchaseRequisitionItem.loadPurchaseRequisitionItems();
+        supplierItemDataList = SupplierItem.loadSupplierItems();
+        itemDataList = Item.loadItems();
+        
+        // Attach items to their parent PR
+        for (PurchaseRequisitionItem item : prItemDataList) {
+            for (PurchaseRequisition pr : prDataList) {
+                if (pr.getPrID().equals(item.getPrID())) {
+                    pr.addItem(item);
+                    break;
+                }
             }
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "An error occurred while reading PR file: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
-        return purchaseRequisitionList;
-    }
-
-    
-    public void updatePurchaseRequisitionList() {
-        DefaultListModel<String> listModel = new DefaultListModel<>();
-        
-        List<String> lines = FileUtil.readLines(PR_FILE);
-        
-        // Add new Purchase Requisitions to the list
-        for (String line : lines) {
-            PurchaseRequisition pr = PurchaseRequisition.fromString(line);
-            purchaseRequisitionList.add(pr);  // Add the actual PurchaseRequisition object
-            listModel.addElement(pr.getPrID());  // Only display the itemID in the list
         }
 
-        // Set the model for the JList
-        prList.setModel(listModel);
+        // Update JTable with stitched data
+        PurchaseRequisition.updatePRTableInUI(prDataList, prItemDataList, itemDataList, prTable);
     }
+
+
+    // Prompt user for PR ID to edit
+    private void promptForPRID() {
+        String inputPRID = JOptionPane.showInputDialog(
+            null,
+            "Enter the Purchase Requisition ID to edit:",
+            "PR ID",
+            JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (inputPRID != null && !inputPRID.trim().isEmpty()) {
+            inputPRID = inputPRID.trim().toUpperCase();
+
+            // Find matching PR
+            PurchaseRequisition prToEdit = null;
+            for (PurchaseRequisition pr : prDataList) {
+                if (pr.getPrID().equalsIgnoreCase(inputPRID)) {
+                    prToEdit = pr;
+                    break;
+                }
+            }
+
+            if (prToEdit != null) {
+                // Collect all item IDs under this PR
+                List<String> matchingItemIDs = new ArrayList<>();
+                for (PurchaseRequisitionItem item : prItemDataList) {
+                    if (item.getPrID().equalsIgnoreCase(inputPRID)) {
+                        matchingItemIDs.add(item.getItemID());
+                    }
+                }
+
+                if (!matchingItemIDs.isEmpty()) {
+                    // Show dropdown for user to select item
+                    String selectedItemID = (String) JOptionPane.showInputDialog(
+                        null,
+                        "Select the Item ID under this PR to edit:",
+                        "Select Item ID",
+                        JOptionPane.PLAIN_MESSAGE,
+                        null,
+                        matchingItemIDs.toArray(),
+                        matchingItemIDs.get(0)
+                    );
+
+                    if (selectedItemID != null && !selectedItemID.trim().isEmpty()) {
+                        // Find matching PR item
+                        PurchaseRequisitionItem itemToEdit = null;
+                        for (PurchaseRequisitionItem item : prItemDataList) {
+                            if (item.getPrID().equalsIgnoreCase(inputPRID) &&
+                                item.getItemID().equalsIgnoreCase(selectedItemID)) {
+                                itemToEdit = item;
+                                break;
+                            }
+                        }
+
+                        if (itemToEdit != null) {
+                            // Open edit window
+                            salesManager.editPurchaseRequisition(
+                                this,
+                                prToEdit,
+                                itemToEdit,
+                                prDataList,
+                                prItemDataList,
+                                supplierItemDataList,
+                                itemDataList,
+                                supplierDataList,
+                                prTable
+                            );
+
+                            // Refresh table
+                            PurchaseRequisition.updatePRTableInUI(prDataList, prItemDataList, itemDataList, prTable);
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Item ID not found under this PR.");
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(null, "No Item ID selected.");
+                    }
+
+                } else {
+                    JOptionPane.showMessageDialog(null, "No items found under this PR.");
+                }
+
+            } else {
+                JOptionPane.showMessageDialog(null, "Purchase Requisition ID not found.");
+            }
+
+        } else {
+            JOptionPane.showMessageDialog(null, "Please enter a valid Purchase Requisition ID.");
+        }
+    }
+
+
+
    
 
 
@@ -94,138 +183,276 @@ public class SmManagePrWindow extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jScrollPane2 = new javax.swing.JScrollPane();
-        prDetails = new javax.swing.JTextArea();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        prList = new javax.swing.JList<>();
+        jPanel3 = new javax.swing.JPanel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        prTable = new javax.swing.JTable();
+        backButton = new javax.swing.JButton();
+        addPrButton = new javax.swing.JButton();
+        searchField = new javax.swing.JTextField();
+        searchButton = new javax.swing.JButton();
+        editPButton = new javax.swing.JButton();
+        deletePrButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Purchase Requisition");
 
-        prDetails.setColumns(20);
-        prDetails.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
-        prDetails.setRows(5);
-        jScrollPane2.setViewportView(prDetails);
+        jPanel3.setBackground(new java.awt.Color(255, 255, 255));
 
-        prList.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
-        prList.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
+        prTable.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        prTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null}
+            },
+            new String [] {
+                "PR ID", "Item", "Quantity", "Supplier ID", "Raised By", "Unit Cost", "Total Cost"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
         });
-        prList.addAncestorListener(new javax.swing.event.AncestorListener() {
-            public void ancestorAdded(javax.swing.event.AncestorEvent evt) {
-                prListAncestorAdded(evt);
-            }
-            public void ancestorMoved(javax.swing.event.AncestorEvent evt) {
-            }
-            public void ancestorRemoved(javax.swing.event.AncestorEvent evt) {
+        prTable.setGridColor(new java.awt.Color(102, 102, 102));
+        prTable.setRowHeight(25);
+        prTable.setSelectionBackground(new java.awt.Color(51, 51, 51));
+        prTable.setSelectionForeground(new java.awt.Color(255, 255, 255));
+        jScrollPane3.setViewportView(prTable);
+
+        backButton.setBackground(new java.awt.Color(102, 102, 102));
+        backButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        backButton.setForeground(new java.awt.Color(255, 255, 255));
+        backButton.setText("<");
+        backButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                backButtonActionPerformed(evt);
             }
         });
-        jScrollPane1.setViewportView(prList);
+
+        addPrButton.setBackground(new java.awt.Color(255, 51, 51));
+        addPrButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        addPrButton.setForeground(new java.awt.Color(255, 255, 255));
+        addPrButton.setText("Add");
+        addPrButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addPrButtonActionPerformed(evt);
+            }
+        });
+
+        searchField.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        searchField.setForeground(new java.awt.Color(51, 51, 51));
+        searchField.setText("Enter PR ID");
+        searchField.setToolTipText("");
+        searchField.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                searchFieldMouseClicked(evt);
+            }
+        });
+
+        searchButton.setBackground(new java.awt.Color(102, 102, 102));
+        searchButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        searchButton.setForeground(new java.awt.Color(255, 255, 255));
+        searchButton.setText("Search");
+        searchButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                searchButtonActionPerformed(evt);
+            }
+        });
+
+        editPButton.setBackground(new java.awt.Color(255, 204, 0));
+        editPButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        editPButton.setText("Edit");
+        editPButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                editPButtonActionPerformed(evt);
+            }
+        });
+
+        deletePrButton.setBackground(new java.awt.Color(51, 51, 51));
+        deletePrButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        deletePrButton.setForeground(new java.awt.Color(255, 255, 255));
+        deletePrButton.setText("Delete");
+        deletePrButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deletePrButtonActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addGap(35, 35, 35)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 741, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(deletePrButton, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(addPrButton, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(editPButton, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(backButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(searchField, javax.swing.GroupLayout.PREFERRED_SIZE, 594, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(searchButton, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(44, Short.MAX_VALUE))
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addGap(43, 43, 43)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE, false)
+                    .addComponent(searchField)
+                    .addComponent(backButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(searchButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(addPrButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(editPButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(deletePrButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 288, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(39, 39, 39))
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(246, 246, 246)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 319, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1))
-                .addContainerGap(41, Short.MAX_VALUE))
+            .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(70, 70, 70)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 231, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(70, Short.MAX_VALUE))
+            .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void prListAncestorAdded(javax.swing.event.AncestorEvent evt) {//GEN-FIRST:event_prListAncestorAdded
-        updatePurchaseRequisitionList(); // Updates the JList with data from the file
+    private void backButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backButtonActionPerformed
+        // Update JTable to the latest
+        PurchaseRequisition.updatePRTableInUI(prDataList, prItemDataList, itemDataList, prTable);
+    }//GEN-LAST:event_backButtonActionPerformed
 
-        if (prList.getListSelectionListeners().length == 0) {
-            prList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-                @Override
-                public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                    if (!evt.getValueIsAdjusting()) {
-                        int selectedIndex = prList.getSelectedIndex();
+    private void searchFieldMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_searchFieldMouseClicked
+        searchField.setText("");
+    }//GEN-LAST:event_searchFieldMouseClicked
 
-                        if (selectedIndex >= 0 && selectedIndex < purchaseRequisitionList.size()) {
-                            PurchaseRequisition selectedPR = purchaseRequisitionList.get(selectedIndex);
+    private void searchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchButtonActionPerformed
+        // Reload data from file
+        loadPRsIntoTable();
+        
+        PurchaseRequisition.searchAndDisplayPRInTable(searchField, prTable, prDataList, itemDataList, prItemDataList);
+    }//GEN-LAST:event_searchButtonActionPerformed
 
-                            // Show the purchase order details
-                            prDetails.setText(
-                                "PO ID: " + selectedPR.getPrID() + "\n\n" +
-                                "Item ID: " + selectedPR.getItemID() + "\n\n" +
-                                "Quantity: " + selectedPR.getQuantity() + "\n\n" +
-                                "Required Date: " + selectedPR.getRequiredDate() + "\n\n" +        
-                                "Supplier ID: " + selectedPR.getSupplierID() + "\n\n" +
-                                "Raised By: " + selectedPR.getRaisedBy() + "\n\n" +        
-                                "Unit Cost: " + selectedPR.getUnitCost() + "\n\n" +
-                                "Total Cost: " + selectedPR.getTotalCost() + "\n\n" +
-                                "Status: " + selectedPR.getStatus()
-                            );
-                        } else {
-                            prDetails.setText("No Purchase Order selected.");
-                        }
+    private void addPrButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addPrButtonActionPerformed
+        supplierDataList = Supplier.loadSuppliers();
+        supplierItemDataList = SupplierItem.loadSupplierItems();
+        itemDataList = Item.loadItems();
+        salesManager.addPurchaseRequisition(this, itemDataList, prDataList, prItemDataList, supplierDataList, supplierItemDataList, prTable);
+    }//GEN-LAST:event_addPrButtonActionPerformed
+
+    private void editPButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editPButtonActionPerformed
+        itemDataList = Item.loadItems();
+        supplierDataList = Supplier.loadSuppliers();
+        
+        int selectedRow = prTable.getSelectedRow();
+
+        if (selectedRow != -1) {
+            String selectedPrID = prTable.getValueAt(selectedRow, 0).toString();
+            String selectedItemIDWithName = prTable.getValueAt(selectedRow, 1).toString();  // column 1: "IT0001 - Laptop"
+            String selectedItemID = selectedItemIDWithName.split(" - ")[0].trim();         // get only "IT0001"
+
+            int confirm = JOptionPane.showConfirmDialog(
+                null,
+                "Are you sure you want to edit PR " + selectedPrID + " for item " + selectedItemIDWithName + "?",
+                "Confirm Edit",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+            );
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                PurchaseRequisition prToEdit = null;
+                PurchaseRequisitionItem itemToEdit = null;
+
+                // Find the PR
+                for (PurchaseRequisition pr : prDataList) {
+                    if (pr.getPrID().equalsIgnoreCase(selectedPrID)) {
+                        prToEdit = pr;
+                        break;
                     }
                 }
-            });
-        }
 
-    }//GEN-LAST:event_prListAncestorAdded
+                // Find the PR item (needs both PR ID + Item ID)
+                for (PurchaseRequisitionItem prItem : prItemDataList) {
+                    if (prItem.getPrID().equalsIgnoreCase(selectedPrID) &&
+                        prItem.getItemID().equalsIgnoreCase(selectedItemID)) {
+                        itemToEdit = prItem;
+                        break;
+                    }
+                }
+
+                if (prToEdit != null && itemToEdit != null) {
+                    salesManager.editPurchaseRequisition(
+                        this,  // parent
+                        prToEdit,
+                        itemToEdit,
+                        prDataList,
+                        prItemDataList,
+                        supplierItemDataList,
+                        itemDataList,
+                        supplierDataList,
+                        prTable
+                    );
+                    PurchaseRequisition.updatePRTableInUI(prDataList, prItemDataList, itemDataList, prTable);
+                } else {
+                    JOptionPane.showMessageDialog(null, "Could not find matching PR or item.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+
+        } else {
+            promptForPRID();
+        }
+    }//GEN-LAST:event_editPButtonActionPerformed
+
+    private void deletePrButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deletePrButtonActionPerformed
+        prDataList = PurchaseRequisition.loadPurchaseRequisition();
+        prItemDataList = PurchaseRequisitionItem.loadPurchaseRequisitionItems();
+        itemDataList = Item.loadItems();
+
+        salesManager.deletePurchaseRequisition(this, prDataList, prItemDataList, itemDataList, prTable);
+    }//GEN-LAST:event_deletePrButtonActionPerformed
 
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(SmManagePrWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(SmManagePrWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(SmManagePrWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(SmManagePrWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-        //</editor-fold>
-        //</editor-fold>
-        //</editor-fold>
 
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new SmManagePrWindow(null).setVisible(true);
-            }
-        });
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JTextArea prDetails;
-    private javax.swing.JList<String> prList;
+    private javax.swing.JButton addPrButton;
+    private javax.swing.JButton backButton;
+    private javax.swing.JButton deletePrButton;
+    private javax.swing.JButton editPButton;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JTable prTable;
+    private javax.swing.JButton searchButton;
+    private javax.swing.JTextField searchField;
     // End of variables declaration//GEN-END:variables
 }

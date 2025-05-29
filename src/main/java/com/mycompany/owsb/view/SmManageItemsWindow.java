@@ -5,8 +5,11 @@
 package com.mycompany.owsb.view;
 
 import com.mycompany.owsb.model.Item;
+import com.mycompany.owsb.model.PurchaseRequisition;
+import com.mycompany.owsb.model.PurchaseRequisitionItem;
 import com.mycompany.owsb.model.SalesManager;
 import com.mycompany.owsb.model.Supplier;
+import com.mycompany.owsb.model.SupplierItem;
 import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
@@ -22,7 +25,9 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
     private final SalesManager salesManager;
     
     private java.util.List<Item> itemDataList = new ArrayList<>();
-    private java.util.List<Supplier> supplierDataList = new ArrayList<>();
+    private java.util.List<SupplierItem> supplierItemDataList = new ArrayList<>();
+    private java.util.List<PurchaseRequisition> prDataList = new ArrayList<>();
+    private java.util.List<PurchaseRequisitionItem> prItemDataList = new ArrayList<>();
     
     // String representing the file path for purchase order data
     private static final String ITEM_FILE = "data/items.txt";
@@ -38,7 +43,7 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
         this.parentWindow = parentWindow;
         this.salesManager = salesManager;
         initComponents();
-        loadItemsIntoList(); 
+        loadItemsIntoTable(); 
         setupWindowListener();
         
     }
@@ -56,7 +61,7 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
     }
     
     // Method to load Items from file and display them in the UI list
-    private void loadItemsIntoList() {
+    private void loadItemsIntoTable() {
         // Load the list of Purchase Orders from the purchase order file
         itemDataList = Item.loadItems();
         
@@ -81,7 +86,7 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
             // Search for the item based on input ID
             for (Item item : itemDataList) {
                 if (item.getItemID().equalsIgnoreCase(inputID)) {
-                    salesManager.editItem(item, itemDataList, supplierDataList, itemTable); // Call editItem method in Sales Manager Class if item found
+                    salesManager.editItem(item, itemDataList, itemTable); // Call editItem method in Sales Manager Class if item found
                     Item.updateItemTableInUI(itemDataList, itemTable);
                     found = true;
                     break;
@@ -127,20 +132,20 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
         itemTable.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
         itemTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null}
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null}
             },
             new String [] {
-                "Item ID", "Item Name", "Supplier ID", "Stock", "Cost", "Price", "Stock Level"
+                "Item ID", "Item Name", "Stock", "Cost", "Price", "Stock Level"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.Double.class, java.lang.Double.class, java.lang.Boolean.class
+                java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.Double.class, java.lang.Double.class, java.lang.Boolean.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false
+                false, false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -160,9 +165,6 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
             itemTable.getColumnModel().getColumn(0).setPreferredWidth(50);
             itemTable.getColumnModel().getColumn(0).setMaxWidth(50);
             itemTable.getColumnModel().getColumn(1).setMinWidth(150);
-            itemTable.getColumnModel().getColumn(2).setMinWidth(80);
-            itemTable.getColumnModel().getColumn(2).setPreferredWidth(80);
-            itemTable.getColumnModel().getColumn(2).setMaxWidth(80);
         }
 
         backButton.setBackground(new java.awt.Color(102, 102, 102));
@@ -297,12 +299,10 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void addItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addItemButtonActionPerformed
-        supplierDataList = Supplier.loadSuppliers();
-        salesManager.addItem(this, itemDataList, supplierDataList, itemTable);
+        salesManager.addItem(this, itemDataList, itemTable);
     }//GEN-LAST:event_addItemButtonActionPerformed
 
     private void editItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editItemButtonActionPerformed
-        supplierDataList = Supplier.loadSuppliers();
         int selectedRow = itemTable.getSelectedRow(); // Get selected row index
 
         if (selectedRow != -1) { // -1 means no row selected
@@ -319,7 +319,7 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
             if (confirm == JOptionPane.YES_OPTION) {
                 for (Item item : itemDataList) {
                     if (item.getItemID().equalsIgnoreCase(selectedItemID)) {
-                        salesManager.editItem(item, itemDataList, supplierDataList, itemTable); // Open the edit form
+                        salesManager.editItem(item, itemDataList, itemTable); // Open the edit form
                         Item.updateItemTableInUI(itemDataList, itemTable); // Refresh the table
                         break;
                     }
@@ -342,7 +342,11 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_searchButtonActionPerformed
 
     private void deleteItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteItemButtonActionPerformed
-        salesManager.deleteItem(this, itemDataList, itemTable);
+        supplierItemDataList = SupplierItem.loadSupplierItems();
+        prDataList = PurchaseRequisition.loadPurchaseRequisition();
+        prItemDataList = PurchaseRequisitionItem.loadPurchaseRequisitionItems();
+        
+        salesManager.deleteItem(this, itemDataList, supplierItemDataList, prDataList, prItemDataList, itemTable);
     }//GEN-LAST:event_deleteItemButtonActionPerformed
 
     private void backButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backButtonActionPerformed
