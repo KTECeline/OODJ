@@ -7,6 +7,9 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,14 +35,16 @@ public class PurchaseRequisition {
     private String prID;
     private List<PurchaseRequisitionItem> items;
     private String supplierID;
+    private LocalDate requiredDate;
     private String raisedBy;
     private String status;
 
     private static final String PURCHASE_REQUISITION_FILE = "data/purchase_requisition.txt";
 
-    public PurchaseRequisition(String prID, String supplierID, String raisedBy, String status) {
+    public PurchaseRequisition(String prID, String supplierID, LocalDate requiredDate, String raisedBy, String status) {
         this.prID = prID;
         this.supplierID = supplierID;
+        this.requiredDate = requiredDate;
         this.raisedBy = raisedBy;
         this.status = status;
         this.items = new ArrayList<>();
@@ -57,6 +62,10 @@ public class PurchaseRequisition {
     public String getSupplierID() {
         return supplierID;
     }
+    
+    public LocalDate getRequiredDate() {
+        return requiredDate;
+    }
 
     public String getRaisedBy() {
         return raisedBy;
@@ -68,7 +77,11 @@ public class PurchaseRequisition {
     
     public void setSupplierID(String supplierID) {
             this.supplierID = supplierID;
-        }
+    }
+    
+    public void setRequiredDate(LocalDate requiredDate) {
+        this.requiredDate = requiredDate;
+    }
 
     public void setStatus(String status) {
         this.status = status;
@@ -84,17 +97,18 @@ public class PurchaseRequisition {
 
     @Override
     public String toString() {
-        return prID + "," + supplierID + "," + raisedBy + "," + status;
+        return prID + "," + supplierID + "," + requiredDate + "," + raisedBy + "," + status;
     }
 
     public static PurchaseRequisition fromString(String line) {
-        String[] parts = line.split(",", 4);
+        String[] parts = line.split(",", 5);
         String prId = parts[0];
         String supplierId = parts[1];
-        String raisedBy = parts[2];
-        String status = parts[3];
+        LocalDate requiredDate = LocalDate.parse(parts[2]);  // assumes stored as yyyy-MM-dd
+        String raisedBy = parts[3];
+        String status = parts[4];
 
-        PurchaseRequisition pr = new PurchaseRequisition(prId, supplierId, raisedBy, status);
+        PurchaseRequisition pr = new PurchaseRequisition(prId, supplierId, requiredDate, raisedBy, status);
 
         return pr;
     }
@@ -163,7 +177,7 @@ public class PurchaseRequisition {
     }
     
     public static void updatePRTableInUI(List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, List<Item> itemList, JTable targetTable) {
-        String[] columnNames = {"PR ID", "Item ID", "Supplier ID", "Quantity", "Raised By", "Unit Cost (RM)", "Total Cost (RM)", "Status"};
+        String[] columnNames = {"PR ID", "Item ID", "Supplier ID", "Quantity", "Required Date", "Raised By", "Unit Cost (RM)", "Total Cost (RM)", "Status"};
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
 
         for (PurchaseRequisition pr : prList) {
@@ -184,6 +198,7 @@ public class PurchaseRequisition {
                         prItem.getItemID() + " - " + itemName,
                         pr.getSupplierID(),
                         prItem.getQuantity(),
+                        pr.getRequiredDate(),
                         pr.getRaisedBy(),
                         prItem.getUnitCost(),
                         prItem.getTotalCost(),
@@ -222,6 +237,7 @@ public class PurchaseRequisition {
                         item.getItemID(),
                         pr.getSupplierID(),                       
                         item.getQuantity(),
+                        pr.getRequiredDate(),
                         pr.getRaisedBy(),
                         item.getUnitCost(),
                         item.getTotalCost(),

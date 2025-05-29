@@ -101,6 +101,34 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
         }
     }
 
+    public void applyLowStockFilter() {
+        List<Item> items = Item.loadItems();
+        List<Item> filteredItems = new ArrayList<>();
+
+        if (lowStockCheckbox.isSelected()) {
+            for (Item item : items) {
+                if (item.getStockLevel().equals("Low")) {
+                    filteredItems.add(item);
+                }
+            }
+        } else {
+            filteredItems = items; // Show all if not selected
+        }
+
+        Item.updateItemTableInUI(filteredItems, itemTable);
+    }
+
+    
+    public void setLowStockFilterChecked(boolean checked) {
+        lowStockCheckbox.setSelected(checked);
+        applyLowStockFilter();
+    }
+    
+    public void resetLowStockCheckbox() {
+        lowStockCheckbox.setSelected(false);
+    }
+    
+    
     
     
     /**
@@ -300,6 +328,9 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
 
     private void addItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addItemButtonActionPerformed
         salesManager.addItem(this, itemDataList, itemTable);
+        
+        // Reset the checkbox state
+        lowStockCheckbox.setSelected(false);
     }//GEN-LAST:event_addItemButtonActionPerformed
 
     private void editItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editItemButtonActionPerformed
@@ -319,8 +350,14 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
             if (confirm == JOptionPane.YES_OPTION) {
                 for (Item item : itemDataList) {
                     if (item.getItemID().equalsIgnoreCase(selectedItemID)) {
-                        salesManager.editItem(item, itemDataList, itemTable); // Open the edit form
-                        Item.updateItemTableInUI(itemDataList, itemTable); // Refresh the table
+                        // Open the edit form
+                        salesManager.editItem(item, itemDataList, itemTable); 
+                        
+                        // Reset the checkbox state
+                        lowStockCheckbox.setSelected(false);
+                        
+                        // Refresh the table
+                        Item.updateItemTableInUI(itemDataList, itemTable); 
                         break;
                     }
                 }
@@ -355,20 +392,7 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_backButtonActionPerformed
 
     private void lowStockCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lowStockCheckboxActionPerformed
-        List<Item> items = Item.loadItems();
-        List<Item> filteredItems = new ArrayList<>();
-
-        if (lowStockCheckbox.isSelected()) {
-            for (Item item : items) {
-                if (item.getStockLevel().equals("Low")) {
-                    filteredItems.add(item);
-                }
-            }
-        } else {
-            filteredItems = items; // Show all items if checkbox is not selected
-        }
-
-        Item.updateItemTableInUI(filteredItems, itemTable);
+        applyLowStockFilter();
     }//GEN-LAST:event_lowStockCheckboxActionPerformed
 
     /**

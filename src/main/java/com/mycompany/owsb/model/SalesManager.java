@@ -4,11 +4,14 @@
  */
 package com.mycompany.owsb.model;
 
+import com.mycompany.owsb.view.SmManageItemsWindow;
 import java.awt.*;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import javax.swing.*;
 import java.util.List;
 import javax.swing.event.DocumentEvent;
@@ -982,8 +985,6 @@ public class SalesManager extends Manager implements ManageItemInterface{
         });
 
 
-
-
         addBtn.addActionListener(e -> {
             // Reset errors
             itemIDError.setText(""); 
@@ -1079,43 +1080,72 @@ public class SalesManager extends Manager implements ManageItemInterface{
                 return;
             }
             
-            // Check if there's an existing pending PR for this supplier
-            String prId = null;
-            for (PurchaseRequisition pr : prList) {
-                if ("PENDING".equalsIgnoreCase(pr.getStatus()) && pr.getSupplierID().equalsIgnoreCase(selectedSupplierId)) {
-                    prId = pr.getPrID();
-                    break;
-                }
-            }
-
-            // If no existing PR, generate a new one and add to prList
-            if (prId == null) {
-                prId = PurchaseRequisition.generateNextPRId();
-                PurchaseRequisition newPr = new PurchaseRequisition(
-                    prId,
-                    selectedSupplierId,
-                    raisedBy,
-                    "PENDING"
-                );
-                prList.add(newPr);
-            }
-
-            // If all fields are valid, add the pr
             if (valid) {
-                PurchaseRequisition newPr = new PurchaseRequisition(
-                    prId,
-                    selectedSupplierId,
-                    raisedBy,
-                    "PENDING"
-                );
-                
+                // Check if there's an existing pending PR for this supplier
+                String prId = null;
+                PurchaseRequisition existingPr = null;
+
+                for (PurchaseRequisition pr : prList) {
+                    if ("PENDING".equalsIgnoreCase(pr.getStatus()) &&
+                        pr.getSupplierID().equalsIgnoreCase(selectedSupplierId)) {
+                        prId = pr.getPrID();
+                        existingPr = pr;
+                        break;
+                    }
+                }
+
+                // If no existing PR, generate a new one and prompt for required date
+                if (prId == null) {
+                    prId = PurchaseRequisition.generateNextPRId();
+
+                    String dateInput = JOptionPane.showInputDialog(
+                        dialog,
+                        "Enter required date (YYYY-MM-DD):",
+                        "Required Date",
+                        JOptionPane.PLAIN_MESSAGE
+                    );
+
+                    if (dateInput == null || dateInput.trim().isEmpty()) {
+                        JOptionPane.showMessageDialog(dialog, "Required date is mandatory for a new PR.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    String requiredDateStr = dateInput.trim();
+
+                    // Validate format: yyyy-MM-dd
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                    LocalDate requiredDate;
+                    try {
+                        requiredDate = LocalDate.parse(requiredDateStr, formatter);
+                    } catch (DateTimeParseException ex) {
+                        JOptionPane.showMessageDialog(dialog, "Invalid date format. Please use YYYY-MM-DD.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    // Validate if date is in the past
+                    if (requiredDate.isBefore(LocalDate.now())) {
+                        JOptionPane.showMessageDialog(dialog, "Required date cannot be in the past.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    // Create and add new PR
+                    PurchaseRequisition newPr = new PurchaseRequisition(
+                        prId,
+                        selectedSupplierId,
+                        requiredDate,
+                        raisedBy,
+                        "PENDING"
+                    );
+                    prList.add(newPr);
+                }
+
+                // Finally, add the item
                 PurchaseRequisitionItem newItem = new PurchaseRequisitionItem(
                     prId,
                     itemID,
                     quantity,
                     unitCost
                 );
-                
 
                 prItemList.add(newItem);
 
@@ -1125,6 +1155,7 @@ public class SalesManager extends Manager implements ManageItemInterface{
                 JOptionPane.showMessageDialog(dialog, "Purchase requisition added successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
                 dialog.dispose();
             }
+
         });
 
         cancelBtn.addActionListener(e -> dialog.dispose());
@@ -1132,7 +1163,21 @@ public class SalesManager extends Manager implements ManageItemInterface{
     }
     
     
-    public void editPurchaseRequisition(JFrame parent, PurchaseRequisition prToEdit, PurchaseRequisitionItem itemToEdit, List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, List<SupplierItem> supplierItemList, List<Item> itemList, List<Supplier> supplierList, JTable prTable) {
+    public void editPurchaseRequisition(JFrame parent, PurchaseRequisition prToEdit, PurchaseRequisitionItem itemToEdit,
+                                    List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList,
+                                    List<SupplierItem> supplierItemList, List<Item> itemList, List<Supplier> supplierList,
+                                    JTable prTable) {
+        
+        // Only allow edit if status is PENDING
+        if (!"PENDING".equalsIgnoreCase(prToEdit.getStatus())) {
+            JOptionPane.showMessageDialog(parent,
+                "Only purchase requisitions with status PENDING can be edited.",
+                "Edit Not Allowed",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // Check User Permission for edit supplier
         if (!isAllowedToPerform("edit supplier")) {
             JOptionPane.showMessageDialog(null, "Not authorized to edit suppliers.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
             return;
@@ -1140,27 +1185,21 @@ public class SalesManager extends Manager implements ManageItemInterface{
 
         final String prID = prToEdit.getPrID();
         final String itemID = itemToEdit.getItemID();
-        
-        // get the item name from itemToEdit or item list:
-        String itemName = ""; 
+
+        String itemName = "";
         for (Item item : itemList) {
             if (item.getItemID().equalsIgnoreCase(itemID)) {
                 itemName = item.getItemName();
                 break;
             }
         }
-        
 
         JLabel supplierError = new JLabel();
         Color errorColor = Color.RED;
 
         JComboBox<String> supplierComboBox = new JComboBox<>();
-        JPanel comboPanel = new JPanel();
-        comboPanel.add(supplierComboBox);
-        
         for (SupplierItem supplierItem : supplierItemList) {
             if (supplierItem.getItemID().equalsIgnoreCase(itemID)) {
-                // Find supplier name from supplier list
                 String supplierName = "";
                 for (Supplier supplier : supplierList) {
                     if (supplier.getSupplierID().equalsIgnoreCase(supplierItem.getSupplierID())) {
@@ -1182,7 +1221,7 @@ public class SalesManager extends Manager implements ManageItemInterface{
         panel.add(new JLabel("Item ID:"));
         panel.add(new JLabel(itemID + " - " + itemName));
         panel.add(new JLabel("Supplier:"));
-        panel.add(supplierComboBox); 
+        panel.add(supplierComboBox);
         panel.add(supplierError);
 
         JDialog dialog = new JDialog(parent, "Edit Purchase Requisition", true);
@@ -1193,22 +1232,20 @@ public class SalesManager extends Manager implements ManageItemInterface{
         JPanel btnPanel = new JPanel();
         btnPanel.add(saveBtn);
         btnPanel.add(cancelBtn);
-        
+
         saveBtn.setBackground(Color.RED);
         saveBtn.setForeground(Color.WHITE);
 
         cancelBtn.setBackground(Color.BLACK);
         cancelBtn.setForeground(Color.WHITE);
-        
+
         btnPanel.setBackground(Color.white);
         dialog.getContentPane().add(btnPanel, BorderLayout.SOUTH);
 
         dialog.pack();
         dialog.setLocationRelativeTo(parent);
 
-        // Select Supplier button action
         if (supplierComboBox.getItemCount() > 0) {
-            // Pre-select the current supplier
             for (int i = 0; i < supplierComboBox.getItemCount(); i++) {
                 String comboEntry = supplierComboBox.getItemAt(i);
                 if (comboEntry.startsWith(prToEdit.getSupplierID() + " -")) {
@@ -1222,95 +1259,110 @@ public class SalesManager extends Manager implements ManageItemInterface{
             supplierError.setText("*No suppliers found for this Item ID.");
         }
 
-
-        // Save button action
         saveBtn.addActionListener(e -> {
             String selectedSupplier = (String) supplierComboBox.getSelectedItem();
-            String selectedSupplierID = selectedSupplier.split(" - ")[0];
-            boolean valid = true;
-
-            if (selectedSupplierID == null || selectedSupplierID.isEmpty()) {
+            if (selectedSupplier == null || selectedSupplier.isEmpty()) {
                 JOptionPane.showMessageDialog(dialog, "Please select a supplier.", "Error", JOptionPane.ERROR_MESSAGE);
-                valid = false;
-            } else {
-                boolean supplierItemMatch = false;
-                for (SupplierItem si : supplierItemList) {
-                    if (si.getSupplierID().equalsIgnoreCase(selectedSupplierID) &&
-                        si.getItemID().equalsIgnoreCase(itemID)) {
-                        supplierItemMatch = true;
-                        break;
-                    }
+                return;
+            }
+
+            String selectedSupplierID = selectedSupplier.split(" - ")[0];
+
+            boolean supplierItemMatch = false;
+            for (SupplierItem si : supplierItemList) {
+                if (si.getSupplierID().equalsIgnoreCase(selectedSupplierID) &&
+                    si.getItemID().equalsIgnoreCase(itemID)) {
+                    supplierItemMatch = true;
+                    break;
                 }
-                if (!supplierItemMatch) {
-                    JOptionPane.showMessageDialog(dialog, "Selected supplier does not supply this item.", "Error", JOptionPane.ERROR_MESSAGE);
-                    valid = false;
+            }
+            if (!supplierItemMatch) {
+                JOptionPane.showMessageDialog(dialog, "Selected supplier does not supply this item.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // STEP 1: Look for existing PR for this supplier
+            String targetPrID = null;
+            PurchaseRequisition existingPr = null;
+
+            for (PurchaseRequisition pr : prList) {
+                if (pr.getSupplierID().equalsIgnoreCase(selectedSupplierID) &&
+                    pr.getStatus().equalsIgnoreCase("PENDING")) {
+                    targetPrID = pr.getPrID();
+                    existingPr = pr;
+                    break;
                 }
             }
 
+            // STEP 2: If no existing PR, prompt for required date
+            if (targetPrID == null) {
+                targetPrID = PurchaseRequisition.generateNextPRId();
 
-            if (valid) {
-                // Step 1: Look for existing PR for this supplier
-                String targetPrID = null;
-                for (PurchaseRequisition pr : prList) {
-                    if (pr.getSupplierID().equalsIgnoreCase(selectedSupplierID) &&
-                        pr.getStatus().equalsIgnoreCase("PENDING")) {
-                        targetPrID = pr.getPrID();
-                        break;
+                String dateInput = JOptionPane.showInputDialog(
+                    dialog,
+                    "Enter required date (YYYY-MM-DD):",
+                    "Required Date",
+                    JOptionPane.PLAIN_MESSAGE
+                );
+
+                if (dateInput == null || dateInput.trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(dialog, "Required date is mandatory for a new PR.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                String requiredDateStr = dateInput.trim();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                LocalDate requiredDate;
+
+                try {
+                    requiredDate = LocalDate.parse(requiredDateStr, formatter);
+                    if (requiredDate.isBefore(LocalDate.now())) {
+                        JOptionPane.showMessageDialog(dialog, "Required date cannot be in the past.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
                     }
+                } catch (DateTimeParseException ex) {
+                    JOptionPane.showMessageDialog(dialog, "Invalid date format. Please use YYYY-MM-DD.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
                 }
 
-                // Step 2: If no existing, create a new PR
-                if (targetPrID == null) {
-                    targetPrID = PurchaseRequisition.generateNextPRId();
-                    PurchaseRequisition newPr = new PurchaseRequisition(
-                        targetPrID,
-                        selectedSupplierID,
-                        prToEdit.getRaisedBy(),
-                        "PENDING"
-                    );
-                    prList.add(newPr);
-                }
-
-                // Step 3: Update the item to point to the right PR ID
-                for (PurchaseRequisitionItem item : prItemList) {
-                    if (item.getPrID().equalsIgnoreCase(prToEdit.getPrID()) &&
-                        item.getItemID().equalsIgnoreCase(itemID)) {
-
-                        // Check if (targetPrID + itemID) already exists
-                        boolean duplicateExists = false;
-                        for (PurchaseRequisitionItem otherItem : prItemList) {
-                            if (!otherItem.equals(itemToEdit) &&
-                                otherItem.getPrID().equalsIgnoreCase(targetPrID) &&
-                                otherItem.getItemID().equalsIgnoreCase(itemID)) {
-                                duplicateExists = true;
-                                break;
-                            }
-                        }
-
-                        if (duplicateExists) {
-                            JOptionPane.showMessageDialog(dialog,
-                                "A purchase requisition with this PR ID and Item ID already exists.",
-                                "Duplicate Entry",
-                                JOptionPane.ERROR_MESSAGE);
-                            return; // stop further execution
-                        }
-
-                        item.setPrID(targetPrID);
-                    }
-                }
-
-                FileUtil.saveListToFile(PURCHASE_REQUISITION_FILE, prList);
-                FileUtil.saveListToFile(PURCHASE_REQUISITION_ITEM_FILE, prItemList);
-
-                PurchaseRequisition.updatePRTableInUI(prList, prItemList, itemList, prTable);
-                JOptionPane.showMessageDialog(dialog, "Purchase requisition updated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
-                dialog.dispose();
+                PurchaseRequisition newPr = new PurchaseRequisition(
+                    targetPrID,
+                    selectedSupplierID,
+                    requiredDate,
+                    prToEdit.getRaisedBy(),
+                    "PENDING"
+                );
+                prList.add(newPr);
             }
 
+            // STEP 3: Check for duplicate (targetPrID + itemID)
+            for (PurchaseRequisitionItem otherItem : prItemList) {
+                if (!otherItem.equals(itemToEdit) &&
+                    otherItem.getPrID().equalsIgnoreCase(targetPrID) &&
+                    otherItem.getItemID().equalsIgnoreCase(itemID)) {
+                    JOptionPane.showMessageDialog(dialog,
+                        "A purchase requisition with this PR ID and Item ID already exists.",
+                        "Duplicate Entry",
+                        JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            }
+
+            // STEP 4: Update the item’s PR ID
+            itemToEdit.setPrID(targetPrID);
+
+            FileUtil.saveListToFile(PURCHASE_REQUISITION_FILE, prList);
+            FileUtil.saveListToFile(PURCHASE_REQUISITION_ITEM_FILE, prItemList);
+
+            PurchaseRequisition.updatePRTableInUI(prList, prItemList, itemList, prTable);
+            JOptionPane.showMessageDialog(dialog, "Purchase requisition updated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+            dialog.dispose();
         });
+
         cancelBtn.addActionListener(e -> dialog.dispose());
         dialog.setVisible(true);
     }
+
 
     
     public void deletePurchaseRequisition(JFrame parent, List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, List<Item> itemList, JTable prTable) {

@@ -168,6 +168,36 @@ public class SmManagePrWindow extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Please enter a valid Purchase Requisition ID.");
         }
     }
+    
+    // Filter PR checkbox
+    private void updateFilteredPRTable() {
+        List<PurchaseRequisition> allPr = PurchaseRequisition.loadPurchaseRequisition();
+        List<PurchaseRequisition> filteredPr = new ArrayList<>();
+
+        boolean showPending = pendingPrCheckbox.isSelected();
+        boolean showApproved = approvedPrCheckbox.isSelected();
+        boolean showRejected = rejectedPrCheckbox.isSelected();
+
+        if (!showPending && !showApproved && !showRejected) {
+            // No filter applied, show all
+            filteredPr = allPr;
+        } else {
+            for (PurchaseRequisition pr : allPr) {
+                String status = pr.getStatus().toUpperCase();
+
+                if (showPending && "PENDING".equals(status)) {
+                    filteredPr.add(pr);
+                } else if (showApproved && "APPROVED".equals(status)) {
+                    filteredPr.add(pr);
+                } else if (showRejected && "REJECTED".equals(status)) {
+                    filteredPr.add(pr);
+                }
+            }
+        }
+
+        PurchaseRequisition.updatePRTableInUI(filteredPr, prItemDataList, itemDataList, prTable);
+    }
+
 
 
 
@@ -192,6 +222,9 @@ public class SmManagePrWindow extends javax.swing.JFrame {
         searchButton = new javax.swing.JButton();
         editPButton = new javax.swing.JButton();
         deletePrButton = new javax.swing.JButton();
+        pendingPrCheckbox = new javax.swing.JCheckBox();
+        approvedPrCheckbox = new javax.swing.JCheckBox();
+        rejectedPrCheckbox = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Purchase Requisition");
@@ -201,20 +234,20 @@ public class SmManagePrWindow extends javax.swing.JFrame {
         prTable.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
         prTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null}
+                {null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "PR ID", "Item", "Quantity", "Supplier ID", "Raised By", "Unit Cost", "Total Cost"
+                "PR ID", "Item", "Supplier ID", "Quantity", "Required Date", "Raised By", "Unit Cost", "Total Cost"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
+                java.lang.String.class, java.lang.String.class, java.lang.Object.class, java.lang.String.class, java.lang.String.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false
+                false, false, false, false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -290,15 +323,45 @@ public class SmManagePrWindow extends javax.swing.JFrame {
             }
         });
 
+        pendingPrCheckbox.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        pendingPrCheckbox.setText("Pending");
+        pendingPrCheckbox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                pendingPrCheckboxActionPerformed(evt);
+            }
+        });
+
+        approvedPrCheckbox.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        approvedPrCheckbox.setText("Approved");
+        approvedPrCheckbox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                approvedPrCheckboxActionPerformed(evt);
+            }
+        });
+
+        rejectedPrCheckbox.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        rejectedPrCheckbox.setText("Rejected");
+        rejectedPrCheckbox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rejectedPrCheckboxActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addGap(35, 35, 35)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                     .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 741, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(pendingPrCheckbox)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(approvedPrCheckbox)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(rejectedPrCheckbox)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(deletePrButton, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(addPrButton, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -324,7 +387,10 @@ public class SmManagePrWindow extends javax.swing.JFrame {
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(addPrButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(editPButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(deletePrButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(deletePrButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(pendingPrCheckbox)
+                    .addComponent(approvedPrCheckbox)
+                    .addComponent(rejectedPrCheckbox))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 288, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(39, 39, 39))
@@ -439,6 +505,18 @@ public class SmManagePrWindow extends javax.swing.JFrame {
         salesManager.deletePurchaseRequisition(this, prDataList, prItemDataList, itemDataList, prTable);
     }//GEN-LAST:event_deletePrButtonActionPerformed
 
+    private void pendingPrCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pendingPrCheckboxActionPerformed
+        updateFilteredPRTable();
+    }//GEN-LAST:event_pendingPrCheckboxActionPerformed
+
+    private void approvedPrCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_approvedPrCheckboxActionPerformed
+        updateFilteredPRTable();
+    }//GEN-LAST:event_approvedPrCheckboxActionPerformed
+
+    private void rejectedPrCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rejectedPrCheckboxActionPerformed
+        updateFilteredPRTable();
+    }//GEN-LAST:event_rejectedPrCheckboxActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -446,12 +524,15 @@ public class SmManagePrWindow extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addPrButton;
+    private javax.swing.JCheckBox approvedPrCheckbox;
     private javax.swing.JButton backButton;
     private javax.swing.JButton deletePrButton;
     private javax.swing.JButton editPButton;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JCheckBox pendingPrCheckbox;
     private javax.swing.JTable prTable;
+    private javax.swing.JCheckBox rejectedPrCheckbox;
     private javax.swing.JButton searchButton;
     private javax.swing.JTextField searchField;
     // End of variables declaration//GEN-END:variables

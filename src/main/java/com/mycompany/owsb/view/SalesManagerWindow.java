@@ -56,8 +56,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
         purchaseOrderList = PurchaseOrder.loadPurchaseOrders();
         
         // Update the JList and details area in the UI with the loaded Purchase Orders
-
-        //PurchaseOrder.updatePOListInUI(purchaseOrderList, poList, poDetails);
+        PurchaseOrder.updatePOListInUI(purchaseOrderList, poList, poDetails);
     }
     
     private void updateLowStockAlertButton() {
@@ -76,8 +75,6 @@ public class SalesManagerWindow extends javax.swing.JFrame {
         } else {
             lowStockAlertButton.setVisible(false);
         }
-
-        PurchaseOrder.updatePOListInUI(purchaseOrderList, poDetails);
     }
  
     /**
@@ -153,6 +150,11 @@ public class SalesManagerWindow extends javax.swing.JFrame {
             String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
             public int getSize() { return strings.length; }
             public String getElementAt(int i) { return strings[i]; }
+        });
+        poList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                poListValueChanged(evt);
+            }
         });
         jScrollPane2.setViewportView(poList);
 
@@ -305,9 +307,28 @@ public class SalesManagerWindow extends javax.swing.JFrame {
 
     private void lowStockAlertButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lowStockAlertButtonActionPerformed
         SmManageItemsWindow manageItemsWindow = new SmManageItemsWindow(this, salesManager);
+        manageItemsWindow.setLowStockFilterChecked(true);  // set the checkbox to checked
         manageItemsWindow.setVisible(true);
         this.setVisible(false); // Hide current window
     }//GEN-LAST:event_lowStockAlertButtonActionPerformed
+
+    private void poListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_poListValueChanged
+        // Load the list of Purchase Orders from the purchase order file
+        purchaseOrderList = PurchaseOrder.loadPurchaseOrders();
+        
+        if (!evt.getValueIsAdjusting()) {  // only act on final selection
+        String selectedPOID = poList.getSelectedValue();
+        if (selectedPOID != null) {
+            for (PurchaseOrder po : purchaseOrderList) {
+                if (po.getOrderID().equals(selectedPOID)) {
+                    String details = po.getFormattedDetails();
+                    poDetails.setText(details);
+                    break;
+                }
+            }
+        }
+    }
+    }//GEN-LAST:event_poListValueChanged
 
     /**
      * @param args the command line arguments

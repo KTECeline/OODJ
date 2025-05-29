@@ -311,16 +311,21 @@ public class PurchaseOrder {
         targetTable.setModel(tableModel);
         Item.autoResizeColumnWidths(targetTable);
     }
-
-    public static void updatePOListInUI(List<PurchaseOrder> poList, JTextArea poDetails) {
-    DefaultListModel<String> listModel = new DefaultListModel<>();
-    for (PurchaseOrder po : poList) {
- 
-        listModel.addElement(po.getOrderID());
-    }
     
-    poDetails.setText(""); // Clear details
-}
+    // Sales Manager View PO List
+    public static void updatePOListInUI(List<PurchaseOrder> poList, JList<String> list, JTextArea poDetails) {
+        poList = PurchaseOrder.loadPurchaseOrders();
+        
+        DefaultListModel<String> listModel = new DefaultListModel<>();
+        for (PurchaseOrder po : poList) {
+
+            listModel.addElement(po.getOrderID());
+        }
+        
+        list.setModel(listModel);  // set the JList model
+
+        poDetails.setText(""); // Clear details
+    }
 
     
     public static void searchAndDisplayPO(JTextField searchField, JTable targetTable, List<PurchaseOrder> poList) {
