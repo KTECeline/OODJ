@@ -116,10 +116,10 @@ public class Item {
         String itemID = parts[0];
         String itemName = parts[1];
         String supplierId = parts[2];
-        int stock = Integer.parseInt(parts[3]);
-        double cost = Double.parseDouble(parts[4]);
-        double price = Double.parseDouble(parts[5]);
-        boolean stockLevel = Boolean.parseBoolean(parts[6]);
+        int stock = Integer.parseInt(parts[2]);
+        double cost = Double.parseDouble(parts[3]);
+        double price = Double.parseDouble(parts[4]);
+        boolean stockLevel = Boolean.parseBoolean(parts[5]);
         
         return new Item(itemID, itemName, supplierId, stock, cost, price, stockLevel);  // Return a new Item object
     }
@@ -169,14 +169,13 @@ public class Item {
     
     // Method to update item table in the UI
     public static void updateItemTableInUI(List<Item> itemList, JTable targetTable) {
-        String[] columnNames = {"Item ID", "Name", "Supplier ID", "Stock", "Cost (RM)", "Price (RM)", "Stock Level"};
+        String[] columnNames = {"Item ID", "Name", "Stock", "Cost (RM)", "Price (RM)", "Stock Level"};
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
 
         for (Item item : itemList) {
             Object[] row = {
                 item.getItemID(),
                 item.getItemName(),
-                item.getSupplierId(),
                 item.getStock(),
                 item.getCost(),
                 item.getPrice(),
@@ -190,7 +189,6 @@ public class Item {
         applyRowColorBasedOnStockLevel(targetTable);
         
     }
-
 
     public static void searchAndDisplayItemInTable(JTextField searchField, JTable table, List<Item> itemList) {
         String searchID = searchField.getText().trim().toUpperCase();
@@ -255,7 +253,7 @@ public class Item {
                                                            boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
-                String stockLevel = table.getModel().getValueAt(row, 6).toString(); // Column index 6 = "Stock Level"
+                String stockLevel = table.getModel().getValueAt(row, 5).toString(); // Column index 6 = "Stock Level"
 
                 if (stockLevel.equalsIgnoreCase("Low")) {
                     c.setBackground(new Color(255, 204, 204)); // Light red
@@ -273,10 +271,6 @@ public class Item {
             }
         });
     }
-
-
-
-    
      
     public static Item findById(String itemId) {
         List<Item> allItems = loadItems();
@@ -288,5 +282,37 @@ public class Item {
         return null;
     }  
 
-}
+    public static boolean updateStock(String itemId, int qtyToAdd) {
+        String file = "data/items.txt";
+        List<String> updatedLines = new ArrayList<>();
+        boolean updated = false;
 
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts[0].equals(itemId)) {
+                    int qty = Integer.parseInt(parts[3]);
+                    parts[3] = String.valueOf(qty + qtyToAdd); // update quantity
+                    updated = true;
+                }
+                updatedLines.add(String.join(",", parts));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (String l : updatedLines) {
+                writer.write(l);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        return updated;
+    }
+}

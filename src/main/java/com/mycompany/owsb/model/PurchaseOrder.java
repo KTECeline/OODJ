@@ -73,7 +73,6 @@ public class PurchaseOrder {
         this.orderDate = orderDate;
         this.status = status;
         this.prId= prId;
-        this.supplierID= supplierID;
         this.createdBy=createdBy;
     }
     
@@ -82,7 +81,9 @@ public class PurchaseOrder {
            (status.equals("PENDING") || 
             status.equals("APPROVED") || 
             status.equals("REJECTED") || 
-            status.equals("FULFILLED"));
+            status.equals("UNFULFILLED") ||
+            status.equals("RECEIVED") ||
+            status.equals("COMPLETED"));
 }
     
     public String getOrderID() {
@@ -252,7 +253,7 @@ public class PurchaseOrder {
             .filter(po -> po.getOrderID().equals(orderId))
             .findFirst()
             .orElse(null);
-}
+    }
     
     private static int lastOrderId=0;
     public static String generateNewOrderId(){
@@ -286,12 +287,12 @@ public class PurchaseOrder {
         // Rewrite the file with updated data
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("data/purchase_order.txt"))) {
             for (PurchaseOrder po : orders) {
-                writer.write(String.format("%s,%s,%d,%s,%.2f,%s,%s,%s,%s",
+                writer.write(String.format("%s,%s,%s,%d,%.2f,%s,%s,%s,%s",
                         po.getOrderID(),
                         po.getItemID(),
-                        po.getQuantity(),
                         po.getSupplierID(),
-                        po.getUnitPrice(),
+                        po.getQuantity(),
+                        po.getTotalPrice(),
                         po.getOrderDate(),
                         po.getStatus(),
                         po.getPrId(),

@@ -15,6 +15,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>22</maven.compiler.release>
-        <exec.mainClass>com.mycompany.owsb.Main</exec.mainClass>
+        <exec.mainClass>com.mycompany.owsb.main.Main</exec.mainClass>
     </properties>
 </project>
