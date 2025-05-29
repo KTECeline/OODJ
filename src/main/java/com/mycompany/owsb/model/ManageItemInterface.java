@@ -18,5 +18,5 @@ public interface ManageItemInterface {
     
     void editItem(Item itemToEdit, List<Item> itemList, JTable itemTable);
     
-    void deleteItem(JFrame parent, List<Item> itemList, List<SupplierItem> supplierItemList, JTable itemTable);
+    public void deleteItem(JFrame parent, List<Item> itemList, List<SupplierItem> supplierItemList, List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, JTable itemTable);
 }

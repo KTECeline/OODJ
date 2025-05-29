@@ -31,6 +31,7 @@ public class PurchaseRequisitionItem {
         this.totalCost = quantity * unitCost;
     }
 
+    // Getter
     public String getPrID() {
         return prID;
     }
@@ -50,6 +51,25 @@ public class PurchaseRequisitionItem {
     public double getTotalCost() {
         return totalCost;
     }
+    
+    // Setter
+    public void setPrID(String prID) {
+        this.prID = prID;
+    }
+
+    public void setItemID(String itemID) {
+        this.itemID = itemID;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public void setUnitCost(double unitCost) {
+        this.unitCost = unitCost;
+        this.totalCost = unitCost * this.quantity; // also update totalCost when unitCost changes
+    }
+
 
     @Override
     public String toString() {

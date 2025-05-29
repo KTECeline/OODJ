@@ -1,5 +1,6 @@
 package com.mycompany.owsb.model;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -7,10 +8,13 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
@@ -27,20 +31,18 @@ import javax.swing.table.TableColumnModel;
 public class PurchaseRequisition {
     private String prID;
     private List<PurchaseRequisitionItem> items;
-    private String requiredDate;
     private String supplierID;
     private String raisedBy;
     private String status;
 
     private static final String PURCHASE_REQUISITION_FILE = "data/purchase_requisition.txt";
 
-    public PurchaseRequisition(String prID, String requiredDate, String supplierID, String raisedBy, String status) {
+    public PurchaseRequisition(String prID, String supplierID, String raisedBy, String status) {
         this.prID = prID;
-        this.requiredDate = requiredDate;
         this.supplierID = supplierID;
         this.raisedBy = raisedBy;
         this.status = status;
-        this.items = new ArrayList<>();  // <== make sure you initialize this!
+        this.items = new ArrayList<>();
     }
 
 
@@ -51,11 +53,7 @@ public class PurchaseRequisition {
     public List<PurchaseRequisitionItem> getItems() {
         return items;
     }
-
-    public String getRequiredDate() {
-        return requiredDate;
-    }
-
+    
     public String getSupplierID() {
         return supplierID;
     }
@@ -67,6 +65,10 @@ public class PurchaseRequisition {
     public String getStatus() {
         return status;
     }
+    
+    public void setSupplierID(String supplierID) {
+            this.supplierID = supplierID;
+        }
 
     public void setStatus(String status) {
         this.status = status;
@@ -82,18 +84,17 @@ public class PurchaseRequisition {
 
     @Override
     public String toString() {
-        return prID + "," + requiredDate + "," + supplierID + "," + raisedBy + "," + status;
+        return prID + "," + supplierID + "," + raisedBy + "," + status;
     }
 
     public static PurchaseRequisition fromString(String line) {
-        String[] parts = line.split(",", 5);
+        String[] parts = line.split(",", 4);
         String prId = parts[0];
-        String requiredDate = parts[1];
-        String supplierId = parts[2];
-        String raisedBy = parts[3];
-        String status = parts[4];
+        String supplierId = parts[1];
+        String raisedBy = parts[2];
+        String status = parts[3];
 
-        PurchaseRequisition pr = new PurchaseRequisition(prId, requiredDate, supplierId, raisedBy, status);
+        PurchaseRequisition pr = new PurchaseRequisition(prId, supplierId, raisedBy, status);
 
         return pr;
     }
@@ -161,22 +162,31 @@ public class PurchaseRequisition {
         return String.format("PR%04d", maxId + 1);
     }
     
-    public static void updatePRTableInUI(List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, JTable targetTable) {
-        String[] columnNames = {"PR ID", "Item ID", "Quantity", "Required Date", "Supplier ID", "Raised By", "Unit Cost (RM)", "Total Cost (RM)", "Status"};
+    public static void updatePRTableInUI(List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, List<Item> itemList, JTable targetTable) {
+        String[] columnNames = {"PR ID", "Item ID", "Supplier ID", "Quantity", "Raised By", "Unit Cost (RM)", "Total Cost (RM)", "Status"};
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
 
         for (PurchaseRequisition pr : prList) {
-            for (PurchaseRequisitionItem item : prItemList) {
-                if (item.getPrID().equals(pr.getPrID())) {
+            for (PurchaseRequisitionItem prItem : prItemList) {
+                if (prItem.getPrID().equals(pr.getPrID())) {
+
+                    // Get item name from Item class
+                    String itemName = "";
+                    for (Item itemObj : itemList) {
+                        if (itemObj.getItemID().equalsIgnoreCase(prItem.getItemID())) {
+                            itemName = itemObj.getItemName();
+                            break;
+                        }
+                    }
+
                     Object[] row = {
                         pr.getPrID(),
-                        item.getItemID(),
-                        item.getQuantity(),
-                        pr.getRequiredDate(),
+                        prItem.getItemID() + " - " + itemName,
                         pr.getSupplierID(),
+                        prItem.getQuantity(),
                         pr.getRaisedBy(),
-                        item.getUnitCost(),
-                        item.getTotalCost(),
+                        prItem.getUnitCost(),
+                        prItem.getTotalCost(),
                         pr.getStatus()
                     };
                     tableModel.addRow(row);
@@ -184,13 +194,15 @@ public class PurchaseRequisition {
             }
         }
 
+
         targetTable.setModel(tableModel);
+        applyColorBasedOnPrID(targetTable);
         autoResizeColumnWidths(targetTable);
     }
 
 
     // Search and display PR by PR ID
-    public static void searchAndDisplayPRInTable(JTextField searchField, JTable table, List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList) {
+    public static void searchAndDisplayPRInTable(JTextField searchField, JTable table, List<PurchaseRequisition> prList, List<Item> itemList, List<PurchaseRequisitionItem> prItemList) {
         String searchPRID = searchField.getText().trim().toUpperCase();
         boolean found = false;
 
@@ -208,9 +220,8 @@ public class PurchaseRequisition {
                     Object[] row = {
                         pr.getPrID(),
                         item.getItemID(),
+                        pr.getSupplierID(),                       
                         item.getQuantity(),
-                        pr.getRequiredDate(),
-                        pr.getSupplierID(),
                         pr.getRaisedBy(),
                         item.getUnitCost(),
                         item.getTotalCost(),
@@ -226,7 +237,7 @@ public class PurchaseRequisition {
         if (!found) {
             JOptionPane.showMessageDialog(null, "Purchase Requisition ID not found.", "Not Found", JOptionPane.INFORMATION_MESSAGE);
             // Reload full PR list
-            updatePRTableInUI(prList, prItemList, table);
+            updatePRTableInUI(prList, prItemList, itemList, table);
         }
         // Reset search field prompt
         searchField.setText("Enter PR ID");
@@ -245,5 +256,42 @@ public class PurchaseRequisition {
             columnModel.getColumn(column).setPreferredWidth(width);
         }
     }
+    
+    public static void applyColorBasedOnPrID(JTable prTable) {
+        Map<String, Color> prIdColorMap = new HashMap<>();
+        Color[] colors = {
+            new Color(255, 255, 224),  // light yellow
+            new Color(200, 220, 255)  // blue
+        };
+        int[] colorIndex = {0};  // use array to mutate inside inner class
+
+        prTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                                                           boolean isSelected, boolean hasFocus,
+                                                           int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+                String prId = table.getValueAt(row, 0).toString();  // PR ID is column 0
+
+                if (!prIdColorMap.containsKey(prId)) {
+                    prIdColorMap.put(prId, colors[colorIndex[0] % colors.length]);
+                    colorIndex[0]++;
+                }
+
+                if (isSelected) {
+                    c.setBackground(table.getSelectionBackground());
+                    c.setForeground(table.getSelectionForeground());
+                } else {
+                    c.setBackground(prIdColorMap.get(prId));
+                    c.setForeground(Color.BLACK);
+                }
+
+                return c;
+            }
+        });
+}
+
+
     
 }

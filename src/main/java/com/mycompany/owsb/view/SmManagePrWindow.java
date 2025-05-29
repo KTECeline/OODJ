@@ -13,6 +13,7 @@ import com.mycompany.owsb.model.SupplierItem;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JOptionPane;
 
 /**
@@ -61,7 +62,9 @@ public class SmManagePrWindow extends javax.swing.JFrame {
     private void loadPRsIntoTable() {
         prDataList = PurchaseRequisition.loadPurchaseRequisition();
         prItemDataList = PurchaseRequisitionItem.loadPurchaseRequisitionItems();
-
+        supplierItemDataList = SupplierItem.loadSupplierItems();
+        itemDataList = Item.loadItems();
+        
         // Attach items to their parent PR
         for (PurchaseRequisitionItem item : prItemDataList) {
             for (PurchaseRequisition pr : prDataList) {
@@ -73,7 +76,7 @@ public class SmManagePrWindow extends javax.swing.JFrame {
         }
 
         // Update JTable with stitched data
-        PurchaseRequisition.updatePRTableInUI(prDataList, prItemDataList, prTable);
+        PurchaseRequisition.updatePRTableInUI(prDataList, prItemDataList, itemDataList, prTable);
     }
 
 
@@ -88,27 +91,84 @@ public class SmManagePrWindow extends javax.swing.JFrame {
 
         if (inputPRID != null && !inputPRID.trim().isEmpty()) {
             inputPRID = inputPRID.trim().toUpperCase();
-            boolean found = false;
 
-            // Search for the PR based on input ID
+            // Find matching PR
+            PurchaseRequisition prToEdit = null;
             for (PurchaseRequisition pr : prDataList) {
                 if (pr.getPrID().equalsIgnoreCase(inputPRID)) {
-                    salesManager.editPurchaseRequisition(this, prDataList, prTable); 
-                    // Implement editPurchaseRequisition in SalesManager class
-
-                    PurchaseRequisition.updatePRTableInUI(prDataList, prItemDataList, prTable); // Refresh table after edit
-                    found = true;
+                    prToEdit = pr;
                     break;
                 }
             }
 
-            if (!found) {
+            if (prToEdit != null) {
+                // Collect all item IDs under this PR
+                List<String> matchingItemIDs = new ArrayList<>();
+                for (PurchaseRequisitionItem item : prItemDataList) {
+                    if (item.getPrID().equalsIgnoreCase(inputPRID)) {
+                        matchingItemIDs.add(item.getItemID());
+                    }
+                }
+
+                if (!matchingItemIDs.isEmpty()) {
+                    // Show dropdown for user to select item
+                    String selectedItemID = (String) JOptionPane.showInputDialog(
+                        null,
+                        "Select the Item ID under this PR to edit:",
+                        "Select Item ID",
+                        JOptionPane.PLAIN_MESSAGE,
+                        null,
+                        matchingItemIDs.toArray(),
+                        matchingItemIDs.get(0)
+                    );
+
+                    if (selectedItemID != null && !selectedItemID.trim().isEmpty()) {
+                        // Find matching PR item
+                        PurchaseRequisitionItem itemToEdit = null;
+                        for (PurchaseRequisitionItem item : prItemDataList) {
+                            if (item.getPrID().equalsIgnoreCase(inputPRID) &&
+                                item.getItemID().equalsIgnoreCase(selectedItemID)) {
+                                itemToEdit = item;
+                                break;
+                            }
+                        }
+
+                        if (itemToEdit != null) {
+                            // Open edit window
+                            salesManager.editPurchaseRequisition(
+                                this,
+                                prToEdit,
+                                itemToEdit,
+                                prDataList,
+                                prItemDataList,
+                                supplierItemDataList,
+                                itemDataList,
+                                supplierDataList,
+                                prTable
+                            );
+
+                            // Refresh table
+                            PurchaseRequisition.updatePRTableInUI(prDataList, prItemDataList, itemDataList, prTable);
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Item ID not found under this PR.");
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(null, "No Item ID selected.");
+                    }
+
+                } else {
+                    JOptionPane.showMessageDialog(null, "No items found under this PR.");
+                }
+
+            } else {
                 JOptionPane.showMessageDialog(null, "Purchase Requisition ID not found.");
             }
+
         } else {
             JOptionPane.showMessageDialog(null, "Please enter a valid Purchase Requisition ID.");
         }
     }
+
 
 
    
@@ -130,6 +190,7 @@ public class SmManagePrWindow extends javax.swing.JFrame {
         addPRButton = new javax.swing.JButton();
         searchField = new javax.swing.JTextField();
         searchButton = new javax.swing.JButton();
+        editItemButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Purchase Requisition");
@@ -139,20 +200,20 @@ public class SmManagePrWindow extends javax.swing.JFrame {
         prTable.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
         prTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null}
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null}
             },
             new String [] {
-                "PR ID", "Item ID", "Quantity", "Required Date", "Supplier ID", "Raised By", "Unit Cost", "Total Cost"
+                "PR ID", "Item ID", "Quantity", "Supplier ID", "Raised By", "Unit Cost", "Total Cost"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, true, true, true, true
+                false, false, false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -209,6 +270,15 @@ public class SmManagePrWindow extends javax.swing.JFrame {
             }
         });
 
+        editItemButton.setBackground(new java.awt.Color(255, 204, 0));
+        editItemButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        editItemButton.setText("Edit");
+        editItemButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                editItemButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
@@ -216,17 +286,17 @@ public class SmManagePrWindow extends javax.swing.JFrame {
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addGap(35, 35, 35)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 741, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addComponent(addPRButton, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(98, 98, 98))
-                    .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 741, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGroup(jPanel3Layout.createSequentialGroup()
-                            .addComponent(backButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(searchField, javax.swing.GroupLayout.PREFERRED_SIZE, 594, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(searchButton, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(editItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(backButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(searchField, javax.swing.GroupLayout.PREFERRED_SIZE, 594, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(searchButton, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(44, Short.MAX_VALUE))
         );
         jPanel3Layout.setVerticalGroup(
@@ -238,10 +308,12 @@ public class SmManagePrWindow extends javax.swing.JFrame {
                     .addComponent(backButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(searchButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(18, 18, 18)
-                .addComponent(addPRButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(addPRButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(editItemButton))
+                .addGap(18, 18, 18)
                 .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 288, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(33, 33, 33))
+                .addGap(43, 43, 43))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -261,7 +333,7 @@ public class SmManagePrWindow extends javax.swing.JFrame {
 
     private void backButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backButtonActionPerformed
         // Update JTable to the latest
-        PurchaseRequisition.updatePRTableInUI(prDataList, prItemDataList, prTable);
+        PurchaseRequisition.updatePRTableInUI(prDataList, prItemDataList, itemDataList, prTable);
     }//GEN-LAST:event_backButtonActionPerformed
 
     private void searchFieldMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_searchFieldMouseClicked
@@ -272,7 +344,7 @@ public class SmManagePrWindow extends javax.swing.JFrame {
         // Reload data from file
         loadPRsIntoTable();
         
-        PurchaseRequisition.searchAndDisplayPRInTable(searchField, prTable, prDataList, prItemDataList);
+        PurchaseRequisition.searchAndDisplayPRInTable(searchField, prTable, prDataList, itemDataList, prItemDataList);
     }//GEN-LAST:event_searchButtonActionPerformed
 
     private void addPRButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addPRButtonActionPerformed
@@ -282,6 +354,69 @@ public class SmManagePrWindow extends javax.swing.JFrame {
         salesManager.addPurchaseRequisition(this, itemDataList, prDataList, prItemDataList, supplierDataList, supplierItemDataList, prTable);
     }//GEN-LAST:event_addPRButtonActionPerformed
 
+    private void editItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editItemButtonActionPerformed
+        itemDataList = Item.loadItems();
+        supplierDataList = Supplier.loadSuppliers();
+        
+        int selectedRow = prTable.getSelectedRow();
+
+        if (selectedRow != -1) {
+            String selectedPrID = prTable.getValueAt(selectedRow, 0).toString();
+            String selectedItemIDWithName = prTable.getValueAt(selectedRow, 1).toString();  // column 1: "IT0001 - Laptop"
+            String selectedItemID = selectedItemIDWithName.split(" - ")[0].trim();         // get only "IT0001"
+
+            int confirm = JOptionPane.showConfirmDialog(
+                null,
+                "Are you sure you want to edit PR " + selectedPrID + " for item " + selectedItemIDWithName + "?",
+                "Confirm Edit",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+            );
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                PurchaseRequisition prToEdit = null;
+                PurchaseRequisitionItem itemToEdit = null;
+
+                // Find the PR
+                for (PurchaseRequisition pr : prDataList) {
+                    if (pr.getPrID().equalsIgnoreCase(selectedPrID)) {
+                        prToEdit = pr;
+                        break;
+                    }
+                }
+
+                // Find the PR item (needs both PR ID + Item ID)
+                for (PurchaseRequisitionItem prItem : prItemDataList) {
+                    if (prItem.getPrID().equalsIgnoreCase(selectedPrID) &&
+                        prItem.getItemID().equalsIgnoreCase(selectedItemID)) {
+                        itemToEdit = prItem;
+                        break;
+                    }
+                }
+
+                if (prToEdit != null && itemToEdit != null) {
+                    salesManager.editPurchaseRequisition(
+                        this,  // parent
+                        prToEdit,
+                        itemToEdit,
+                        prDataList,
+                        prItemDataList,
+                        supplierItemDataList,
+                        itemDataList,
+                        supplierDataList,
+                        prTable
+                    );
+                    PurchaseRequisition.updatePRTableInUI(prDataList, prItemDataList, itemDataList, prTable);
+                } else {
+                    JOptionPane.showMessageDialog(null, "Could not find matching PR or item.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+
+        } else {
+            promptForPRID();
+        }
+    }//GEN-LAST:event_editItemButtonActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -290,6 +425,7 @@ public class SmManagePrWindow extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addPRButton;
     private javax.swing.JButton backButton;
+    private javax.swing.JButton editItemButton;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTable prTable;

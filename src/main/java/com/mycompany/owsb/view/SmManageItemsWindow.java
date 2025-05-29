@@ -5,6 +5,8 @@
 package com.mycompany.owsb.view;
 
 import com.mycompany.owsb.model.Item;
+import com.mycompany.owsb.model.PurchaseRequisition;
+import com.mycompany.owsb.model.PurchaseRequisitionItem;
 import com.mycompany.owsb.model.SalesManager;
 import com.mycompany.owsb.model.Supplier;
 import com.mycompany.owsb.model.SupplierItem;
@@ -24,6 +26,8 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
     
     private java.util.List<Item> itemDataList = new ArrayList<>();
     private java.util.List<SupplierItem> supplierItemDataList = new ArrayList<>();
+    private java.util.List<PurchaseRequisition> prDataList = new ArrayList<>();
+    private java.util.List<PurchaseRequisitionItem> prItemDataList = new ArrayList<>();
     
     // String representing the file path for purchase order data
     private static final String ITEM_FILE = "data/items.txt";
@@ -339,8 +343,10 @@ public class SmManageItemsWindow extends javax.swing.JFrame {
 
     private void deleteItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteItemButtonActionPerformed
         supplierItemDataList = SupplierItem.loadSupplierItems();
+        prDataList = PurchaseRequisition.loadPurchaseRequisition();
+        prItemDataList = PurchaseRequisitionItem.loadPurchaseRequisitionItems();
         
-        salesManager.deleteItem(this, itemDataList, supplierItemDataList, itemTable);
+        salesManager.deleteItem(this, itemDataList, supplierItemDataList, prDataList, prItemDataList, itemTable);
     }//GEN-LAST:event_deleteItemButtonActionPerformed
 
     private void backButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backButtonActionPerformed

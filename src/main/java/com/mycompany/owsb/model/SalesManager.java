@@ -411,7 +411,8 @@ public class SalesManager extends Manager implements ManageItemInterface{
     
     // Method to DELETE item
     @Override
-    public void deleteItem(JFrame parent, List<Item> itemList, List<SupplierItem> supplierItemList, JTable itemTable) {
+    public void deleteItem(JFrame parent, List<Item> itemList, List<SupplierItem> supplierItemList, List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, JTable itemTable) {
+
         if (!isAllowedToPerform("delete item")) {
             JOptionPane.showMessageDialog(parent, "Not authorized to delete items.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
             return;
@@ -426,30 +427,41 @@ public class SalesManager extends Manager implements ManageItemInterface{
 
         String itemId = itemTable.getValueAt(selectedRow, 0).toString();
 
-        // Check how many supplier links this item has
-        int linkedCount = 0;
+        // Count linked supplier entries
+        int linkedSupplierCount = 0;
         for (SupplierItem supplierItem : supplierItemList) {
             if (supplierItem.getItemID().equalsIgnoreCase(itemId)) {
-                linkedCount++;
+                linkedSupplierCount++;
             }
         }
 
-        // Confirm deletion with warning about linked suppliers
-        String message = "Are you sure you want to delete item " + itemId + "?";
-        if (linkedCount > 0) {
-            message += "\nThis will also remove " + linkedCount + " linked supplier(s).";
+        // Count linked PR entries
+        int linkedPRCount = 0;
+        for (PurchaseRequisitionItem prItem : prItemList) {
+            if (prItem.getItemID().equalsIgnoreCase(itemId)) {
+                linkedPRCount++;
+            }
+        }
+
+        // Confirm deletion with full warning
+        StringBuilder message = new StringBuilder("Are you sure you want to delete item " + itemId + "?");
+        if (linkedSupplierCount > 0) {
+            message.append("\nThis will also remove ").append(linkedSupplierCount).append(" linked supplier(s).");
+        }
+        if (linkedPRCount > 0) {
+            message.append("\nThis will also remove ").append(linkedPRCount).append(" linked PR record(s).");
         }
 
         int response = JOptionPane.showConfirmDialog(
             parent,
-            message,
+            message.toString(),
             "Confirm Deletion",
             JOptionPane.YES_NO_OPTION,
             JOptionPane.QUESTION_MESSAGE
         );
 
         if (response == JOptionPane.YES_OPTION) {
-            // Remove item from itemList
+            // Remove from itemList
             Item itemToDelete = null;
             for (Item item : itemList) {
                 if (item.getItemID().equalsIgnoreCase(itemId)) {
@@ -462,28 +474,33 @@ public class SalesManager extends Manager implements ManageItemInterface{
                 itemList.remove(itemToDelete);
 
                 // Remove related SupplierItem links
-                boolean supplierItemChanged = false;
-                for (int i = 0; i < supplierItemList.size(); ) {
-                    SupplierItem supplierItem = supplierItemList.get(i);
-                    if (supplierItem.getItemID().equalsIgnoreCase(itemId)) {
-                        supplierItemList.remove(i);
-                        supplierItemChanged = true;
-                    } else {
-                        i++;
+                supplierItemList.removeIf(si -> si.getItemID().equalsIgnoreCase(itemId));
+
+                // Remove related PurchaseRequisitionItem links
+                List<String> affectedPRIds = new ArrayList<>();
+                prItemList.removeIf(prItem -> {
+                    boolean match = prItem.getItemID().equalsIgnoreCase(itemId);
+                    if (match) {
+                        affectedPRIds.add(prItem.getPrID());
                     }
-                }
+                    return match;
+                });
+
+                // Optionally, remove PRs with no items left
+                prList.removeIf(pr -> affectedPRIds.contains(pr.getPrID()) &&
+                    prItemList.stream().noneMatch(pi -> pi.getPrID().equalsIgnoreCase(pr.getPrID())));
 
                 // Save files
                 FileUtil.saveListToFile(ITEM_FILE, itemList);
-                if (supplierItemChanged) {
-                    FileUtil.saveListToFile(SUPPLIER_ITEM_FILE, supplierItemList);
-                }
+                FileUtil.saveListToFile(SUPPLIER_ITEM_FILE, supplierItemList);
+                FileUtil.saveListToFile(PURCHASE_REQUISITION_ITEM_FILE, prItemList);
+                FileUtil.saveListToFile(PURCHASE_REQUISITION_FILE, prList);
 
                 // Update UI tables
                 Item.updateItemTableInUI(itemList, itemTable);
 
-                JOptionPane.showMessageDialog(parent, "Item and related supplier links deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
-                System.out.println("Deleted item " + itemId + " and removed " + linkedCount + " supplier link(s).");
+                JOptionPane.showMessageDialog(parent, "Item and related supplier/PR links deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                System.out.println("Deleted item " + itemId + ", removed " + linkedSupplierCount + " supplier link(s), and " + linkedPRCount + " PR record(s).");
 
             } else {
                 JOptionPane.showMessageDialog(parent, "Item not found.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -492,6 +509,7 @@ public class SalesManager extends Manager implements ManageItemInterface{
         } else {
             JOptionPane.showMessageDialog(parent, "Item deletion canceled.", "Canceled", JOptionPane.INFORMATION_MESSAGE);
         }
+
     }
 
     
@@ -629,7 +647,7 @@ public class SalesManager extends Manager implements ManageItemInterface{
         dialog.setVisible(true);
     }
 
-    
+    // Method to EDIT supplier
     public void editSupplier(Supplier supplierToEdit, List<Supplier> supplierList, List<SupplierItem> supplierItemList, List<Item> itemList, JTable supplierTable) {
         if (!isAllowedToPerform("edit supplier")) {
             JOptionPane.showMessageDialog(null, "Not authorized to edit suppliers.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
@@ -850,6 +868,8 @@ public class SalesManager extends Manager implements ManageItemInterface{
 
 
     //PURCHASE REQUISITION SECTION
+    
+    // Method to add new purchase requisition
     public void addPurchaseRequisition(JFrame parent, List<Item> itemList, List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, List<Supplier> supplierList, List<SupplierItem> supplierItemList, JTable prTable) {
         if (!isAllowedToPerform("add pr")) {
             JOptionPane.showMessageDialog(parent, "Not authorized to add purchase requisition.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
@@ -860,7 +880,6 @@ public class SalesManager extends Manager implements ManageItemInterface{
         
         JTextField itemIDField = new JTextField(20);
         JTextField quantityField = new JTextField(20);
-        JTextField requiredDateField = new JTextField(20); // Expected format: YYYY-MM-DD
         
         JPanel supplierSelectorPanel = new JPanel(new CardLayout());
         JButton selectSupplierBtn = new JButton("Select Supplier");
@@ -868,12 +887,12 @@ public class SalesManager extends Manager implements ManageItemInterface{
         
         supplierSelectorPanel.add(selectSupplierBtn, "BUTTON");
         supplierSelectorPanel.add(supplierComboBox, "COMBO");
+        supplierSelectorPanel.setBackground(Color.white);
 
         // Error labels
         JLabel itemIDError = new JLabel();
         JLabel supplierError = new JLabel();
         JLabel quantityError = new JLabel();
-        JLabel dateError = new JLabel();
         
         Color errorColor = Color.RED;
 
@@ -890,16 +909,22 @@ public class SalesManager extends Manager implements ManageItemInterface{
         panel.add(new JLabel("Quantity:"));
         panel.add(quantityField); panel.add(new JLabel()); panel.add(quantityError);
 
-        panel.add(new JLabel("Required Date (YYYY-MM-DD):"));
-        panel.add(requiredDateField); panel.add(new JLabel()); panel.add(dateError);
-
         JDialog dialog = new JDialog(parent, "Add Purchase Requisition", true);
         dialog.getContentPane().add(panel, BorderLayout.CENTER);
 
         JButton addBtn = new JButton("Add");
         JButton cancelBtn = new JButton("Cancel");
+        
+        addBtn.setBackground(Color.RED);
+        addBtn.setForeground(Color.WHITE);
+
+        cancelBtn.setBackground(Color.BLACK);
+        cancelBtn.setForeground(Color.WHITE);
+        
         JPanel btnPanel = new JPanel();
-        btnPanel.add(addBtn); btnPanel.add(cancelBtn);
+        btnPanel.add(addBtn); 
+        btnPanel.add(cancelBtn);
+        btnPanel.setBackground(Color.white);
         dialog.getContentPane().add(btnPanel, BorderLayout.SOUTH);
 
         dialog.pack();
@@ -963,12 +988,9 @@ public class SalesManager extends Manager implements ManageItemInterface{
             // Reset errors
             itemIDError.setText(""); 
             quantityError.setText("");
-            dateError.setText(""); 
 
             String itemID = itemIDField.getText().trim().toUpperCase();
             String quantityStr = quantityField.getText().trim();
-            String requiredDate = requiredDateField.getText().trim();
-            
             
             boolean valid = true;
             int quantity = 0;
@@ -1023,26 +1045,6 @@ public class SalesManager extends Manager implements ManageItemInterface{
                 valid = false;
             }
 
-            
-            // Validate requiredDate 
-            LocalDate today = LocalDate.now();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-            try {
-                LocalDate parsedDate = LocalDate.parse(requiredDate, formatter);
-                if (!parsedDate.isAfter(today)) {
-                    dateError.setForeground(errorColor);
-                    dateError.setText("*Date must be after today.");
-                    valid = false;
-                } else {
-                    dateError.setText("");  // Clear error if valid
-                }
-            } catch (DateTimeParseException ex) {
-                dateError.setForeground(errorColor);
-                dateError.setText("*Date must be in YYYY-MM-DD format.");
-                valid = false;
-            }
-            
             // Check for duplicate PR entry
             boolean alreadyRequested = false;
             for (PurchaseRequisition pr : prList) {
@@ -1091,7 +1093,6 @@ public class SalesManager extends Manager implements ManageItemInterface{
                 prId = PurchaseRequisition.generateNextPRId();
                 PurchaseRequisition newPr = new PurchaseRequisition(
                     prId,
-                    requiredDate,
                     selectedSupplierId,
                     raisedBy,
                     "PENDING"
@@ -1102,15 +1103,14 @@ public class SalesManager extends Manager implements ManageItemInterface{
             // If all fields are valid, add the pr
             if (valid) {
                 PurchaseRequisition newPr = new PurchaseRequisition(
-                    prId,  // prId
-                    requiredDate,
+                    prId,
                     selectedSupplierId,
                     raisedBy,
                     "PENDING"
                 );
                 
                 PurchaseRequisitionItem newItem = new PurchaseRequisitionItem(
-                    prId,   // prId to link item to this PR
+                    prId,
                     itemID,
                     quantity,
                     unitCost
@@ -1121,7 +1121,7 @@ public class SalesManager extends Manager implements ManageItemInterface{
 
                 FileUtil.saveListToFile(PURCHASE_REQUISITION_FILE, prList);
                 FileUtil.saveListToFile(PURCHASE_REQUISITION_ITEM_FILE, prItemList);
-                PurchaseRequisition.updatePRTableInUI(prList, prItemList, prTable);
+                PurchaseRequisition.updatePRTableInUI(prList, prItemList, itemList, prTable);
                 JOptionPane.showMessageDialog(dialog, "Purchase requisition added successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
                 dialog.dispose();
             }
@@ -1131,7 +1131,188 @@ public class SalesManager extends Manager implements ManageItemInterface{
         dialog.setVisible(true);
     }
     
-    public void editPurchaseRequisition(JFrame parent, List<PurchaseRequisition> prList, JTable prTable) {}
+    
+    public void editPurchaseRequisition(JFrame parent, PurchaseRequisition prToEdit, PurchaseRequisitionItem itemToEdit, List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, List<SupplierItem> supplierItemList, List<Item> itemList, List<Supplier> supplierList, JTable prTable) {
+        if (!isAllowedToPerform("edit supplier")) {
+            JOptionPane.showMessageDialog(null, "Not authorized to edit suppliers.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        final String prID = prToEdit.getPrID();
+        final String itemID = itemToEdit.getItemID();
+        
+        // get the item name from itemToEdit or item list:
+        String itemName = ""; 
+        for (Item item : itemList) {
+            if (item.getItemID().equalsIgnoreCase(itemID)) {
+                itemName = item.getItemName();
+                break;
+            }
+        }
+        
+
+        JLabel supplierError = new JLabel();
+        Color errorColor = Color.RED;
+
+        JComboBox<String> supplierComboBox = new JComboBox<>();
+        JPanel comboPanel = new JPanel();
+        comboPanel.add(supplierComboBox);
+        
+        for (SupplierItem supplierItem : supplierItemList) {
+            if (supplierItem.getItemID().equalsIgnoreCase(itemID)) {
+                // Find supplier name from supplier list
+                String supplierName = "";
+                for (Supplier supplier : supplierList) {
+                    if (supplier.getSupplierID().equalsIgnoreCase(supplierItem.getSupplierID())) {
+                        supplierName = supplier.getSupplierName();
+                        break;
+                    }
+                }
+                supplierComboBox.addItem(supplierItem.getSupplierID() + " - " + supplierName);
+            }
+        }
+
+        JPanel panel = new JPanel(new GridLayout(0, 2, 0, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        panel.setBackground(Color.white);
+        panel.setPreferredSize(new Dimension(500, 200));
+
+        panel.add(new JLabel("PR ID:"));
+        panel.add(new JLabel(prID));
+        panel.add(new JLabel("Item ID:"));
+        panel.add(new JLabel(itemID + " - " + itemName));
+        panel.add(new JLabel("Supplier:"));
+        panel.add(supplierComboBox); 
+        panel.add(supplierError);
+
+        JDialog dialog = new JDialog(parent, "Edit Purchase Requisition", true);
+        dialog.getContentPane().add(panel, BorderLayout.CENTER);
+
+        JButton saveBtn = new JButton("Save");
+        JButton cancelBtn = new JButton("Cancel");
+        JPanel btnPanel = new JPanel();
+        btnPanel.add(saveBtn);
+        btnPanel.add(cancelBtn);
+        
+        saveBtn.setBackground(Color.RED);
+        saveBtn.setForeground(Color.WHITE);
+
+        cancelBtn.setBackground(Color.BLACK);
+        cancelBtn.setForeground(Color.WHITE);
+        
+        btnPanel.setBackground(Color.white);
+        dialog.getContentPane().add(btnPanel, BorderLayout.SOUTH);
+
+        dialog.pack();
+        dialog.setLocationRelativeTo(parent);
+
+        // Select Supplier button action
+        if (supplierComboBox.getItemCount() > 0) {
+            // Pre-select the current supplier
+            for (int i = 0; i < supplierComboBox.getItemCount(); i++) {
+                String comboEntry = supplierComboBox.getItemAt(i);
+                if (comboEntry.startsWith(prToEdit.getSupplierID() + " -")) {
+                    supplierComboBox.setSelectedIndex(i);
+                    break;
+                }
+            }
+            dialog.pack();
+        } else {
+            supplierError.setForeground(errorColor);
+            supplierError.setText("*No suppliers found for this Item ID.");
+        }
+
+
+        // Save button action
+        saveBtn.addActionListener(e -> {
+            String selectedSupplier = (String) supplierComboBox.getSelectedItem();
+            String selectedSupplierID = selectedSupplier.split(" - ")[0];
+            boolean valid = true;
+
+            if (selectedSupplierID == null || selectedSupplierID.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Please select a supplier.", "Error", JOptionPane.ERROR_MESSAGE);
+                valid = false;
+            } else {
+                boolean supplierItemMatch = false;
+                for (SupplierItem si : supplierItemList) {
+                    if (si.getSupplierID().equalsIgnoreCase(selectedSupplierID) &&
+                        si.getItemID().equalsIgnoreCase(itemID)) {
+                        supplierItemMatch = true;
+                        break;
+                    }
+                }
+                if (!supplierItemMatch) {
+                    JOptionPane.showMessageDialog(dialog, "Selected supplier does not supply this item.", "Error", JOptionPane.ERROR_MESSAGE);
+                    valid = false;
+                }
+            }
+
+
+            if (valid) {
+                // Step 1: Look for existing PR for this supplier
+                String targetPrID = null;
+                for (PurchaseRequisition pr : prList) {
+                    if (pr.getSupplierID().equalsIgnoreCase(selectedSupplierID) &&
+                        pr.getStatus().equalsIgnoreCase("PENDING")) {
+                        targetPrID = pr.getPrID();
+                        break;
+                    }
+                }
+
+                // Step 2: If no existing, create a new PR
+                if (targetPrID == null) {
+                    targetPrID = PurchaseRequisition.generateNextPRId();
+                    PurchaseRequisition newPr = new PurchaseRequisition(
+                        targetPrID,
+                        selectedSupplierID,
+                        prToEdit.getRaisedBy(),
+                        "PENDING"
+                    );
+                    prList.add(newPr);
+                }
+
+                // Step 3: Update the item to point to the right PR ID
+                for (PurchaseRequisitionItem item : prItemList) {
+                    if (item.getPrID().equalsIgnoreCase(prToEdit.getPrID()) &&
+                        item.getItemID().equalsIgnoreCase(itemID)) {
+
+                        // Check if (targetPrID + itemID) already exists
+                        boolean duplicateExists = false;
+                        for (PurchaseRequisitionItem otherItem : prItemList) {
+                            if (!otherItem.equals(itemToEdit) &&
+                                otherItem.getPrID().equalsIgnoreCase(targetPrID) &&
+                                otherItem.getItemID().equalsIgnoreCase(itemID)) {
+                                duplicateExists = true;
+                                break;
+                            }
+                        }
+
+                        if (duplicateExists) {
+                            JOptionPane.showMessageDialog(dialog,
+                                "A purchase requisition with this PR ID and Item ID already exists.",
+                                "Duplicate Entry",
+                                JOptionPane.ERROR_MESSAGE);
+                            return; // stop further execution
+                        }
+
+                        item.setPrID(targetPrID);
+                    }
+                }
+
+                FileUtil.saveListToFile(PURCHASE_REQUISITION_FILE, prList);
+                FileUtil.saveListToFile(PURCHASE_REQUISITION_ITEM_FILE, prItemList);
+
+                PurchaseRequisition.updatePRTableInUI(prList, prItemList, itemList, prTable);
+                JOptionPane.showMessageDialog(dialog, "Purchase requisition updated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                dialog.dispose();
+            }
+
+        });
+        cancelBtn.addActionListener(e -> dialog.dispose());
+        dialog.setVisible(true);
+    }
+
+
 
     
 }
