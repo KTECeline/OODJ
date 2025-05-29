@@ -7,8 +7,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
@@ -309,6 +312,17 @@ public class PurchaseOrder {
         Item.autoResizeColumnWidths(targetTable);
     }
 
+    public static void updatePOListInUI(List<PurchaseOrder> poList, JTextArea poDetails) {
+    DefaultListModel<String> listModel = new DefaultListModel<>();
+    for (PurchaseOrder po : poList) {
+ 
+        listModel.addElement(po.getOrderID());
+    }
+    
+    poDetails.setText(""); // Clear details
+}
+
+    
     public static void searchAndDisplayPO(JTextField searchField, JTable targetTable, List<PurchaseOrder> poList) {
         String searchID = searchField.getText().trim().toUpperCase();
         boolean found = false;
@@ -352,4 +366,36 @@ public class PurchaseOrder {
         }
         searchField.setText("Enter PO ID");
     }
+    
+    
+    
+    public static void searchAndDisplayPOInList(
+    JTextField searchField, 
+    
+    JTextArea poDetails, 
+    List<PurchaseOrder> poList) {
+
+    
+        String searchID = searchField.getText().trim().toUpperCase();
+        boolean found = false;
+
+        if (poList.isEmpty()) {
+            poDetails.setText("No Purchase Orders loaded.");
+            return;
+        }
+
+        for (PurchaseOrder po : poList) {
+            if (po.getOrderID().equalsIgnoreCase(searchID)) {
+                 poDetails.setText(po.getFormattedDetails());
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+             poDetails.setText("Purchase Order ID not found.");
+        }
+    }
+
+    
 }

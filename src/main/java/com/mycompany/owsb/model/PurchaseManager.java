@@ -3,6 +3,7 @@ package com.mycompany.owsb.model;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -11,15 +12,15 @@ import javax.swing.JTextField;
  * Represents a Purchase Manager user with functionalities to view items, suppliers,
  * purchase requisitions, generate purchase orders, and manage (edit/delete) purchase orders.
  */
-public class PurchaseManager extends User {
+public class PurchaseManager extends Manager implements ManageItemInterface {
 
     private static final String PURCHASE_ORDER_FILE = "data/purchase_order.txt";
     private static final String PURCHASE_REQUISITION_FILE = "data/purchase_requisition.txt";
     private static final String ITEMS_FILE = "data/items.txt";
     private static final String SUPPLIERS_FILE = "data/suppliers.txt";
 
-    public PurchaseManager(String userId, String username, String password, String role) {
-        super(userId, username, password, role);
+    public PurchaseManager(User loggedInUser) {
+        super(loggedInUser);
     }
 
     /**
@@ -270,4 +271,25 @@ public class PurchaseManager extends User {
         PurchaseOrder po = PurchaseOrder.findById(poId);
         return po != null && po.getStatus().equals("PENDING");
     }
+
+    @Override
+    public boolean isAllowedToPerform(String action) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void addItem(JFrame parent, List<Item> itemList, JTable itemTable) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void editItem(Item itemToEdit, List<Item> itemList, JTable itemTable) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void deleteItem(JFrame parent, List<Item> itemList, List<SupplierItem> supplierItemList, List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, JTable itemTable) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
 }
+
