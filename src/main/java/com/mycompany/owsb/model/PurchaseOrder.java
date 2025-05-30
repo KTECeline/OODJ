@@ -34,6 +34,7 @@ public class PurchaseOrder {
         private String itemID;
         private int quantity;
         private double totalPrice;
+        private String prId; 
 
         public PurchaseOrderItem(String itemID, int quantity, double totalPrice) {
             if (itemID == null || itemID.isEmpty()) {
@@ -75,6 +76,11 @@ public class PurchaseOrder {
             }
             this.totalPrice = totalPrice;
         }
+
+        public void setPrId(String prId) {
+        this.prId = prId;
+    }
+   
     }
 
     // Constructor
@@ -139,6 +145,9 @@ public class PurchaseOrder {
     }
 
     // Setters
+    
+    
+    
     public void setStatus(String status) {
         if (!isValidStatus(status)) {
             throw new IllegalArgumentException("Invalid status value");
@@ -179,21 +188,27 @@ public class PurchaseOrder {
     }
 
     public static PurchaseOrder fromString(String orderString) {
-        String[] orderData = orderString.split(",", 9);
-        String orderID = orderData[0];
-        String itemID = orderData[1];
-        String supplierID = orderData[2];
-        int quantity = Integer.parseInt(orderData[3]);
-        double totalPrice = Double.parseDouble(orderData[4]);
-        String orderDate = orderData[5];
-        String status = orderData[6];
-        String prId = orderData[7];
-        String createdBy = orderData[8];
+    String[] orderData = orderString.split(",", 9);
 
-        PurchaseOrder po = new PurchaseOrder(orderID, supplierID, orderDate, status, prId, createdBy);
-        po.addItem(new PurchaseOrderItem(itemID, quantity, totalPrice));
-        return po;
+    if (orderData.length < 9) {
+        throw new IllegalArgumentException("Malformed line in purchase_order.txt: " + orderString);
     }
+
+    String orderID = orderData[0];
+    String itemID = orderData[1];
+    String supplierID = orderData[2];
+    int quantity = Integer.parseInt(orderData[3]);
+    double totalPrice = Double.parseDouble(orderData[4]);
+    String orderDate = orderData[5];
+    String status = orderData[6];
+    String prId = orderData[7];
+    String createdBy = orderData[8];
+
+    PurchaseOrder po = new PurchaseOrder(orderID, supplierID, orderDate, status, prId, createdBy);
+    po.addItem(new PurchaseOrderItem(itemID, quantity, totalPrice));
+    return po;
+}
+
 
     public String getFormattedDetails() {
         StringBuilder sb = new StringBuilder();

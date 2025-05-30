@@ -38,15 +38,15 @@
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
                       <EmptySpace min="-2" pref="42" max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" attributes="0">
                               <Component id="jTextField1" min="-2" pref="397" max="-2" attributes="0"/>
                               <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                              <Component id="Filter" min="-2" max="-2" attributes="0"/>
+                              <Component id="Filter" min="-2" pref="76" max="-2" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="1" attributes="0">
                               <Component id="jScrollPane7" min="-2" pref="584" max="-2" attributes="0"/>
-                              <EmptySpace max="32767" attributes="0"/>
+                              <EmptySpace min="-2" max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="0" attributes="0">
                                   <Component id="jToggleButton1" min="-2" max="-2" attributes="0"/>
                                   <Component id="jButton7" min="-2" max="-2" attributes="0"/>
@@ -57,38 +57,38 @@
                                   <Group type="102" alignment="0" attributes="0">
                                       <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
                                       <EmptySpace max="-2" attributes="0"/>
-                                      <Component id="totalItem" min="-2" pref="37" max="-2" attributes="0"/>
+                                      <Component id="lblTotalItems" min="-2" pref="37" max="-2" attributes="0"/>
                                       <EmptySpace min="-2" pref="29" max="-2" attributes="0"/>
                                       <Component id="jLabel4" min="-2" max="-2" attributes="0"/>
                                   </Group>
                                   <Group type="102" alignment="0" attributes="0">
                                       <Component id="jButton8" min="-2" max="-2" attributes="0"/>
                                       <EmptySpace min="-2" pref="36" max="-2" attributes="0"/>
-                                      <Component id="lblTotalItems" min="-2" max="-2" attributes="0"/>
+                                      <Component id="Itembtn" min="-2" max="-2" attributes="0"/>
                                   </Group>
                               </Group>
                               <EmptySpace max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="0" attributes="0">
                                   <Group type="102" attributes="0">
-                                      <Component id="lblTotalSuppliers" min="-2" max="-2" attributes="0"/>
+                                      <Component id="Supplierbtn" min="-2" max="-2" attributes="0"/>
                                       <EmptySpace min="-2" pref="39" max="-2" attributes="0"/>
-                                      <Component id="lblPendingPRs" min="-2" max="-2" attributes="0"/>
+                                      <Component id="PRbtn" min="-2" max="-2" attributes="0"/>
                                       <EmptySpace min="-2" pref="36" max="-2" attributes="0"/>
-                                      <Component id="lblPendingPOs" min="-2" max="-2" attributes="0"/>
+                                      <Component id="pendingbtn" min="-2" max="-2" attributes="0"/>
                                   </Group>
                                   <Group type="102" attributes="0">
-                                      <Component id="jLabel5" min="-2" pref="37" max="-2" attributes="0"/>
+                                      <Component id="lblTotalSuppliers" min="-2" pref="37" max="-2" attributes="0"/>
                                       <EmptySpace min="-2" pref="27" max="-2" attributes="0"/>
                                       <Component id="jLabel7" min="-2" pref="81" max="-2" attributes="0"/>
                                       <EmptySpace max="-2" attributes="0"/>
-                                      <Component id="jLabel8" min="-2" pref="37" max="-2" attributes="0"/>
+                                      <Component id="lblPendingPRs" min="-2" pref="37" max="-2" attributes="0"/>
                                       <EmptySpace min="-2" pref="22" max="-2" attributes="0"/>
                                       <Group type="103" groupAlignment="1" attributes="0">
                                           <Component id="jButton6" min="-2" max="-2" attributes="0"/>
                                           <Group type="102" attributes="0">
                                               <Component id="jLabel9" min="-2" pref="86" max="-2" attributes="0"/>
                                               <EmptySpace max="-2" attributes="0"/>
-                                              <Component id="jLabel10" min="-2" pref="43" max="-2" attributes="0"/>
+                                              <Component id="lblPendingPOs" min="-2" pref="43" max="-2" attributes="0"/>
                                           </Group>
                                       </Group>
                                   </Group>
@@ -122,22 +122,22 @@
               <EmptySpace min="-2" pref="14" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="jButton8" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="lblTotalItems" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="lblTotalSuppliers" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="lblPendingPRs" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="lblPendingPOs" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="Itembtn" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="Supplierbtn" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="PRbtn" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="pendingbtn" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace type="separate" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="jLabel4" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="jLabel5" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="totalItem" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="lblTotalSuppliers" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="lblTotalItems" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="jLabel7" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="jLabel8" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="lblPendingPRs" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="jLabel9" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="jLabel10" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="lblPendingPOs" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace min="-2" pref="39" max="-2" attributes="0"/>
@@ -195,12 +195,12 @@
         <Property name="text" type="java.lang.String" value="Total Suppliers: "/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JLabel" name="jLabel5">
+    <Component class="javax.swing.JLabel" name="lblTotalSuppliers">
       <Properties>
         <Property name="text" type="java.lang.String" value="jLabel5"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JLabel" name="totalItem">
+    <Component class="javax.swing.JLabel" name="lblTotalItems">
       <Properties>
         <Property name="text" type="java.lang.String" value="jLabel6"/>
       </Properties>
@@ -210,7 +210,7 @@
         <Property name="text" type="java.lang.String" value="Pending PRs:"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JLabel" name="jLabel8">
+    <Component class="javax.swing.JLabel" name="lblPendingPRs">
       <Properties>
         <Property name="text" type="java.lang.String" value="jLabel8"/>
       </Properties>
@@ -220,7 +220,7 @@
         <Property name="text" type="java.lang.String" value="Pending POs:"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JLabel" name="jLabel10">
+    <Component class="javax.swing.JLabel" name="lblPendingPOs">
       <Properties>
         <Property name="text" type="java.lang.String" value="jLabel10"/>
       </Properties>
@@ -234,18 +234,24 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="Search"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton6ActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JComboBox" name="Filter">
       <Properties>
         <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
           <StringArray count="4">
-            <StringItem index="0" value="Item 1"/>
-            <StringItem index="1" value="Item 2"/>
-            <StringItem index="2" value="Item 3"/>
-            <StringItem index="3" value="Item 4"/>
+            <StringItem index="0" value="ALL"/>
+            <StringItem index="1" value="PENDING"/>
+            <StringItem index="2" value="APPROVED"/>
+            <StringItem index="3" value="REJECTED"/>
           </StringArray>
         </Property>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="FilterActionPerformed"/>
+      </Events>
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
       </AuxValues>
@@ -329,36 +335,36 @@
         <Property name="text" type="java.lang.String" value="Home"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JButton" name="lblTotalItems">
+    <Component class="javax.swing.JButton" name="Itembtn">
       <Properties>
         <Property name="text" type="java.lang.String" value="View Item"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="lblTotalItemsActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="ItembtnActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JButton" name="lblTotalSuppliers">
+    <Component class="javax.swing.JButton" name="Supplierbtn">
       <Properties>
         <Property name="text" type="java.lang.String" value="View Supplier"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="lblTotalSuppliersActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="SupplierbtnActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JButton" name="lblPendingPRs">
+    <Component class="javax.swing.JButton" name="PRbtn">
       <Properties>
         <Property name="text" type="java.lang.String" value="View PR"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="lblPendingPRsActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="PRbtnActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JButton" name="lblPendingPOs">
+    <Component class="javax.swing.JButton" name="pendingbtn">
       <Properties>
         <Property name="text" type="java.lang.String" value="View PO"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="lblPendingPOsActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="pendingbtnActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>

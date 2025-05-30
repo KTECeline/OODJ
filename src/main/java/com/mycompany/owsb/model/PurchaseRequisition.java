@@ -307,6 +307,15 @@ public class PurchaseRequisition {
             }
         });
 }
+    
+    public void setPRItems(List<PurchaseRequisitionItem> items) {
+    this.items = items;
+}
+
+public List<PurchaseRequisitionItem> getPRItems() {
+    return items;
+}
+
 
 
     
