@@ -30,68 +30,83 @@ public class PurchaseManager extends Manager implements ManageItemInterface {
      * @param createdBy The ID of the Purchase Manager creating the PO.
      * @return The generated PurchaseOrder object.
      */
-    public PurchaseOrder generatePurchaseOrders(String prId, String supplierId, String createdBy) {
-        PurchaseRequisition pr = PurchaseRequisition.findById(prId);
-        if (pr == null) {
-            JOptionPane.showMessageDialog(null, "Purchase Requisition not found.", "Error", JOptionPane.ERROR_MESSAGE);
-            throw new IllegalArgumentException("Purchase Requisition not found");
-        }
-
-        if (!pr.getStatus().equalsIgnoreCase("PENDING")) {
-            JOptionPane.showMessageDialog(null, "Only pending requisitions can be converted to POs.", "Error", JOptionPane.ERROR_MESSAGE);
-            throw new IllegalStateException("Only pending requisitions can be converted to POs");
-        }
-
-        Supplier supplier = Supplier.findById(supplierId);
-        if (supplier == null) {
-            JOptionPane.showMessageDialog(null, "Supplier not found.", "Error", JOptionPane.ERROR_MESSAGE);
-            throw new IllegalArgumentException("Supplier not found");
-        }
-
-        List<SupplierItem> supplierItems = SupplierItem.loadSupplierItems();
-        for (PurchaseRequisitionItem prItem : pr.getItems()) {
-            Item item = Item.findById(prItem.getItemID());
-            if (item == null) {
-                JOptionPane.showMessageDialog(null, "Item not found: " + prItem.getItemID(), "Error", JOptionPane.ERROR_MESSAGE);
-                throw new IllegalArgumentException("Item not found: " + prItem.getItemID());
-            }
-
-            boolean isSupplied = supplierItems.stream()
-                    .anyMatch(si -> si.getSupplierID().equalsIgnoreCase(supplierId) && 
-                                   si.getItemID().equalsIgnoreCase(prItem.getItemID()));
-            if (!isSupplied) {
-                JOptionPane.showMessageDialog(null, "Supplier " + supplierId + " does not supply item " + prItem.getItemID(), "Error", JOptionPane.ERROR_MESSAGE);
-                throw new IllegalArgumentException("Supplier does not supply item: " + prItem.getItemID());
-            }
-        }
-
-        String poId = PurchaseOrder.generateNewOrderId();
-        PurchaseOrder po = new PurchaseOrder(poId, supplierId, new Date().toString(), "PENDING", prId, createdBy);
-
-        for (PurchaseRequisitionItem prItem : pr.getItems()) {
-            Item item = Item.findById(prItem.getItemID());
-            double totalPrice = prItem.getQuantity() * item.getCost();
-            PurchaseOrder.PurchaseOrderItem poItem = new PurchaseOrder.PurchaseOrderItem(
-                prItem.getItemID(), prItem.getQuantity(), totalPrice);
-            po.addItem(poItem);
-        }
-
-        pr.setStatus("PROCESSED");
-        PurchaseRequisition.update(pr);
-
-        List<PurchaseOrder> allPOs = PurchaseOrder.loadPurchaseOrders();
-        allPOs.add(po);
-        try (java.io.BufferedWriter writer = new java.io.BufferedWriter(new java.io.FileWriter(PURCHASE_ORDER_FILE))) {
-            for (PurchaseOrder p : allPOs) {
-                writer.write(p.toString());
-                writer.newLine();
-            }
-        } catch (java.io.IOException e) {
-            JOptionPane.showMessageDialog(null, "Failed to save purchase orders.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-
-        return po;
+   public PurchaseOrder generatePurchaseOrders(String prId, String supplierId, String createdBy, List<String> approvedItemIds) {
+    PurchaseRequisition pr = PurchaseRequisition.findById(prId);
+    if (pr == null) {
+        JOptionPane.showMessageDialog(null, "Purchase Requisition not found.", "Error", JOptionPane.ERROR_MESSAGE);
+        throw new IllegalArgumentException("Purchase Requisition not found");
     }
+
+    if (!pr.getStatus().equalsIgnoreCase("PENDING")) {
+        JOptionPane.showMessageDialog(null, "Only pending requisitions can be converted to POs.", "Error", JOptionPane.ERROR_MESSAGE);
+        throw new IllegalStateException("Only pending requisitions can be converted to POs");
+    }
+
+    Supplier supplier = Supplier.findById(supplierId);
+    if (supplier == null) {
+        JOptionPane.showMessageDialog(null, "Supplier not found.", "Error", JOptionPane.ERROR_MESSAGE);
+        throw new IllegalArgumentException("Supplier not found");
+    }
+
+    List<SupplierItem> supplierItems = SupplierItem.loadSupplierItems();
+    List<PurchaseRequisitionItem> approvedItems = new ArrayList<>();
+    for (PurchaseRequisitionItem prItem : pr.getItems()) {
+        if (!approvedItemIds.contains(prItem.getItemID())) {
+            continue; // Skip unapproved items
+        }
+        Item item = Item.findById(prItem.getItemID());
+        if (item == null) {
+            JOptionPane.showMessageDialog(null, "Item not found: " + prItem.getItemID(), "Error", JOptionPane.ERROR_MESSAGE);
+            throw new IllegalArgumentException("Item not found: " + prItem.getItemID());
+        }
+
+        boolean isSupplied = supplierItems.stream()
+                .anyMatch(si -> si.getSupplierID().equalsIgnoreCase(supplierId) &&
+                               si.getItemID().equalsIgnoreCase(prItem.getItemID()));
+        if (!isSupplied) {
+            JOptionPane.showMessageDialog(null, "Supplier " + supplierId + " does not supply item " + prItem.getItemID(), "Error", JOptionPane.ERROR_MESSAGE);
+            throw new IllegalArgumentException("Supplier does not supply item: " + prItem.getItemID());
+        }
+        approvedItems.add(prItem);
+    }
+
+    if (approvedItems.isEmpty()) {
+        pr.setStatus("REJECTED");
+        PurchaseRequisition.update(pr);
+        JOptionPane.showMessageDialog(null, "No items approved for PO.", "Error", JOptionPane.ERROR_MESSAGE);
+        throw new IllegalArgumentException("No items approved for PO");
+    }
+
+    String poId = PurchaseOrder.generateNewOrderId();
+    PurchaseOrder po = new PurchaseOrder(poId, supplierId, new Date().toString(), "PENDING", prId, createdBy);
+
+    for (PurchaseRequisitionItem prItem : approvedItems) {
+        Item item = Item.findById(prItem.getItemID());
+        double totalPrice = prItem.getQuantity() * item.getCost();
+        PurchaseOrder.PurchaseOrderItem poItem = new PurchaseOrder.PurchaseOrderItem(
+            prItem.getItemID(), prItem.getQuantity(), totalPrice);
+        po.addItem(poItem);
+    }
+
+    pr.setStatus("APPROVED");
+    PurchaseRequisition.update(pr);
+
+    // Append to purchase_order.txt
+    try (java.io.BufferedWriter writer = new java.io.BufferedWriter(new java.io.FileWriter(PURCHASE_ORDER_FILE, true))) {
+        for (PurchaseOrder.PurchaseOrderItem poItem : po.getItems()) {
+            String line = String.format("%s,%s,%s,%d,%.2f,%s,%s,%s,%s",
+                po.getOrderID(), poItem.getItemID(), po.getSupplierID(), poItem.getQuantity(),
+                poItem.getTotalPrice(), po.getOrderDate(), po.getStatus(), po.getPrId(), po.getCreatedBy());
+            writer.write(line);
+            writer.newLine();
+        }
+    } catch (java.io.IOException e) {
+        JOptionPane.showMessageDialog(null, "Failed to save purchase order.", "Error", JOptionPane.ERROR_MESSAGE);
+        throw new RuntimeException("Failed to save purchase order", e);
+    }
+
+    return po;
+}
 
     /**
      * Edits an existing Purchase Order's item quantity or supplier.

@@ -2,9 +2,18 @@ package com.mycompany.owsb.view;
 
 import com.mycompany.owsb.model.PurchaseManager;
 import com.mycompany.owsb.model.PurchaseOrder;
+import com.mycompany.owsb.model.PurchaseRequisitionItem;
 import com.mycompany.owsb.model.User;
+import com.mycompany.owsb.view.LoginWindow;
+import com.mycompany.owsb.view.PmViewItem;
+import java.util.ArrayList;
 import java.util.List;
-import javax.swing.JTable;
+import javax.swing.DefaultCellEditor;
+import javax.swing.JCheckBox;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.JOptionPane;
+/**
+
 
 /**
  *
@@ -13,7 +22,6 @@ import javax.swing.JTable;
 public class PurchaseManagerWindow extends javax.swing.JFrame {
     private final User loggedInUser;
 
-    
     private final PurchaseManager purchaseManager;
     private List<PurchaseOrder> purchaseOrderList;
     /**
@@ -26,7 +34,7 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
         
         loadPRTable();
         
-        
+        /*loadSummaryLabels();*/
 
     }
 
@@ -36,8 +44,76 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
     }
     
     private void loadPRTable(){
-        purchaseManager.updatePRTable(prTable);
+    // Step 1: Load the original PR table
+    purchaseManager.updatePRTable(prTable);
+
+    // Step 2: Get the original model
+    DefaultTableModel originalModel = (DefaultTableModel) prTable.getModel();
+    int originalColCount = originalModel.getColumnCount();
+
+    // Step 3: Create a new model with an extra "Select" checkbox column
+    String[] newColumnNames = new String[originalColCount + 1];
+    for (int i = 0; i < originalColCount; i++) {
+        newColumnNames[i] = originalModel.getColumnName(i);
     }
+    newColumnNames[originalColCount] = "Select";
+
+    DefaultTableModel newModel = new DefaultTableModel(newColumnNames, 0) {
+        @Override
+        public Class<?> getColumnClass(int columnIndex) {
+            if (columnIndex == getColumnCount() - 1) return Boolean.class;
+            return super.getColumnClass(columnIndex);
+        }
+
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return column == getColumnCount() - 1; // Only allow editing for the checkbox column
+        }
+    };
+
+    // Step 4: Copy data and add false for the checkbox column
+    for (int i = 0; i < originalModel.getRowCount(); i++) {
+        Object[] rowData = new Object[originalColCount + 1];
+        for (int j = 0; j < originalColCount; j++) {
+            rowData[j] = originalModel.getValueAt(i, j);
+        }
+        rowData[originalColCount] = false; // default checkbox unchecked
+        newModel.addRow(rowData);
+    }
+
+    // Step 5: Set the new model back to the table
+    prTable.setModel(newModel);
+}
+
+    
+     private void loadSummaryLabels() {
+        int totalItems = purchaseManager.getAllItems().size();
+        int totalSuppliers = purchaseManager.getAllSuppliers().size();
+        long pendingPRs = purchaseManager.getAllRequisitions().stream()
+                             .filter(pr -> pr.getStatus().equalsIgnoreCase("PENDING"))
+                             .count();
+        int pendingPOs = purchaseManager.getOrdersByStatus("PENDING").size();
+
+        lblTotalItems.setText(Integer.toString(totalItems));
+        lblTotalSuppliers.setText(Integer.toString( totalSuppliers));
+        lblPendingPRs.setText(Long.toString(pendingPRs));
+        lblPendingPOs.setText(Integer.toString (pendingPOs));
+}
+    
+    private List<String> getApprovedItemIDsFromPR(String prId) {
+    List<PurchaseRequisitionItem> prItems = PurchaseRequisitionItem.loadPurchaseRequisitionItems();
+    List<String> itemIds = new ArrayList<>();
+
+    for (PurchaseRequisitionItem item : prItems) {
+        if (item.getPrID().equalsIgnoreCase(prId)) {
+            itemIds.add(item.getItemID());
+        }
+    }
+
+    return itemIds;
+}
+
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -67,10 +143,10 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
         jScrollPane6 = new javax.swing.JScrollPane();
         prTable = new javax.swing.JTable();
         jButton8 = new javax.swing.JButton();
-        jButton9 = new javax.swing.JButton();
-        jButton10 = new javax.swing.JButton();
-        jButton11 = new javax.swing.JButton();
-        jButton12 = new javax.swing.JButton();
+        lblTotalItems = new javax.swing.JButton();
+        lblTotalSuppliers = new javax.swing.JButton();
+        lblPendingPRs = new javax.swing.JButton();
+        lblPendingPOs = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -141,13 +217,33 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
 
         jButton8.setText("Home");
 
-        jButton9.setText("View Item");
+        lblTotalItems.setText("View Item");
+        lblTotalItems.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                lblTotalItemsActionPerformed(evt);
+            }
+        });
 
-        jButton10.setText("View Supplier");
+        lblTotalSuppliers.setText("View Supplier");
+        lblTotalSuppliers.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                lblTotalSuppliersActionPerformed(evt);
+            }
+        });
 
-        jButton11.setText("View PR");
+        lblPendingPRs.setText("View PR");
+        lblPendingPRs.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                lblPendingPRsActionPerformed(evt);
+            }
+        });
 
-        jButton12.setText("View PO");
+        lblPendingPOs.setText("View PO");
+        lblPendingPOs.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                lblPendingPOsActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -188,15 +284,15 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
                                     .addGroup(layout.createSequentialGroup()
                                         .addComponent(jButton8)
                                         .addGap(36, 36, 36)
-                                        .addComponent(jButton9)))
+                                        .addComponent(lblTotalItems)))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jButton10)
+                                        .addComponent(lblTotalSuppliers)
                                         .addGap(39, 39, 39)
-                                        .addComponent(jButton11)
+                                        .addComponent(lblPendingPRs)
                                         .addGap(36, 36, 36)
-                                        .addComponent(jButton12))
+                                        .addComponent(lblPendingPOs))
                                     .addGroup(layout.createSequentialGroup()
                                         .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addGap(27, 27, 27)
@@ -229,10 +325,10 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
                 .addGap(14, 14, 14)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton8)
-                    .addComponent(jButton9)
-                    .addComponent(jButton10)
-                    .addComponent(jButton11)
-                    .addComponent(jButton12))
+                    .addComponent(lblTotalItems)
+                    .addComponent(lblTotalSuppliers)
+                    .addComponent(lblPendingPRs)
+                    .addComponent(lblPendingPOs))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel3)
@@ -265,12 +361,42 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
 
     private void jToggleButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton1ActionPerformed
         // TODO add your handling code here:
+        this.dispose(); // Closes the current SalesManagerWindow
+
+        LoginWindow loginWindow = new LoginWindow();
+        loginWindow.setVisible(true);
         
     }//GEN-LAST:event_jToggleButton1ActionPerformed
 
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
-        // TODO add your handling code here:
+      
     }//GEN-LAST:event_jButton7ActionPerformed
+
+    private void lblTotalItemsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lblTotalItemsActionPerformed
+        // TODO add your handling code here:
+        PmViewItem viewItemsWindow = new PmViewItem(this, purchaseManager);
+        viewItemsWindow.setVisible(true);
+        this.setVisible(false); // Hide current window
+    }//GEN-LAST:event_lblTotalItemsActionPerformed
+
+    private void lblTotalSuppliersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lblTotalSuppliersActionPerformed
+        // TODO add your handling code here:
+        PmViewSupplier viewSupplierWindow = new PmViewSupplier(this, purchaseManager);
+        viewSupplierWindow.setVisible(true);
+        this.setVisible(false);
+    }//GEN-LAST:event_lblTotalSuppliersActionPerformed
+
+    private void lblPendingPRsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lblPendingPRsActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_lblPendingPRsActionPerformed
+
+    private void lblPendingPOsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lblPendingPOsActionPerformed
+        // TODO add your handling code here:
+        PmViewPO viewPOWindow = new PmViewPO(this, purchaseManager);
+        viewPOWindow.setVisible(true);
+        this.setVisible(false);
+
+    }//GEN-LAST:event_lblPendingPOsActionPerformed
 
     /**
      * @param args the command line arguments
@@ -306,13 +432,9 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox<String> Filter;
     private javax.swing.JLabel LoggedIn;
-    private javax.swing.JButton jButton10;
-    private javax.swing.JButton jButton11;
-    private javax.swing.JButton jButton12;
     private javax.swing.JButton jButton6;
     private javax.swing.JButton jButton7;
     private javax.swing.JButton jButton8;
-    private javax.swing.JButton jButton9;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
@@ -326,6 +448,10 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane7;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JToggleButton jToggleButton1;
+    private javax.swing.JButton lblPendingPOs;
+    private javax.swing.JButton lblPendingPRs;
+    private javax.swing.JButton lblTotalItems;
+    private javax.swing.JButton lblTotalSuppliers;
     private javax.swing.JTable prTable;
     private javax.swing.JLabel totalItem;
     // End of variables declaration//GEN-END:variables
