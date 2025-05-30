@@ -293,7 +293,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_searchFieldMouseClicked
 
     private void ManageDailySalesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ManageDailySalesButtonActionPerformed
-        SmManageDailySalesWindow manageDailySalesWindow = new SmManageDailySalesWindow(this);
+        SmManageDailySalesWindow manageDailySalesWindow = new SmManageDailySalesWindow(this, salesManager);
         manageDailySalesWindow.setVisible(true);
         this.setVisible(false); // Hide current window
     }//GEN-LAST:event_ManageDailySalesButtonActionPerformed
