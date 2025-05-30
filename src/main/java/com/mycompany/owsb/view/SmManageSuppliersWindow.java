@@ -332,32 +332,14 @@ public class SmManageSuppliersWindow extends javax.swing.JFrame {
      */
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton addItemButton1;
-    private javax.swing.JButton addItemButton2;
     private javax.swing.JButton addSupplierButton;
     private javax.swing.JButton backButton;
-    private javax.swing.JButton backButton1;
-    private javax.swing.JButton backButton2;
-    private javax.swing.JButton deleteItemButton1;
-    private javax.swing.JButton deleteItemButton2;
     private javax.swing.JButton deleteSupplierButton;
-    private javax.swing.JButton editItemButton1;
-    private javax.swing.JButton editItemButton2;
     private javax.swing.JButton editSupplierButton;
-    private javax.swing.JTable itemTable1;
-    private javax.swing.JTable itemTable2;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JScrollPane jScrollPane4;
-    private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JButton searchButton;
-    private javax.swing.JButton searchButton1;
-    private javax.swing.JButton searchButton2;
     private javax.swing.JTextField searchField;
-    private javax.swing.JTextField searchField1;
-    private javax.swing.JTextField searchField2;
     private javax.swing.JTable supplierTable;
     // End of variables declaration//GEN-END:variables
 }

@@ -4,9 +4,14 @@
  */
 package com.mycompany.owsb.view;
 
-import com.mycompany.owsb.view.SalesManagerWindow;
+import com.mycompany.owsb.model.Item;
+import com.mycompany.owsb.model.Sales;
+import com.mycompany.owsb.model.SalesItem;
+import com.mycompany.owsb.model.SalesManager;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -14,14 +19,23 @@ import java.awt.event.WindowEvent;
  */
 public class SmManageDailySalesWindow extends javax.swing.JFrame {
     private final SalesManagerWindow parentWindow;
+    
+    // Instance of SalesManager to call sales-related methods
+    private final SalesManager salesManager;
+    
+    private java.util.List<Sales> salesDataList = new ArrayList<>();
+    private java.util.List<SalesItem> salesItemDataList = new ArrayList<>();
+    private java.util.List<Item> itemDataList = new ArrayList<>();
 
     /**
      * Creates new form SmManageDailySalesWindow
      * @param parentWindow
      */
-    public SmManageDailySalesWindow(SalesManagerWindow parentWindow) {
+    public SmManageDailySalesWindow(SalesManagerWindow parentWindow, SalesManager salesManager) {
         this.parentWindow = parentWindow;
+        this.salesManager = salesManager;
         initComponents();
+        loadDataIntoUI();
         setupWindowListener();
     }
     
@@ -35,6 +49,17 @@ public class SmManageDailySalesWindow extends javax.swing.JFrame {
             }
         });
     }
+    
+    // Method to load Items from file and display them in the UI list
+    private void loadDataIntoUI() {
+        // Load the list of Purchase Orders from the purchase order file
+        itemDataList = Item.loadItems();
+        salesDataList = Sales.loadSales();
+        salesItemDataList = SalesItem.loadSalesItems();
+        
+        // Update UI to the latest
+        Sales.updateSalesUI(salesDataList, salesItemDataList, itemDataList, salesIDList, salesDetailsArea, salesItemTable);
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -45,13 +70,54 @@ public class SmManageDailySalesWindow extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel2 = new javax.swing.JPanel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        salesIDList = new javax.swing.JList<>();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        salesDetailsArea = new javax.swing.JTextArea();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        salesItemTable = new javax.swing.JTable();
+        searchField = new javax.swing.JTextField();
+        backButton = new javax.swing.JButton();
+        searchButton = new javax.swing.JButton();
+        editSalesButton = new javax.swing.JButton();
+        addSalesButton = new javax.swing.JButton();
+        deleteSalesButton = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
+        deleteItemButton = new javax.swing.JButton();
+        addItemButton = new javax.swing.JButton();
+        editItemButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Daily Sales");
+        setBounds(new java.awt.Rectangle(0, 0, 0, 0));
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        jPanel2.setBackground(new java.awt.Color(255, 255, 255));
+
+        salesIDList.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        salesIDList.setModel(new javax.swing.AbstractListModel<String>() {
+            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
+            public int getSize() { return strings.length; }
+            public String getElementAt(int i) { return strings[i]; }
+        });
+        salesIDList.setSelectionBackground(new java.awt.Color(102, 102, 102));
+        salesIDList.setSelectionForeground(new java.awt.Color(255, 255, 255));
+        salesIDList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                salesIDListValueChanged(evt);
+            }
+        });
+        jScrollPane2.setViewportView(salesIDList);
+
+        salesDetailsArea.setEditable(false);
+        salesDetailsArea.setBackground(new java.awt.Color(255, 255, 255));
+        salesDetailsArea.setColumns(20);
+        salesDetailsArea.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        salesDetailsArea.setRows(5);
+        jScrollPane3.setViewportView(salesDetailsArea);
+
+        salesItemTable.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        salesItemTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
                 {null, null, null, null},
@@ -59,69 +125,271 @@ public class SmManageDailySalesWindow extends javax.swing.JFrame {
                 {null, null, null, null}
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+                "Item ID", "Quantity", "Unit Price", "Subtotal"
             }
-        ));
-        jScrollPane1.setViewportView(jTable1);
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        salesItemTable.setSelectionBackground(new java.awt.Color(51, 51, 51));
+        salesItemTable.setSelectionForeground(new java.awt.Color(255, 255, 255));
+        jScrollPane1.setViewportView(salesItemTable);
+
+        searchField.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        searchField.setForeground(new java.awt.Color(51, 51, 51));
+        searchField.setText("Enter Sales ID");
+        searchField.setToolTipText("");
+        searchField.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                searchFieldMouseClicked(evt);
+            }
+        });
+
+        backButton.setBackground(new java.awt.Color(102, 102, 102));
+        backButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        backButton.setForeground(new java.awt.Color(255, 255, 255));
+        backButton.setText("<");
+        backButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                backButtonActionPerformed(evt);
+            }
+        });
+
+        searchButton.setBackground(new java.awt.Color(102, 102, 102));
+        searchButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        searchButton.setForeground(new java.awt.Color(255, 255, 255));
+        searchButton.setText("Search");
+        searchButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                searchButtonActionPerformed(evt);
+            }
+        });
+
+        editSalesButton.setBackground(new java.awt.Color(255, 204, 0));
+        editSalesButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        editSalesButton.setText("Edit");
+        editSalesButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                editSalesButtonActionPerformed(evt);
+            }
+        });
+
+        addSalesButton.setBackground(new java.awt.Color(255, 51, 51));
+        addSalesButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        addSalesButton.setForeground(new java.awt.Color(255, 255, 255));
+        addSalesButton.setText("Add");
+        addSalesButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addSalesButtonActionPerformed(evt);
+            }
+        });
+
+        deleteSalesButton.setBackground(new java.awt.Color(51, 51, 51));
+        deleteSalesButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        deleteSalesButton.setForeground(new java.awt.Color(255, 255, 255));
+        deleteSalesButton.setText("Delete");
+        deleteSalesButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteSalesButtonActionPerformed(evt);
+            }
+        });
+
+        jLabel2.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        jLabel2.setText("Sales Item");
+
+        deleteItemButton.setBackground(new java.awt.Color(51, 51, 51));
+        deleteItemButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        deleteItemButton.setForeground(new java.awt.Color(255, 255, 255));
+        deleteItemButton.setText("Delete");
+        deleteItemButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteItemButtonActionPerformed(evt);
+            }
+        });
+
+        addItemButton.setBackground(new java.awt.Color(255, 51, 51));
+        addItemButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        addItemButton.setForeground(new java.awt.Color(255, 255, 255));
+        addItemButton.setText("Add");
+        addItemButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addItemButtonActionPerformed(evt);
+            }
+        });
+
+        editItemButton.setBackground(new java.awt.Color(255, 204, 0));
+        editItemButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        editItemButton.setText("Edit");
+        editItemButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                editItemButtonActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(34, 34, 34)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(backButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(searchField)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(searchButton, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane3, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addComponent(deleteSalesButton, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(addSalesButton, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(editSalesButton, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel2Layout.createSequentialGroup()
+                                .addComponent(jLabel2)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(deleteItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(addItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(editItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                .addContainerGap(42, Short.MAX_VALUE))
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(66, 66, 66)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE, false)
+                    .addComponent(searchField)
+                    .addComponent(backButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(searchButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(editSalesButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(deleteSalesButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(addSalesButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 17, Short.MAX_VALUE)
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel2)
+                            .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(editItemButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(addItemButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(deleteItemButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 234, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane2))
+                .addGap(20, 20, 20))
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(34, 34, 34)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 592, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(39, Short.MAX_VALUE))
+            .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(73, Short.MAX_VALUE)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 361, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(31, 31, 31))
+            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
+    private void salesIDListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_salesIDListValueChanged
+        if (!evt.getValueIsAdjusting()) {
+            String selectedSalesID = salesIDList.getSelectedValue();
+            if (selectedSalesID != null) {
+                Sales.displaySalesDetails(selectedSalesID, salesDataList, salesDetailsArea);
+                SalesItem.displaySalesItemsInTable(selectedSalesID, salesItemDataList, itemDataList, salesItemTable);
             }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(SmManageDailySalesWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(SmManageDailySalesWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(SmManageDailySalesWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(SmManageDailySalesWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
+    }//GEN-LAST:event_salesIDListValueChanged
 
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new SmManageDailySalesWindow(null).setVisible(true);
-            }
-        });
-    }
+    private void searchFieldMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_searchFieldMouseClicked
+        searchField.setText("");
+    }//GEN-LAST:event_searchFieldMouseClicked
+
+    private void backButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backButtonActionPerformed
+        // Update UI to the latest
+        Sales.updateSalesUI(salesDataList, salesItemDataList, itemDataList, salesIDList, salesDetailsArea, salesItemTable);
+    }//GEN-LAST:event_backButtonActionPerformed
+
+    private void searchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchButtonActionPerformed
+        Sales.searchAndDisplaySales(searchField, salesDataList, salesItemDataList, itemDataList,
+                                    salesIDList, salesDetailsArea, salesItemTable);
+    }//GEN-LAST:event_searchButtonActionPerformed
+
+    private void editSalesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editSalesButtonActionPerformed
+
+    }//GEN-LAST:event_editSalesButtonActionPerformed
+
+    private void addSalesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addSalesButtonActionPerformed
+        String username = salesManager.getLoggedInUser().getUsername();
+        
+        Sales newSale = salesManager.addSales(this, username, salesDataList);
+        if (newSale != null) {
+            salesManager.addSalesItems(this, newSale, itemDataList, salesItemDataList, salesDataList);
+        }
+        
+        loadDataIntoUI();
+    }//GEN-LAST:event_addSalesButtonActionPerformed
+
+    private void deleteSalesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteSalesButtonActionPerformed
+        String selectedSalesID = salesIDList.getSelectedValue();
+        if (selectedSalesID != null) {
+            salesManager.deleteSalesRecord(this, selectedSalesID, salesDataList, salesItemDataList, itemDataList, salesIDList, salesDetailsArea, salesItemTable);
+        } else {
+            JOptionPane.showMessageDialog(this, "Please select a sale to delete.");
+        }
+
+    }//GEN-LAST:event_deleteSalesButtonActionPerformed
+
+    private void deleteItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteItemButtonActionPerformed
+        
+    }//GEN-LAST:event_deleteItemButtonActionPerformed
+
+    private void addItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addItemButtonActionPerformed
+        
+    }//GEN-LAST:event_addItemButtonActionPerformed
+
+    private void editItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editItemButtonActionPerformed
+        
+    }//GEN-LAST:event_editItemButtonActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton addItemButton;
+    private javax.swing.JButton addSalesButton;
+    private javax.swing.JButton backButton;
+    private javax.swing.JButton deleteItemButton;
+    private javax.swing.JButton deleteSalesButton;
+    private javax.swing.JButton editItemButton;
+    private javax.swing.JButton editSalesButton;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JTextArea salesDetailsArea;
+    private javax.swing.JList<String> salesIDList;
+    private javax.swing.JTable salesItemTable;
+    private javax.swing.JButton searchButton;
+    private javax.swing.JTextField searchField;
     // End of variables declaration//GEN-END:variables
 }
