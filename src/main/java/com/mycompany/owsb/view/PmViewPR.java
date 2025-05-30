@@ -7,6 +7,8 @@ package com.mycompany.owsb.view;
 import com.mycompany.owsb.model.Item;
 import com.mycompany.owsb.model.PurchaseManager;
 import com.mycompany.owsb.model.PurchaseOrder;
+import com.mycompany.owsb.model.PurchaseRequisition;
+import com.mycompany.owsb.model.PurchaseRequisitionItem;
 import com.mycompany.owsb.model.Supplier;
 import com.mycompany.owsb.model.SupplierItem;
 
@@ -26,25 +28,25 @@ import javax.swing.table.DefaultTableModel;
  *
  * @author timi
  */
-public class PmViewSupplier extends javax.swing.JFrame {
+public class PmViewPR extends javax.swing.JFrame {
      private final PurchaseManagerWindow parentWindow;
     private final PurchaseManager purchaseManager;
     private User loggedInUser;
     
-    private List<Supplier> supplierList;
-    private List<SupplierItem> supplierItemList;
-
+    private List<PurchaseRequisition> purchaseRequisitionList;
+    private List<PurchaseRequisitionItem> prItemList;
+    private List<Item> itemList;
     /**
      * Creates new form SmManageDailySalesWindow
      * @param parentWindow
      */
-    public PmViewSupplier(PurchaseManagerWindow parentWindow, PurchaseManager purchaseManager) {
+    public PmViewPR(PurchaseManagerWindow parentWindow, PurchaseManager purchaseManager) {
         this.parentWindow = parentWindow;
         this.purchaseManager = purchaseManager;
         this.loggedInUser = loggedInUser;
         initComponents();
         setupWindowListener();
-        loadViewItem();
+        loadViewItems();
         loadSummaryLabels();
     }
     
@@ -58,25 +60,27 @@ public class PmViewSupplier extends javax.swing.JFrame {
         });
     }
 
-     private void loadViewItem() {
-     supplierList = Supplier.loadSuppliers();
-    supplierItemList = SupplierItem.loadSupplierItems(); // load items
-    
-    System.out.println("Loaded " + supplierList.size() + " suppliers");
-    
-    if (supplierList.isEmpty()) {
-        JOptionPane.showMessageDialog(this, "No suppliers found in the database.", "Warning", JOptionPane.WARNING_MESSAGE);
+     private void loadViewItems() {
+    purchaseRequisitionList = PurchaseRequisition.loadPurchaseRequisition();
+    prItemList = PurchaseRequisitionItem.loadPurchaseRequisitionItems();
+    itemList = Item.loadItems();
+
+    System.out.println("Loaded " + purchaseRequisitionList.size() + " PRs");
+
+    if (purchaseRequisitionList.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "No purchase requisitions found in the database.", "Warning", JOptionPane.WARNING_MESSAGE);
         return;
     }
-    
-    String[] columnNames = {"Item ID", "Name", "Stock", "Cost (RM)", "Price (RM)", "Stock Level"};
+
+    // Set up table column structure
+    String[] columnNames = {"PR ID", "Item ID", "Supplier ID", "Quantity", "Required Date", "Raised By", "Unit Cost (RM)", "Total Cost (RM)", "Status"};
     DefaultTableModel model = new DefaultTableModel(columnNames, 0);
-    SupplierTable.setModel(model);
-    
-    // Now update table with your method
-    
-    Supplier.updateSupplierTableInUI(supplierList, supplierItemList, SupplierTable);
-     }
+    PrTable.setModel(model);
+
+    // Load and display PRs
+    PurchaseRequisition.updatePRTableInUI(purchaseRequisitionList, prItemList, itemList, PrTable);
+}
+
      
      private void loadSummaryLabels() {
     Map<String, Object> stats = purchaseManager.getSummaryStats();
@@ -112,13 +116,14 @@ public class PmViewSupplier extends javax.swing.JFrame {
         searchBtn = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         jScrollPane6 = new javax.swing.JScrollPane();
-        SupplierTable = new javax.swing.JTable();
+        PrTable = new javax.swing.JTable();
         jLabel6 = new javax.swing.JLabel();
         jButton6 = new javax.swing.JButton();
         jButton7 = new javax.swing.JButton();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
+        statusFilterCombo = new javax.swing.JComboBox<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -149,7 +154,7 @@ public class PmViewSupplier extends javax.swing.JFrame {
 
         lblPendingPOs.setText("jLabel10");
 
-        searchField.setText("Search Supplier ID");
+        searchField.setText("Search PR ID");
         searchField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 searchFieldActionPerformed(evt);
@@ -163,7 +168,7 @@ public class PmViewSupplier extends javax.swing.JFrame {
             }
         });
 
-        SupplierTable.setModel(new javax.swing.table.DefaultTableModel(
+        PrTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null, null, null},
                 {null, null, null, null, null, null},
@@ -182,7 +187,7 @@ public class PmViewSupplier extends javax.swing.JFrame {
                 return types [columnIndex];
             }
         });
-        jScrollPane6.setViewportView(SupplierTable);
+        jScrollPane6.setViewportView(PrTable);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -235,6 +240,13 @@ public class PmViewSupplier extends javax.swing.JFrame {
             }
         });
 
+        statusFilterCombo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ALL", "PENDING", "APPROVED", "REJECTED" }));
+        statusFilterCombo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                statusFilterComboActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -244,7 +256,9 @@ public class PmViewSupplier extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(searchField, javax.swing.GroupLayout.PREFERRED_SIZE, 397, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(110, 110, 110)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(statusFilterCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(22, 22, 22)
                         .addComponent(searchBtn))
                     .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
@@ -339,7 +353,8 @@ public class PmViewSupplier extends javax.swing.JFrame {
                                         .addGap(18, 18, 18)))
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                     .addComponent(searchField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(searchBtn))
+                                    .addComponent(searchBtn)
+                                    .addComponent(statusFilterCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addGap(6, 6, 6)
                                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -364,27 +379,25 @@ public class PmViewSupplier extends javax.swing.JFrame {
     }//GEN-LAST:event_searchFieldActionPerformed
 
     private void searchBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchBtnActionPerformed
-        // TODO add your handling code here:
-      // When search button is clicked
-System.out.println("Search button clicked, search text: " + searchField.getText());
+       System.out.println("Search button clicked, search text: " + searchField.getText());
 
-Supplier.searchAndDisplaySupplierInTable(searchField, SupplierTable, supplierList, supplierItemList);
-SupplierTable.revalidate();
-SupplierTable.repaint();
+PurchaseRequisition.searchAndDisplayPRInTable(searchField, PrTable, purchaseRequisitionList, itemList, prItemList);
+PrTable.revalidate();
+PrTable.repaint();
 
     
     }//GEN-LAST:event_searchBtnActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        PmViewSupplier supplierWindow = new PmViewSupplier(parentWindow, purchaseManager);
+        PmViewPR supplierWindow = new PmViewPR(parentWindow, purchaseManager);
         supplierWindow.setVisible(true);
         this.setVisible(false);
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
         // TODO add your handling code here:
-        PmViewSupplier supplierWindow = new PmViewSupplier(parentWindow, purchaseManager);
+        PmViewPR supplierWindow = new PmViewPR(parentWindow, purchaseManager);
         supplierWindow.setVisible(true);
         this.setVisible(false); // or this.setVisible(false);
 
@@ -397,9 +410,6 @@ SupplierTable.repaint();
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:
-        PmViewPR nextWindow = new PmViewPR(parentWindow, purchaseManager);
-       nextWindow.setVisible(true);
-        this.setVisible(false);
         
     }//GEN-LAST:event_jButton2ActionPerformed
 
@@ -409,6 +419,17 @@ SupplierTable.repaint();
        nextWindow.setVisible(true);
         this.setVisible(false);
     }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void statusFilterComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_statusFilterComboActionPerformed
+        // TODO add your handling code here:
+       String selectedStatus = (String) statusFilterCombo.getSelectedItem();
+    
+    // Get filtered list from model class
+    List<PurchaseRequisition> filteredPRList = PurchaseRequisition.filterByStatus(purchaseRequisitionList, selectedStatus);
+    
+    // Update the table view with filtered data
+    PurchaseRequisition.updatePRTableInUI(filteredPRList, prItemList, itemList, PrTable);
+    }//GEN-LAST:event_statusFilterComboActionPerformed
 
     /**
      * @param args the command line arguments
@@ -427,14 +448,22 @@ SupplierTable.repaint();
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(PmViewSupplier.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(PmViewPR.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(PmViewSupplier.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(PmViewPR.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(PmViewSupplier.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(PmViewPR.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(PmViewSupplier.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(PmViewPR.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
         //</editor-fold>
         //</editor-fold>
         //</editor-fold>
@@ -453,7 +482,7 @@ SupplierTable.repaint();
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTable SupplierTable;
+    private javax.swing.JTable PrTable;
     private javax.swing.JLabel Usernamelbl;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
@@ -475,5 +504,6 @@ SupplierTable.repaint();
     private javax.swing.JLabel lblTotalItems;
     private javax.swing.JButton searchBtn;
     private javax.swing.JTextField searchField;
+    private javax.swing.JComboBox<String> statusFilterCombo;
     // End of variables declaration//GEN-END:variables
 }

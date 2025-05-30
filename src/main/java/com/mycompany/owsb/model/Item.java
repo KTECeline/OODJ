@@ -302,4 +302,42 @@ public class Item {
 
         return updated;
     }
+    
+    public static void filterStockLevel(String filter, JTable table, List<Item> itemList) {
+    String[] columnNames = {"Item ID", "Name", "Stock", "Cost (RM)", "Price (RM)", "Stock Level"};
+    DefaultTableModel model = new DefaultTableModel(columnNames, 0);
+
+    for (Item item : itemList) {
+        boolean include = false;
+        String stockLevel = item.getStockLevel();
+        if (filter.equals("All")) {
+            include = true;
+        } else if (filter.equals("Low") && stockLevel.equalsIgnoreCase("Low")) {
+            include = true;
+        } else if (filter.equals("Normal") && stockLevel.equalsIgnoreCase("Normal")) {
+            include = true;
+        }
+
+        if (include) {
+            Object[] row = {
+                item.getItemID(),
+                item.getItemName(),
+                item.getStock(),
+                item.getCost(),
+                item.getPrice(),
+                item.getStockLevel()
+            };
+            model.addRow(row);
+        }
+    }
+
+    table.setModel(model);
+    autoResizeColumnWidths(table);
+    applyRowColorBasedOnStockLevel(table);
+
+    if (model.getRowCount() == 0) {
+        JOptionPane.showMessageDialog(null, "No items found for filter: " + filter, "No Results", JOptionPane.INFORMATION_MESSAGE);
+    }
+}
+    
 }

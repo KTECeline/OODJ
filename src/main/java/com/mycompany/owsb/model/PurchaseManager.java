@@ -28,10 +28,11 @@ public class PurchaseManager extends Manager implements ManageItemInterface {
     private static final String PURCHASE_REQUISITION_FILE = "data/purchase_requisition.txt";
     private static final String ITEMS_FILE = "data/items.txt";
     private static final String SUPPLIERS_FILE = "data/suppliers.txt";
-    
+    private final User loggedInUser;
     
     public PurchaseManager(User loggedInUser) {
         super(loggedInUser);
+        this.loggedInUser = loggedInUser;
     
     }
 
@@ -435,48 +436,16 @@ public class PurchaseManager extends Manager implements ManageItemInterface {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
     
-    public int generatePOsFromSelections(DefaultTableModel model, String createdBy) {
-    if (model.getRowCount() == 0) {
-        throw new IllegalStateException("Table is empty. No PRs to process.");
-    }
-
-    Map<String, Map<String, List<String>>> selections = new HashMap<>();
-    boolean hasSelections = false;
-
-    for (int row = 0; row < model.getRowCount(); row++) {
-        Boolean isSelected = (Boolean) model.getValueAt(row, 9);
-        if (isSelected != null && isSelected) {
-            hasSelections = true;
-            String prId = model.getValueAt(row, 0).toString();
-            String itemId = model.getValueAt(row, 1).toString().split(" - ")[0];
-            String supplierId = model.getValueAt(row, 2).toString();
-            String status = model.getValueAt(row, 8).toString();
-
-            if (!status.equalsIgnoreCase("PENDING")) {
-                throw new IllegalArgumentException("Only PENDING PRs can be selected. Invalid PR: " + prId);
-            }
-
-            selections.computeIfAbsent(prId, k -> new HashMap<>())
-                      .computeIfAbsent(supplierId, k -> new ArrayList<>())
-                      .add(itemId);
-        }
-    }
-
-    if (!hasSelections) {
-        throw new IllegalArgumentException("No rows selected for PO generation.");
-    }
-
-    int poCount = 0;
-    for (String prId : selections.keySet()) {
-    for (String supplierId : selections.get(prId).keySet()) {
-        Map<String, List<String>> approvedItemsByPR = selections.get(prId); // gets map of supplier -> list<itemID>
-        generatePurchaseOrdersFromMultiplePRs(supplierId, createdBy, approvedItemsByPR);
-        poCount++;
-    }
-}
-
-
-    return poCount;
+    public Map<String, Object> getSummaryStats() {
+    Map<String, Object> stats = new HashMap<>();
+    stats.put("totalItems", getAllItems().size());
+    stats.put("totalSuppliers", getAllSuppliers().size());
+    stats.put("pendingPRs", getAllRequisitions().stream()
+                        .filter(pr -> pr.getStatus().equalsIgnoreCase("PENDING"))
+                        .count());
+    stats.put("pendingPOs", getOrdersByStatus("PENDING").size());
+    stats.put("username", loggedInUser.getUsername());
+    return stats;
 }
 
     
