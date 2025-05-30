@@ -4,21 +4,38 @@
  */
 package com.mycompany.owsb.view;
 
+import com.mycompany.owsb.model.PurchaseManager;
 import com.mycompany.owsb.model.User;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 /**
  *
  * @author timi
  */
 public class PmViewItem extends javax.swing.JFrame {
-    private final User loggedInUser;
-
+     private final PurchaseManagerWindow parentWindow;
+    private final PurchaseManager purchaseManager;
+    
     /**
-     * Creates new form PurchaseManagerWindow
+     * Creates new form SmManageDailySalesWindow
+     * @param parentWindow
      */
-    public PmViewItem(User loggedInUser) {
-        this.loggedInUser = loggedInUser;
+    public PmViewItem(PurchaseManagerWindow parentWindow, PurchaseManager purchaseManager) {
+        this.parentWindow = parentWindow;
+        this.purchaseManager = purchaseManager;
         initComponents();
+        setupWindowListener();
+    }
+    
+     private void setupWindowListener() {
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                parentWindow.showPmWindow(); // Show the homepage
+                dispose(); // Close the current window
+            }
+        });
     }
 
     /**
@@ -363,7 +380,7 @@ public class PmViewItem extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new PmViewItem(null).setVisible(true);
+              
             }
         });
     }
