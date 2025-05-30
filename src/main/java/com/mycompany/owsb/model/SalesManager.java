@@ -873,7 +873,9 @@ public class SalesManager extends Manager implements ManageItemInterface{
     //PURCHASE REQUISITION SECTION
     
     // Method to add new purchase requisition
-    public void addPurchaseRequisition(JFrame parent, List<Item> itemList, List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, List<Supplier> supplierList, List<SupplierItem> supplierItemList, JTable prTable) {
+    public void addPurchaseRequisition(JFrame parent, List<Item> itemList, List<PurchaseRequisition> prList, 
+                                    List<PurchaseRequisitionItem> prItemList, List<Supplier> supplierList, 
+                                    List<SupplierItem> supplierItemList, JTable prTable) {
         if (!isAllowedToPerform("add pr")) {
             JOptionPane.showMessageDialog(parent, "Not authorized to add purchase requisition.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
             return;
@@ -1210,19 +1212,38 @@ public class SalesManager extends Manager implements ManageItemInterface{
                 supplierComboBox.addItem(supplierItem.getSupplierID() + " - " + supplierName);
             }
         }
+        
+        JTextField quantityField = new JTextField(String.valueOf(itemToEdit.getQuantity()), 10);
+        JLabel quantityError = new JLabel();
+        quantityError.setForeground(Color.RED);
+        
+        JTextField requiredDateField = new JTextField(prToEdit.getRequiredDate().toString(), 10); // LocalDate to string
+        JLabel dateError = new JLabel();
+        dateError.setForeground(Color.RED);
 
         JPanel panel = new JPanel(new GridLayout(0, 2, 0, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
         panel.setBackground(Color.white);
-        panel.setPreferredSize(new Dimension(500, 200));
+        panel.setPreferredSize(new Dimension(600, 400));
 
         panel.add(new JLabel("PR ID:"));
         panel.add(new JLabel(prID));
         panel.add(new JLabel("Item ID:"));
         panel.add(new JLabel(itemID + " - " + itemName));
+        panel.add(new JLabel());
+        panel.add(new JLabel());
         panel.add(new JLabel("Supplier:"));
         panel.add(supplierComboBox);
+        panel.add(new JLabel());
         panel.add(supplierError);
+        panel.add(new JLabel("Quantity:"));
+        panel.add(quantityField);
+        panel.add(new JLabel());
+        panel.add(quantityError);  // add the error label below quantity
+        panel.add(new JLabel("Required Date (YYYY-MM-DD):"));
+        panel.add(requiredDateField);
+        panel.add(new JLabel());
+        panel.add(dateError);  // add the error label under the date field
 
         JDialog dialog = new JDialog(parent, "Edit Purchase Requisition", true);
         dialog.getContentPane().add(panel, BorderLayout.CENTER);
@@ -1280,8 +1301,51 @@ public class SalesManager extends Manager implements ManageItemInterface{
                 JOptionPane.showMessageDialog(dialog, "Selected supplier does not supply this item.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+            
+            // Validate quantity
+            quantityError.setText("");  // reset previous error
+            int newQuantity = 0;
+            try {
+                newQuantity = Integer.parseInt(quantityField.getText().trim());
+                if (newQuantity <= 0) throw new NumberFormatException();
+            } catch (NumberFormatException ex) {
+                quantityError.setText("* Quantity must be a positive integer.");
+                return;
+            }
+            
+            // Validate required date
+            dateError.setText("");  // reset previous error
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            LocalDate requiredDate;
 
-            // STEP 1: Look for existing PR for this supplier
+            try {
+                requiredDate = LocalDate.parse(requiredDateField.getText().trim(), formatter);
+                if (requiredDate.isBefore(LocalDate.now())) {
+                    dateError.setText("* Date cannot be in the past.");
+                    return;
+                }
+            } catch (DateTimeParseException ex) {
+                dateError.setText("* Invalid date format. Use YYYY-MM-DD.");
+                return;
+            }
+            
+            // Warn if date is changed
+            if (!prToEdit.getRequiredDate().equals(requiredDate)) {
+                int confirm = JOptionPane.showConfirmDialog(dialog,
+                    "Changing the required date will apply to the entire PR, not just this item.\nDo you want to proceed?",
+                    "Confirm Date Change",
+                    JOptionPane.YES_NO_OPTION);
+                if (confirm != JOptionPane.YES_OPTION) return;
+            }
+
+            // Update quantity
+            itemToEdit.setQuantity(newQuantity);
+
+            // Update PR date
+            prToEdit.setRequiredDate(requiredDate);
+            
+
+            // Look for existing PR for this supplier
             String targetPrID = null;
             PurchaseRequisition existingPr = null;
 
@@ -1294,36 +1358,9 @@ public class SalesManager extends Manager implements ManageItemInterface{
                 }
             }
 
-            // STEP 2: If no existing PR, prompt for required date
+            // If no existing PR, generate new PR ID
             if (targetPrID == null) {
                 targetPrID = PurchaseRequisition.generateNextPRId();
-
-                String dateInput = JOptionPane.showInputDialog(
-                    dialog,
-                    "Enter required date (YYYY-MM-DD):",
-                    "Required Date",
-                    JOptionPane.PLAIN_MESSAGE
-                );
-
-                if (dateInput == null || dateInput.trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(dialog, "Required date is mandatory for a new PR.", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                String requiredDateStr = dateInput.trim();
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-                LocalDate requiredDate;
-
-                try {
-                    requiredDate = LocalDate.parse(requiredDateStr, formatter);
-                    if (requiredDate.isBefore(LocalDate.now())) {
-                        JOptionPane.showMessageDialog(dialog, "Required date cannot be in the past.", "Error", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-                } catch (DateTimeParseException ex) {
-                    JOptionPane.showMessageDialog(dialog, "Invalid date format. Please use YYYY-MM-DD.", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
 
                 PurchaseRequisition newPr = new PurchaseRequisition(
                     targetPrID,
@@ -1335,7 +1372,7 @@ public class SalesManager extends Manager implements ManageItemInterface{
                 prList.add(newPr);
             }
 
-            // STEP 3: Check for duplicate (targetPrID + itemID)
+            // Check for duplicate (targetPrID + itemID)
             for (PurchaseRequisitionItem otherItem : prItemList) {
                 if (!otherItem.equals(itemToEdit) &&
                     otherItem.getPrID().equalsIgnoreCase(targetPrID) &&
@@ -1348,8 +1385,22 @@ public class SalesManager extends Manager implements ManageItemInterface{
                 }
             }
 
-            // STEP 4: Update the item’s PR ID
+            // Update the item’s PR ID
             itemToEdit.setPrID(targetPrID);
+            
+            // After moving the item, check if the old PR has no more items
+            boolean hasOtherItems = false;
+            for (PurchaseRequisitionItem item : prItemList) {
+                if (!item.equals(itemToEdit) && item.getPrID().equalsIgnoreCase(prID)) {
+                    hasOtherItems = true;
+                    break;
+                }
+            }
+
+            if (!hasOtherItems) {
+                // Remove the old PR completely
+                prList.remove(prToEdit);
+            }
 
             FileUtil.saveListToFile(PURCHASE_REQUISITION_FILE, prList);
             FileUtil.saveListToFile(PURCHASE_REQUISITION_ITEM_FILE, prItemList);
@@ -1366,22 +1417,47 @@ public class SalesManager extends Manager implements ManageItemInterface{
 
     
     public void deletePurchaseRequisition(JFrame parent, List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, List<Item> itemList, JTable prTable) {
-        if (!isAllowedToPerform("delete pr")) {
-            JOptionPane.showMessageDialog(null, "Not authorized to delete purchase requisitions.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
+        
         int selectedRow = prTable.getSelectedRow();
 
         if (selectedRow == -1) {
             JOptionPane.showMessageDialog(parent, "Please select a purchase requisition to delete.", "No Selection", JOptionPane.WARNING_MESSAGE);
             return;
         }
+        
 
         String prId = prTable.getValueAt(selectedRow, 0).toString();
         String itemIdWithName = prTable.getValueAt(selectedRow, 1).toString();
         String itemId = itemIdWithName.split(" - ")[0];  // get only the item ID part
         String supplierId = prTable.getValueAt(selectedRow, 2).toString();
+        
+        if (!isAllowedToPerform("delete pr")) {
+            JOptionPane.showMessageDialog(null, "Not authorized to delete purchase requisitions.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        // Find the matching PR object
+        PurchaseRequisition prToDelete = null;
+        for (PurchaseRequisition pr : prList) {
+            if (pr.getPrID().equalsIgnoreCase(prId)) {
+                prToDelete = pr;
+                break;
+            }
+        }
+
+        if (prToDelete == null) {
+            JOptionPane.showMessageDialog(parent, "Purchase Requisition not found.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Only allow delete if status is PENDING
+        if (!"PENDING".equalsIgnoreCase(prToDelete.getStatus())) {
+            JOptionPane.showMessageDialog(parent,
+                "Only purchase requisitions with status PENDING can be deleted.",
+                "Delete Not Allowed",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
         // Confirm deletion
         int response = JOptionPane.showConfirmDialog(
@@ -1414,20 +1490,9 @@ public class SalesManager extends Manager implements ManageItemInterface{
                     }
                 }
 
-                if (!hasOtherItems) {
-                    // Remove the parent PR
-                    PurchaseRequisition prToDelete = null;
-                    for (PurchaseRequisition pr : prList) {
-                        if (pr.getPrID().equalsIgnoreCase(prId)) {
-                            prToDelete = pr;
-                            break;
-                        }
-                    }
-
-                    if (prToDelete != null) {
-                        prList.remove(prToDelete);
-                    }
-                }
+            if (!hasOtherItems) {
+                prList.remove(prToDelete);
+            }
 
                 // Step 3: Save updates
                 FileUtil.saveListToFile(PURCHASE_REQUISITION_FILE, prList);

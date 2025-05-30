@@ -197,6 +197,12 @@ public class SmManagePrWindow extends javax.swing.JFrame {
 
         PurchaseRequisition.updatePRTableInUI(filteredPr, prItemDataList, itemDataList, prTable);
     }
+    
+    private void uncheckAllPRCheckboxes() {
+        pendingPrCheckbox.setSelected(false);
+        approvedPrCheckbox.setSelected(false);
+        rejectedPrCheckbox.setSelected(false);
+    }
 
 
 
@@ -414,6 +420,7 @@ public class SmManagePrWindow extends javax.swing.JFrame {
     private void backButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backButtonActionPerformed
         // Update JTable to the latest
         PurchaseRequisition.updatePRTableInUI(prDataList, prItemDataList, itemDataList, prTable);
+        uncheckAllPRCheckboxes();
     }//GEN-LAST:event_backButtonActionPerformed
 
     private void searchFieldMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_searchFieldMouseClicked
@@ -425,6 +432,8 @@ public class SmManagePrWindow extends javax.swing.JFrame {
         loadPRsIntoTable();
         
         PurchaseRequisition.searchAndDisplayPRInTable(searchField, prTable, prDataList, itemDataList, prItemDataList);
+        
+        uncheckAllPRCheckboxes();
     }//GEN-LAST:event_searchButtonActionPerformed
 
     private void addPrButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addPrButtonActionPerformed
@@ -432,6 +441,8 @@ public class SmManagePrWindow extends javax.swing.JFrame {
         supplierItemDataList = SupplierItem.loadSupplierItems();
         itemDataList = Item.loadItems();
         salesManager.addPurchaseRequisition(this, itemDataList, prDataList, prItemDataList, supplierDataList, supplierItemDataList, prTable);
+        
+        uncheckAllPRCheckboxes();
     }//GEN-LAST:event_addPrButtonActionPerformed
 
     private void editPButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editPButtonActionPerformed
@@ -495,6 +506,8 @@ public class SmManagePrWindow extends javax.swing.JFrame {
         } else {
             promptForPRID();
         }
+        
+        uncheckAllPRCheckboxes();
     }//GEN-LAST:event_editPButtonActionPerformed
 
     private void deletePrButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deletePrButtonActionPerformed
@@ -503,6 +516,8 @@ public class SmManagePrWindow extends javax.swing.JFrame {
         itemDataList = Item.loadItems();
 
         salesManager.deletePurchaseRequisition(this, prDataList, prItemDataList, itemDataList, prTable);
+        
+        uncheckAllPRCheckboxes();
     }//GEN-LAST:event_deletePrButtonActionPerformed
 
     private void pendingPrCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pendingPrCheckboxActionPerformed
