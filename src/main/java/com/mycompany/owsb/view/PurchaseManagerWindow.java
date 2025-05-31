@@ -3,19 +3,18 @@ package com.mycompany.owsb.view;
 import com.mycompany.owsb.model.Item;
 import com.mycompany.owsb.model.PurchaseManager;
 import com.mycompany.owsb.model.PurchaseOrder;
+import com.mycompany.owsb.model.PurchaseRequestItemGroup;
 import com.mycompany.owsb.model.PurchaseRequisition;
 import com.mycompany.owsb.model.PurchaseRequisitionItem;
+import com.mycompany.owsb.model.Stats;
+import com.mycompany.owsb.model.SupplierPRGroup;
 import com.mycompany.owsb.model.User;
 import com.mycompany.owsb.model.WindowUtil;
-import com.mycompany.owsb.view.LoginWindow;
-import com.mycompany.owsb.view.PmViewItem;
 import java.util.ArrayList;
-import java.util.HashMap;
+
 import java.util.List;
-import java.util.Map;
+
 import java.util.stream.Collectors;
-import javax.swing.DefaultCellEditor;
-import javax.swing.JCheckBox;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.JOptionPane;
 /**
@@ -122,14 +121,14 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
 }
 
     
-     private void loadSummaryLabels() {
-    Map<String, Object> stats = purchaseManager.getSummaryStats();
+   private void loadSummaryLabels() {
+    Stats stats = purchaseManager.getSummaryStats();
 
-    lblTotalItems.setText(stats.get("totalItems").toString());
-    lblTotalSuppliers.setText(stats.get("totalSuppliers").toString());
-    lblPendingPRs.setText(stats.get("pendingPRs").toString());
-    lblPendingPOs.setText(stats.get("pendingPOs").toString());
-    Usernamelbl.setText(stats.get("username").toString());
+    lblTotalItems.setText(String.valueOf(stats.getTotalItems()));
+    lblTotalSuppliers.setText(String.valueOf(stats.getTotalSuppliers()));
+    lblPendingPRs.setText(String.valueOf(stats.getPendingPRs()));
+    lblPendingPOs.setText(String.valueOf(stats.getPendingPOs()));
+    Usernamelbl.setText(stats.getUsername());
 }
 
     
@@ -146,7 +145,7 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
     return itemIds;
 }
 
-    private void generatePOsFromSelectedRows() {
+   /* private void generatePOsFromSelectedRows() {
     DefaultTableModel model = (DefaultTableModel) prTable.getModel();
     if (model.getRowCount() == 0) {
         JOptionPane.showMessageDialog(this, "Table is empty. No PRs to process.", "Warning", JOptionPane.WARNING_MESSAGE);
@@ -201,6 +200,85 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
         for (int row = 0; row < model.getRowCount(); row++) {
             model.setValueAt(false, row, 9);
         }
+    } catch (IllegalArgumentException | IllegalStateException e) {
+        String statusFilter = Filter.getSelectedItem().toString();
+        loadPRTable(statusFilter);
+        JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, "Unexpected error generating POs: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+    }
+}*/
+    
+    private SupplierPRGroup findOrCreateSupplierGroup(List<SupplierPRGroup> groups, String supplierId) {
+    for (SupplierPRGroup group : groups) {
+        if (group.getSupplierId().equals(supplierId)) {
+            return group;
+        }
+    }
+    SupplierPRGroup newGroup = new SupplierPRGroup(supplierId);
+    groups.add(newGroup);
+    return newGroup;
+}
+
+
+    private void generatePOsFromSelectedRows() {
+    DefaultTableModel model = (DefaultTableModel) prTable.getModel();
+    if (model.getRowCount() == 0) {
+        JOptionPane.showMessageDialog(this, "Table is empty. No PRs to process.", "Warning", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
+    List<SupplierPRGroup> supplierGroups = new ArrayList<>();
+    boolean hasSelections = false;
+
+    for (int row = 0; row < model.getRowCount(); row++) {
+        Boolean isSelected = (Boolean) model.getValueAt(row, 9);
+        if (isSelected != null && isSelected) {
+            hasSelections = true;
+
+            String prId = model.getValueAt(row, 0).toString();
+            String itemId = model.getValueAt(row, 1).toString().split(" - ")[0];
+            String supplierId = model.getValueAt(row, 2).toString();
+            String status = model.getValueAt(row, 8).toString();
+
+            if (!status.equalsIgnoreCase("PENDING")) {
+                JOptionPane.showMessageDialog(this, "Only PENDING PRs can be selected for PO generation. Invalid PR: " + prId, "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            SupplierPRGroup supplierGroup = findOrCreateSupplierGroup(supplierGroups, supplierId);
+            PurchaseRequestItemGroup prGroup = supplierGroup.getOrCreatePRGroup(prId);
+            prGroup.addItem(itemId);
+        }
+    }
+
+    if (!hasSelections) {
+        JOptionPane.showMessageDialog(this, "No rows selected for PO generation.", "Warning", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
+    try {
+        int poCount = 0;
+        String createdBy = purchaseManager.getLoggedInUser().getUserId();
+
+        for (SupplierPRGroup supplierGroup : supplierGroups) {
+            purchaseManager.generatePurchaseOrdersFromMultiplePRs(
+                supplierGroup.getSupplierId(),
+                createdBy,
+                supplierGroup.getPrGroups()
+            );
+            poCount++;
+        }
+
+        String statusFilter = Filter.getSelectedItem().toString();
+        loadPRTable(statusFilter);
+
+        JOptionPane.showMessageDialog(this, "Successfully generated " + poCount + " purchase order(s).", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+        for (int row = 0; row < model.getRowCount(); row++) {
+            model.setValueAt(false, row, 9);
+        }
+
     } catch (IllegalArgumentException | IllegalStateException e) {
         String statusFilter = Filter.getSelectedItem().toString();
         loadPRTable(statusFilter);
@@ -528,17 +606,21 @@ if (searchQuery.isEmpty() || searchQuery.equalsIgnoreCase("Enter PR ID")) {
     List<PurchaseRequisitionItem> prItems = PurchaseRequisitionItem.loadPurchaseRequisitionItems();
     List<Item> items = purchaseManager.getAllItems();
 
-    // 🔥 Link items to each PR so pr.getItems() will work
+    // Link items to each PR without using streams
     for (PurchaseRequisition pr : allPRs) {
-        List<PurchaseRequisitionItem> itemsForPR = prItems.stream()
-            .filter(item -> item.getPrID().equalsIgnoreCase(pr.getPrID()))
-            .collect(Collectors.toList());
-        pr.setPRItems(itemsForPR); // Make sure your PurchaseRequisition class has this setter
+        List<PurchaseRequisitionItem> itemsForPR = new ArrayList<>();
+        for (PurchaseRequisitionItem item : prItems) {
+            if (item.getPrID().equalsIgnoreCase(pr.getPrID())) {
+                itemsForPR.add(item);
+            }
+        }
+        pr.setPRItems(itemsForPR); // Ensure this setter exists in your PurchaseRequisition class
     }
 
-    // ✅ Now call your unchanged method
+    // Call your existing method
     PurchaseRequisition.searchAndDisplayPRInTable(jTextField1, prTable, allPRs, items, prItems);
 }
+
 
     }//GEN-LAST:event_jButton6ActionPerformed
 

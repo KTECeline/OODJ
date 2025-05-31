@@ -14,8 +14,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
@@ -136,24 +136,26 @@ public class SalesManagerWindow extends javax.swing.JFrame {
         }
     }
     
+     
      public void filterPOTableByStatus() {
-    String selectedStatus = FilterPO.getSelectedItem().toString(); // e.g., "Pending", "Approved", "All"
-   purchaseOrderList = PurchaseOrder.loadPurchaseOrders();
-        allPRs = PurchaseRequisition.loadPurchaseRequisition();
-        
-    List<PurchaseOrder> filteredPOs;
+    String selectedStatus = FilterPO.getSelectedItem().toString();
+    List<PurchaseOrder> allPOs = PurchaseOrder.loadPurchaseOrders();
+    List<PurchaseRequisition> allPRs = PurchaseRequisition.loadPurchaseRequisition();
 
-    if (selectedStatus.equalsIgnoreCase("All")) {
-        filteredPOs = purchaseOrderList; // No filtering
+    List<PurchaseOrder> filteredPOs = new ArrayList<>();
+
+    if (selectedStatus.equalsIgnoreCase("ALL")) {
+        filteredPOs.addAll(allPOs);
     } else {
-        filteredPOs = purchaseOrderList.stream()
-            .filter(po -> po.getStatus().equalsIgnoreCase(selectedStatus))
-            .collect(Collectors.toList());
+        for (PurchaseOrder po : allPOs) {
+            if (po.getStatus().equalsIgnoreCase(selectedStatus)) {
+                filteredPOs.add(po);
+            }
+        }
     }
 
     PurchaseOrder.updatePOTableInUI(filteredPOs, allPRs, poTable);
 }
- 
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

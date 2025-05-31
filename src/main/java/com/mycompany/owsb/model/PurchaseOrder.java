@@ -10,11 +10,8 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -403,9 +400,6 @@ private static PurchaseRequisition getRequisitionById(String prID, List<Purchase
 }
 
     
-    
-   
-
    public static void applyStatusColorRenderer(JTable table) {
     table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
         @Override

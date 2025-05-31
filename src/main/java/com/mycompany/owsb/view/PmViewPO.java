@@ -12,9 +12,9 @@ import com.mycompany.owsb.model.SupplierItem;
 import com.mycompany.owsb.model.WindowUtil;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import javax.swing.JOptionPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -85,18 +85,25 @@ public class PmViewPO extends javax.swing.JFrame {
     PurchaseOrder.updatePOTableInUI(filteredPOs, allPRs, poTable);
 }*/
     public void filterPOTableByStatus() {
-        String selectedStatus = Filter.getSelectedItem().toString();
-        List<PurchaseOrder> allPOs = purchaseManager.getAllPurchaseOrders();
-        List<PurchaseRequisition> allPRs = purchaseManager.getAllRequisitions();
+    String selectedStatus = Filter.getSelectedItem().toString();
+    List<PurchaseOrder> allPOs = purchaseManager.getAllPurchaseOrders();
+    List<PurchaseRequisition> allPRs = purchaseManager.getAllRequisitions();
 
-        List<PurchaseOrder> filteredPOs = selectedStatus.equalsIgnoreCase("ALL") ?
-            allPOs :
-            allPOs.stream()
-                .filter(po -> po.getStatus().equalsIgnoreCase(selectedStatus))
-                .collect(Collectors.toList());
+    List<PurchaseOrder> filteredPOs = new ArrayList<>();
 
-        PurchaseOrder.updatePOTableInUI(filteredPOs, allPRs, poTable);
+    if (selectedStatus.equalsIgnoreCase("ALL")) {
+        filteredPOs.addAll(allPOs);
+    } else {
+        for (PurchaseOrder po : allPOs) {
+            if (po.getStatus().equalsIgnoreCase(selectedStatus)) {
+                filteredPOs.add(po);
+            }
+        }
     }
+
+    PurchaseOrder.updatePOTableInUI(filteredPOs, allPRs, poTable);
+}
+
 
     /*private void setupTableSelectionListener() {
         poTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
@@ -125,55 +132,75 @@ public class PmViewPO extends javax.swing.JFrame {
     }
 
     private void updateFieldsFromSelectedRow() {
-        int selectedRow = poTable.getSelectedRow();
-        if (selectedRow == -1) {
-            clearFields();
-            return;
-        }
-
-        String orderId = poTable.getValueAt(selectedRow, 0).toString();
-        String itemId = poTable.getValueAt(selectedRow, 1).toString();
-        String supplierId = poTable.getValueAt(selectedRow, 2).toString();
-        String quantityStr = poTable.getValueAt(selectedRow, 3).toString();
-        String totalPriceStr = poTable.getValueAt(selectedRow, 4).toString();
-        String orderDate = poTable.getValueAt(selectedRow, 5).toString();
-        String status = poTable.getValueAt(selectedRow, 6).toString();
-        String prId = poTable.getValueAt(selectedRow, 7).toString();
-        String requiredDate = poTable.getValueAt(selectedRow, 8).toString();
-        String createdBy = poTable.getValueAt(selectedRow, 9).toString();
-
-        // Calculate unit cost
-        try {
-            int quantity = Integer.parseInt(quantityStr);
-            double totalPrice = Double.parseDouble(totalPriceStr);
-            unitCost = quantity > 0 ? totalPrice / quantity : 0.0;
-        } catch (NumberFormatException e) {
-            unitCost = 0.0;
-        }
-
-        // Update fields
-        poField.setText(orderId);
-        itemField.setText(itemId);
-        quantityField.setText(quantityStr);
-        totalField.setText(totalPriceStr);
-        dateLbl.setText(orderDate);
-        statusField.setSelectedItem(status);
-        PRField.setText(prId);
-        RequiredField.setText(requiredDate);
-        createdField.setText(createdBy);
-
-        // Populate SupplierField with valid suppliers
-        SupplierField.removeAllItems();
-        List<SupplierItem> supplierItems = SupplierItem.loadSupplierItems();
-        List<String> validSuppliers = supplierItems.stream()
-            .filter(si -> si.getItemID().equalsIgnoreCase(itemId))
-            .map(SupplierItem::getSupplierID)
-            .distinct()
-            .sorted()
-            .collect(Collectors.toList());
-        validSuppliers.forEach(SupplierField::addItem);
-        SupplierField.setSelectedItem(supplierId);
+    int selectedRow = poTable.getSelectedRow();
+    if (selectedRow == -1) {
+        clearFields();
+        return;
     }
+
+    String orderId = poTable.getValueAt(selectedRow, 0).toString();
+    String itemId = poTable.getValueAt(selectedRow, 1).toString();
+    String supplierId = poTable.getValueAt(selectedRow, 2).toString();
+    String quantityStr = poTable.getValueAt(selectedRow, 3).toString();
+    String totalPriceStr = poTable.getValueAt(selectedRow, 4).toString();
+    String orderDate = poTable.getValueAt(selectedRow, 5).toString();
+    String status = poTable.getValueAt(selectedRow, 6).toString();
+    String prId = poTable.getValueAt(selectedRow, 7).toString();
+    String requiredDate = poTable.getValueAt(selectedRow, 8).toString();
+    String createdBy = poTable.getValueAt(selectedRow, 9).toString();
+
+    // Calculate unit cost
+    try {
+        int quantity = Integer.parseInt(quantityStr);
+        double totalPrice = Double.parseDouble(totalPriceStr);
+        unitCost = quantity > 0 ? totalPrice / quantity : 0.0;
+    } catch (NumberFormatException e) {
+        unitCost = 0.0;
+    }
+
+    // Update fields
+    poField.setText(orderId);
+    itemField.setText(itemId);
+    quantityField.setText(quantityStr);
+    totalField.setText(totalPriceStr);
+    dateLbl.setText(orderDate);
+    statusField.setSelectedItem(status);
+    PRField.setText(prId);
+    RequiredField.setText(requiredDate);
+    createdField.setText(createdBy);
+
+    // Populate SupplierField with valid suppliers without streams
+    SupplierField.removeAllItems();
+    List<SupplierItem> supplierItems = SupplierItem.loadSupplierItems();
+    List<String> validSuppliers = new ArrayList<>();
+
+    for (SupplierItem si : supplierItems) {
+        if (si.getItemID().equalsIgnoreCase(itemId)) {
+            String supId = si.getSupplierID();
+            // Add if not already in list (distinct)
+            boolean exists = false;
+            for (String s : validSuppliers) {
+                if (s.equalsIgnoreCase(supId)) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) {
+                validSuppliers.add(supId);
+            }
+        }
+    }
+
+    // Sort validSuppliers alphabetically
+    Collections.sort(validSuppliers, String.CASE_INSENSITIVE_ORDER);
+
+    for (String supId : validSuppliers) {
+        SupplierField.addItem(supId);
+    }
+
+    SupplierField.setSelectedItem(supplierId);
+}
+
     
     private void clearFields() {
         poField.setText("");
