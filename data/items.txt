@@ -1,5 +1,5 @@
-IT0001,Medium Size Tupperware,102,22.5,30.0,true
+IT0001,Medium Size Tupperware,117,22.5,30.0,true
 IT0002,Kuromi T-shirt,3,2.0,5.0,true
-IT0004,Rabbit Pink Bag,4,15.0,25.0,true
+IT0004,Rabbit Pink Bag,17,15.0,25.0,true
 IT0005,Bottle,14,20.0,50.0,false
 IT0006,Phone,10,1000.0,1200.0,true

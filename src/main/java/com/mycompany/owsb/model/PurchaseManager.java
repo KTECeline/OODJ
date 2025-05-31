@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -237,6 +238,7 @@ public class PurchaseManager extends Manager implements ManageItemInterface {
 
     return generatedPOs;
 }
+    
 public static String findExistingPOId(String prId) {
     try (BufferedReader reader = new BufferedReader(new FileReader(PURCHASE_ORDER_FILE))) {
         String line;
@@ -326,33 +328,64 @@ public static String findExistingPOId(String prId) {
      * Deletes a Purchase Order if it is in PENDING status.
      * @param poId The ID of the Purchase Order to delete.
      */
-    public void deletePurchaseOrder(String poId) {
-        PurchaseOrder po = PurchaseOrder.findById(poId);
-        if (po == null) {
-            JOptionPane.showMessageDialog(null, "Purchase Order not found.", "Error", JOptionPane.ERROR_MESSAGE);
-            throw new IllegalArgumentException("Purchase Order not found");
+    public void deletePurchaseOrderItem(String poId, String itemId) {
+        List<String> lines = new ArrayList<>();
+        boolean found = false;
+        String prId = null;
+        boolean isPending = true;
+        boolean hasRemainingItems = false;
+
+        // Read purchase_order.txt and filter out the specific item
+        try (BufferedReader reader = new BufferedReader(new FileReader(PURCHASE_ORDER_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length >= 9 && parts[0].equalsIgnoreCase(poId) && parts[1].equalsIgnoreCase(itemId)) {
+                    found = true;
+                    prId = parts[7]; // PR ID
+                    if (!parts[6].equalsIgnoreCase("PENDING")) {
+                        isPending = false;
+                    }
+                } else {
+                    lines.add(line);
+                    if (parts.length >= 9 && parts[0].equalsIgnoreCase(poId)) {
+                        hasRemainingItems = true;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Failed to read purchase orders.", "Error", JOptionPane.ERROR_MESSAGE);
+            throw new RuntimeException("Failed to read purchase orders", e);
         }
 
-        if (!po.getStatus().equals("PENDING")) {
-            JOptionPane.showMessageDialog(null, "Only pending orders can be deleted.", "Error", JOptionPane.ERROR_MESSAGE);
-            throw new IllegalStateException("Only pending orders can be deleted");
+        if (!found) {
+            JOptionPane.showMessageDialog(null, "Purchase Order item not found: PO " + poId + ", Item " + itemId, "Error", JOptionPane.ERROR_MESSAGE);
+            throw new IllegalArgumentException("Purchase Order item not found");
         }
 
-        List<PurchaseOrder> poList = PurchaseOrder.loadPurchaseOrders();
-        poList.removeIf(p -> p.getOrderID().equals(poId));
-        try (java.io.BufferedWriter writer = new java.io.BufferedWriter(new java.io.FileWriter(PURCHASE_ORDER_FILE))) {
-            for (PurchaseOrder p : poList) {
-                writer.write(p.toString());
+        if (!isPending) {
+            JOptionPane.showMessageDialog(null, "Only pending order items can be deleted.", "Error", JOptionPane.ERROR_MESSAGE);
+            throw new IllegalStateException("Only pending order items can be deleted");
+        }
+
+        // Write back remaining lines
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(PURCHASE_ORDER_FILE))) {
+            for (String line : lines) {
+                writer.write(line);
                 writer.newLine();
             }
-        } catch (java.io.IOException e) {
+        } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "Failed to save purchase orders.", "Error", JOptionPane.ERROR_MESSAGE);
+            throw new RuntimeException("Failed to save purchase orders", e);
         }
 
-        PurchaseRequisition pr = PurchaseRequisition.findById(po.getPrId());
-        if (pr != null) {
-            pr.setStatus("PENDING");
-            PurchaseRequisition.update(pr);
+        // Update PR status if no items remain
+        if (!hasRemainingItems && prId != null) {
+            PurchaseRequisition pr = PurchaseRequisition.findById(prId);
+            if (pr != null) {
+                pr.setStatus("PENDING");
+                PurchaseRequisition.update(pr);
+            }
         }
     }
 
@@ -389,7 +422,7 @@ public static String findExistingPOId(String prId) {
                                          targetTable);
 }
     public void updatePOTable(JTable targetTable) {
-        PurchaseOrder.updatePOTableInUI(getAllPurchaseOrders(), targetTable);
+        PurchaseOrder.updatePOTableInUI(getAllPurchaseOrders(), getAllRequisitions(), targetTable);
     }
 
     // Search Methods
@@ -406,7 +439,7 @@ public static String findExistingPOId(String prId) {
     }
 
     public void searchPO(JTextField searchField, JTable table) {
-        PurchaseOrder.searchAndDisplayPO(searchField, table, getAllPurchaseOrders());
+        PurchaseOrder.searchAndDisplayPO(searchField, table, getAllPurchaseOrders(), getAllRequisitions());
     }
 
     // Filter Methods
@@ -524,6 +557,76 @@ public static String findExistingPOId(String prId) {
     PurchaseRequisition.updatePRTableInUI(filteredPRs, prItems, items, targetTable);
 }
     
-    
-}
+    public void updatePurchaseOrderItem(String poId, String itemId, String newSupplierId, int newQuantity, double newTotalPrice, String newStatus) {
+          List<String> lines = new ArrayList<>();
+        boolean found = false;
+        String orderDate = null;
+        String prId = null;
+        String createdBy = null;
+        String originalSupplierId = null;
 
+        // Validate supplier
+        List<SupplierItem> supplierItems = SupplierItem.loadSupplierItems();
+        boolean isValidSupplier = supplierItems.stream()
+            .anyMatch(si -> si.getSupplierID().equalsIgnoreCase(newSupplierId) && si.getItemID().equalsIgnoreCase(itemId));
+        if (!isValidSupplier) {
+            JOptionPane.showMessageDialog(null, "Supplier " + newSupplierId + " does not supply item " + itemId, "Error", JOptionPane.ERROR_MESSAGE);
+            throw new IllegalArgumentException("Invalid supplier for item");
+        }
+
+        // Validate status
+        if (!Arrays.asList("PENDING", "APPROVED", "REJECTED", "RECEIVED", "UNFULFILLED", "COMPLETED").contains(newStatus)) {
+            JOptionPane.showMessageDialog(null, "Invalid status: " + newStatus, "Error", JOptionPane.ERROR_MESSAGE);
+            throw new IllegalArgumentException("Invalid status");
+        }
+
+        // Read and update the specific PO item
+        try (BufferedReader reader = new BufferedReader(new FileReader(PURCHASE_ORDER_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length >= 9 && parts[0].equalsIgnoreCase(poId) && parts[1].equalsIgnoreCase(itemId)) {
+                    found = true;
+                    orderDate = parts[5];
+                    prId = parts[7];
+                    createdBy = parts[8];
+                    originalSupplierId = parts[2];
+                    lines.add(String.format("%s,%s,%s,%d,%.1f,%s,%s,%s,%s",
+                        poId, itemId, newSupplierId, newQuantity, newTotalPrice,
+                        orderDate, newStatus, prId, createdBy));
+                } else {
+                    lines.add(line);
+                }
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Failed to read purchase orders.", "Error", JOptionPane.ERROR_MESSAGE);
+            throw new RuntimeException("Failed to read purchase orders", e);
+        }
+
+        if (!found) {
+            JOptionPane.showMessageDialog(null, "Purchase Order item not found: PO " + poId + ", Item " + itemId, "Error", JOptionPane.ERROR_MESSAGE);
+            throw new IllegalArgumentException("Purchase Order item not found");
+        }
+
+        // Write back updated lines
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(PURCHASE_ORDER_FILE))) {
+            for (String line : lines) {
+                writer.write(line);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Failed to save purchase orders.", "Error", JOptionPane.ERROR_MESSAGE);
+            throw new RuntimeException("Failed to save purchase orders", e);
+        }
+
+        // Update PR status if status is REJECTED or UNFULFILLED and supplier changed
+        if ((newStatus.equalsIgnoreCase("REJECTED") || newStatus.equalsIgnoreCase("UNFULFILLED")) &&
+            !newSupplierId.equalsIgnoreCase(originalSupplierId) && prId != null) {
+            PurchaseRequisition pr = PurchaseRequisition.findById(prId);
+            if (pr != null) {
+                pr.setStatus("PENDING");
+                PurchaseRequisition.update(pr);
+            }
+        }
+    }}
+  
