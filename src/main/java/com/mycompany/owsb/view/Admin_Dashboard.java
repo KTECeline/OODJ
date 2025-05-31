@@ -4,8 +4,10 @@
  */
 package com.mycompany.owsb.view;
 
+import com.mycompany.owsb.model.InventoryManager;
 import com.mycompany.owsb.model.User;
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -42,6 +44,9 @@ public class Admin_Dashboard extends javax.swing.JFrame {
         AdminDashboardText = new javax.swing.JLabel();
         UserManagement = new javax.swing.JButton();
         LogoutButton = new javax.swing.JButton();
+        itemListBtn1 = new javax.swing.JButton();
+        updateStockBtn = new javax.swing.JButton();
+        stockReportBtn = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -62,20 +67,49 @@ public class Admin_Dashboard extends javax.swing.JFrame {
             }
         });
 
+        itemListBtn1.setText("Item List");
+        itemListBtn1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                itemListBtn1ActionPerformed(evt);
+            }
+        });
+
+        updateStockBtn.setText("Update Stock");
+        updateStockBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                updateStockBtnActionPerformed(evt);
+            }
+        });
+
+        stockReportBtn.setText("Stock Report");
+        stockReportBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                stockReportBtnActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(93, Short.MAX_VALUE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(AdminDashboardText)
                 .addGap(91, 91, 91))
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(LogoutButton)
-                    .addComponent(UserManagement, javax.swing.GroupLayout.PREFERRED_SIZE, 149, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(UserManagement, javax.swing.GroupLayout.PREFERRED_SIZE, 149, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(78, 78, 78)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(stockReportBtn)
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addComponent(updateStockBtn, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(itemListBtn1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                .addGap(57, 57, 57))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -83,8 +117,14 @@ public class Admin_Dashboard extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(AdminDashboardText, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(UserManagement)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 191, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(UserManagement)
+                    .addComponent(itemListBtn1))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(updateStockBtn)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(stockReportBtn)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 121, Short.MAX_VALUE)
                 .addComponent(LogoutButton, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -104,6 +144,40 @@ public class Admin_Dashboard extends javax.swing.JFrame {
         LoginWindow loginWindow = new LoginWindow();
         loginWindow.setVisible(true);
     }//GEN-LAST:event_LogoutButtonActionPerformed
+
+    private void itemListBtn1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemListBtn1ActionPerformed
+        // TODO add your handling code here:
+        new Admin_ViewItemListWindow(loggedInUser).setVisible(true);
+    }//GEN-LAST:event_itemListBtn1ActionPerformed
+
+    private void updateStockBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateStockBtnActionPerformed
+
+        new Admin_UpdateStockWindow(loggedInUser).setVisible(true);
+    }//GEN-LAST:event_updateStockBtnActionPerformed
+
+    private void stockReportBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stockReportBtnActionPerformed
+        // Options for the dialog
+        String[] options = {"Overall Report", "Stock Movement Report"};
+
+        // Show option dialog
+        int choice = JOptionPane.showOptionDialog(
+            null,
+            "Choose report type:",
+            "Stock Report Selection",
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.INFORMATION_MESSAGE,
+            null,
+            options,
+            options[0]
+        );
+
+        // Handle option without using switch
+        if (choice == 0) {
+            new Admin_StockReportWindow1(loggedInUser).setVisible(true);
+        } else if (choice == 1) {
+            new Admin_StockReportWindow2(loggedInUser).setVisible(true);
+        }
+    }//GEN-LAST:event_stockReportBtnActionPerformed
 
     /**
      * @param args the command line arguments
@@ -147,5 +221,8 @@ public class Admin_Dashboard extends javax.swing.JFrame {
     private javax.swing.JLabel AdminDashboardText;
     private javax.swing.JButton LogoutButton;
     private javax.swing.JButton UserManagement;
+    private javax.swing.JButton itemListBtn1;
+    private javax.swing.JButton stockReportBtn;
+    private javax.swing.JButton updateStockBtn;
     // End of variables declaration//GEN-END:variables
 }

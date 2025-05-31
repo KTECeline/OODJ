@@ -248,7 +248,7 @@ public class IM_UpdateStockWindow extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_TableRowSelected
 
-    private void BackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BackActionPerformed
+    public void BackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BackActionPerformed
         this.dispose();  // Close current window
         new InventoryManagerWindow(loggedInUser).setVisible(true);
     }//GEN-LAST:event_BackActionPerformed

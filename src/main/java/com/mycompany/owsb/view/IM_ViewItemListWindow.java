@@ -137,7 +137,7 @@ public class IM_ViewItemListWindow extends javax.swing.JFrame {
     Item.updateItemTableInUI(itemList, ItemListTable);
     }//GEN-LAST:event_SearchButtonActionPerformed
 
-    private void BackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BackActionPerformed
+    public void BackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BackActionPerformed
         this.dispose();  // Close current window
         new InventoryManagerWindow(loggedInUser).setVisible(true);
     }//GEN-LAST:event_BackActionPerformed
