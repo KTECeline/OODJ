@@ -7,6 +7,7 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.DefaultListModel;
@@ -28,8 +29,8 @@ public class PurchaseOrder {
     private String status;
     private String prId;
     private String createdBy;
-    private List<PurchaseOrderItem> items;
-
+    private List<PurchaseOrder.PurchaseOrderItem> items;
+   
     private static final String PURCHASE_ORDER_FILE = "data/purchase_order.txt";
 
     // Inner class to represent an item in a PO
@@ -110,14 +111,14 @@ public class PurchaseOrder {
     }
 
     private boolean isValidStatus(String status) {
-    return status != null && 
-           (status.equals("PENDING") || 
-            status.equals("APPROVED") || 
-            status.equals("REJECTED") || 
-            status.equals("UNFULFILLED") ||
-            status.equals("RECEIVED") ||
-            status.equals("COMPLETED"));
-}
+        return status != null && 
+               (status.equals("PENDING") || 
+                status.equals("APPROVED") || 
+                status.equals("REJECTED") || 
+                status.equals("UNFULFILLED") ||
+                status.equals("RECEIVED") ||
+                status.equals("COMPLETED"));
+    }
     
     public String getOrderID() {
         return orderID;
@@ -304,12 +305,71 @@ public class PurchaseOrder {
         return String.format("PO%04d", maxId + 1);
     }
 
-    public static void updatePOTableInUI(List<PurchaseOrder> poList, JTable targetTable) {
-        String[] columnNames = {"PO ID", "Item ID", "Supplier ID", "Quantity", "Total Price (RM)", 
-                               "Order Date", "Status", "PR ID", "Created By"};
-        DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
+    public static void updatePOTableInUI(List<PurchaseOrder> poList, List<PurchaseRequisition> prList, JTable targetTable) {
+    String[] columnNames = {"PO ID", "Item ID", "Supplier ID", "Quantity", "Total Price (RM)", 
+                            "Order Date", "Status", "PR ID", "Required Date", "Created By"};
+    DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
 
-        for (PurchaseOrder po : poList) {
+    for (PurchaseOrder po : poList) {
+        PurchaseRequisition pr = getRequisitionById(po.getPrId(), prList);
+        String requiredDate = (pr != null) ? pr.getRequiredDate().toString() : "N/A";
+
+        for (PurchaseOrderItem item : po.getItems()) {
+            Object[] row = {
+                po.getOrderID(),
+                item.getItemID(),
+                po.getSupplierID(),
+                item.getQuantity(),
+                item.getTotalPrice(),
+                po.getOrderDate(),
+                po.getStatus(),
+                po.getPrId(),
+                requiredDate,  // <-- from PurchaseRequisition
+                po.getCreatedBy()
+            };
+            tableModel.addRow(row);
+        }
+    }
+    applyStatusColorRenderer(targetTable);
+    targetTable.setModel(tableModel);
+    Item.autoResizeColumnWidths(targetTable);
+    
+}
+
+private static PurchaseRequisition getRequisitionById(String prID, List<PurchaseRequisition> prList) {
+    for (PurchaseRequisition pr : prList) {
+        if (pr.getPrID().equalsIgnoreCase(prID)) {
+            return pr;
+        }
+    }
+    return null;
+}
+
+    
+    public static void searchAndDisplayPO(JTextField searchField, JTable targetTable, List<PurchaseOrder> poList, List<PurchaseRequisition> prList) {
+    String searchID = searchField.getText().trim().toUpperCase();
+    boolean found = false;
+
+    if (poList.isEmpty()) {
+        JOptionPane.showMessageDialog(null, "No Purchase Orders loaded.", "Warning", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
+    DefaultTableModel model = new DefaultTableModel(
+        new String[]{"PO ID", "Item ID", "Supplier ID", "Quantity", "Total Price (RM)", 
+                     "Order Date", "Status", "PR ID", "Required Date", "Created By"}, 0);
+
+    for (PurchaseOrder po : poList) {
+        if (po.getOrderID().equalsIgnoreCase(searchID)) {
+            // Find matching Purchase Requisition
+            LocalDate requiredDate = null;
+            for (PurchaseRequisition pr : prList) {
+                if (pr.getPrID().equals(po.getPrId())) {
+                    requiredDate = pr.getRequiredDate();
+                    break;
+                }
+            }
+
             for (PurchaseOrderItem item : po.getItems()) {
                 Object[] row = {
                     po.getOrderID(),
@@ -320,63 +380,28 @@ public class PurchaseOrder {
                     po.getOrderDate(),
                     po.getStatus(),
                     po.getPrId(),
+                    requiredDate != null ? requiredDate.toString() : "N/A",
                     po.getCreatedBy()
                 };
-                tableModel.addRow(row);
+                model.addRow(row);
             }
+            found = true;
+            break;
         }
-
-        targetTable.setModel(tableModel);
-        Item.autoResizeColumnWidths(targetTable);
-        
-        applyStatusColorRenderer(targetTable);
     }
-   
 
+    targetTable.setModel(model);
+    applyStatusColorRenderer(targetTable);
+    Item.autoResizeColumnWidths(targetTable);
+
+    if (!found) {
+        JOptionPane.showMessageDialog(null, "Purchase Order ID not found.", "Not Found", JOptionPane.INFORMATION_MESSAGE);
+        updatePOTableInUI(poList, prList, targetTable); // Refresh with full table
+    }
     
-    public static void searchAndDisplayPO(JTextField searchField, JTable targetTable, List<PurchaseOrder> poList) {
-        String searchID = searchField.getText().trim().toUpperCase();
-        boolean found = false;
+    searchField.setText("Enter PO ID");
+}
 
-        if (poList.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "No Purchase Orders loaded.", "Warning", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        DefaultTableModel model = new DefaultTableModel(
-            new String[]{"PO ID", "Item ID", "Supplier ID", "Quantity", "Total Price (RM)", 
-                         "Order Date", "Status", "PR ID", "Created By"}, 0);
-
-        for (PurchaseOrder po : poList) {
-            if (po.getOrderID().equalsIgnoreCase(searchID)) {
-                for (PurchaseOrderItem item : po.getItems()) {
-                    Object[] row = {
-                        po.getOrderID(),
-                        item.getItemID(),
-                        po.getSupplierID(),
-                        item.getQuantity(),
-                        item.getTotalPrice(),
-                        po.getOrderDate(),
-                        po.getStatus(),
-                        po.getPrId(),
-                        po.getCreatedBy()
-                    };
-                    model.addRow(row);
-                }
-                found = true;
-                break;
-            }
-        }
-
-        targetTable.setModel(model);
-        Item.autoResizeColumnWidths(targetTable);
-
-        if (!found) {
-            JOptionPane.showMessageDialog(null, "Purchase Order ID not found.", "Not Found", JOptionPane.INFORMATION_MESSAGE);
-            updatePOTableInUI(poList, targetTable);
-        }
-        searchField.setText("Enter PO ID");
-    }
     
     
    
@@ -405,6 +430,9 @@ public class PurchaseOrder {
                         break;
                     case "RECEIVED":
                         c.setBackground(new Color(200, 220, 255)); // Light Blue
+                        break;
+                    case "UNFULFILLED":
+                        c.setBackground(new Color(255, 255, 204)); // Light Yellow
                         break;
                     default:
                         c.setBackground(Color.WHITE); // Default

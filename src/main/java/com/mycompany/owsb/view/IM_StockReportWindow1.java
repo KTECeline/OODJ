@@ -187,7 +187,7 @@ public class IM_StockReportWindow1 extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void BackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BackActionPerformed
+    public void BackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BackActionPerformed
         this.dispose();  // Close current window
         new InventoryManagerWindow(loggedInUser).setVisible(true);
     }//GEN-LAST:event_BackActionPerformed
