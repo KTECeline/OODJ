@@ -4,7 +4,7 @@
  */
 package com.mycompany.owsb.view;
 import com.mycompany.owsb.model.User;
-import com.mycompany.owsb.view.AdminWindow;
+import com.mycompany.owsb.view.Admin_UserManage;
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -22,13 +22,13 @@ import javax.swing.JOptionPane;
  */
 public class UpdateUserWindow extends javax.swing.JFrame {
 
-    private AdminWindow parentWindow;
+    private Admin_UserManage parentWindow;
     private User currentUser; // Variable to hold the current user details
 
     /**
      * Creates new form UpdateUserUI
      */
-    public UpdateUserWindow(AdminWindow parentWindow, User currentUser) {
+    public UpdateUserWindow(Admin_UserManage parentWindow, User currentUser) {
         initComponents();
         this.parentWindow = parentWindow;
         this.currentUser = currentUser; // Initialize currentUser

@@ -8,6 +8,7 @@ import com.mycompany.owsb.model.User;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.List;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -19,10 +20,10 @@ import javax.swing.SwingUtilities;
  */
 public class CreateUserWindow extends javax.swing.JFrame {
 
-    private AdminWindow parentWindow;
+    private Admin_UserManage parentWindow;
+    private boolean adminRoleEnabled = true;
 
-    
-    public CreateUserWindow(AdminWindow parentWindow) {
+    public CreateUserWindow(Admin_UserManage parentWindow) {
         this.parentWindow = parentWindow; //user management homepage
         initComponents();
         setupWindowListener();
@@ -49,6 +50,30 @@ public class CreateUserWindow extends javax.swing.JFrame {
             && password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\|,.<>/?].*"); // Check for at least one special character
     }
 
+    // Add this method to enable/disable Administrator role
+    public void setAdminRoleEnabled(boolean enabled) {
+        adminRoleEnabled = enabled;
+        
+        // Update the role combo box options
+        DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) role.getModel();
+        
+        // Clear existing items
+        model.removeAllElements();
+        
+        // Add available roles based on permissions
+        model.addElement("Sales Manager");
+        model.addElement("Purchase Manager");
+        model.addElement("Inventory Manager");
+        model.addElement("Finance Manager");
+        
+        // Add Administrator role only if enabled
+        if (adminRoleEnabled) {
+            model.addElement("Administrator");
+            // Only Root Administrator can create other Root Administrator accounts
+            model.addElement("Root Administrator");
+        }
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

@@ -110,14 +110,14 @@ public class PurchaseOrder {
     }
 
     private boolean isValidStatus(String status) {
-    return status != null && 
-           (status.equals("PENDING") || 
-            status.equals("APPROVED") || 
-            status.equals("REJECTED") || 
-            status.equals("UNFULFILLED") ||
-            status.equals("RECEIVED") ||
-            status.equals("COMPLETED"));
-}
+        return status != null && 
+               (status.equals("PENDING") || 
+                status.equals("APPROVED") || 
+                status.equals("REJECTED") || 
+                status.equals("UNFULFILLED") ||
+                status.equals("RECEIVED") ||
+                status.equals("COMPLETED"));
+    }
     
     public String getOrderID() {
         return orderID;

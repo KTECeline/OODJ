@@ -276,8 +276,8 @@ public class LoginWindow extends javax.swing.JFrame {
             new InventoryManagerWindow(loggedInUser).setVisible(true);
         } else if ("Finance Manager".equals(role)) {
             new FinanceManagerWindow(loggedInUser).setVisible(true);
-        } else if ("Administrator".equals(role)) {
-            new AdminWindow(loggedInUser).setVisible(true);
+        } else if ("Administrator".equals(role) || "Root Administrator".equals(role)) {
+            new Admin_Dashboard(loggedInUser).setVisible(true);
         } else {
             JOptionPane.showMessageDialog(this, "Unknown role: " + role, "Error", JOptionPane.ERROR_MESSAGE);
         }

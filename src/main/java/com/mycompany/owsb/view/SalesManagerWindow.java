@@ -8,13 +8,13 @@ import com.mycompany.owsb.model.Item;
 import com.mycompany.owsb.model.PurchaseOrder;
 import com.mycompany.owsb.model.SalesManager;
 import com.mycompany.owsb.model.User;
+import com.mycompany.owsb.model.WindowUtil;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
@@ -85,6 +85,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
 
         // Re-add existing components to the background panel
         backgroundPanel.add(loggedInUsernameLabel);
+        backgroundPanel.add(usernamePanel);
         backgroundPanel.add(logOutButton);
         backgroundPanel.add(lowStockAlertButton);
         backgroundPanel.add(ManageSuppliersButton);
@@ -98,7 +99,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
         backgroundPanel.add(poTable);
         backgroundPanel.add(jScrollPane1);
         
-        // Set bounds for the components position (x, y, width, height)
+        // Add JTable instances to JScrollPane components
         jScrollPane1.setViewportView(poTable);
 
         pack(); // Adjusts frame size based on the preferred size of the content pane
@@ -168,13 +169,14 @@ public class SalesManagerWindow extends javax.swing.JFrame {
         ManagePRButton = new javax.swing.JButton();
         searchField = new javax.swing.JTextField();
         searchButton = new javax.swing.JButton();
-        loggedInUsernameLabel = new javax.swing.JLabel();
         logOutButton = new javax.swing.JButton();
         lowStockAlertButton = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         poTable = new javax.swing.JTable();
         FilterPO = new javax.swing.JComboBox<>();
         backButton = new javax.swing.JButton();
+        usernamePanel = new javax.swing.JPanel();
+        loggedInUsernameLabel = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Sales Manager");
@@ -233,11 +235,6 @@ public class SalesManagerWindow extends javax.swing.JFrame {
             }
         });
 
-        loggedInUsernameLabel.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
-        loggedInUsernameLabel.setForeground(new java.awt.Color(51, 51, 51));
-        loggedInUsernameLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        loggedInUsernameLabel.setText("Welcome");
-
         logOutButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
         logOutButton.setForeground(new java.awt.Color(51, 51, 51));
         logOutButton.setText("Log Out");
@@ -275,7 +272,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
         jScrollPane1.setViewportView(poTable);
 
         FilterPO.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
-        FilterPO.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ALL", "PENDING", "APPROVED", "REJECTED", "RECEIVED", "COMPLETED" }));
+        FilterPO.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ALL", "PENDING", "APPROVED", "REJECTED", "RECEIVED", "UNFULFILLED", "COMPLETED" }));
         FilterPO.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 FilterPOActionPerformed(evt);
@@ -292,15 +289,43 @@ public class SalesManagerWindow extends javax.swing.JFrame {
             }
         });
 
+        usernamePanel.setBackground(new java.awt.Color(255, 255, 255));
+
+        loggedInUsernameLabel.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        loggedInUsernameLabel.setForeground(new java.awt.Color(51, 51, 51));
+        loggedInUsernameLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        loggedInUsernameLabel.setText("Welcome");
+
+        javax.swing.GroupLayout usernamePanelLayout = new javax.swing.GroupLayout(usernamePanel);
+        usernamePanel.setLayout(usernamePanelLayout);
+        usernamePanelLayout.setHorizontalGroup(
+            usernamePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, usernamePanelLayout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(loggedInUsernameLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(291, 291, 291))
+        );
+        usernamePanelLayout.setVerticalGroup(
+            usernamePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(usernamePanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(loggedInUsernameLabel)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(usernamePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
-                .addGap(33, 33, 33)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addContainerGap()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 655, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                        .addGap(33, 33, 33)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(layout.createSequentialGroup()
@@ -319,24 +344,19 @@ public class SalesManagerWindow extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(logOutButton)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(loggedInUsernameLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(126, 126, 126)))
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                             .addComponent(FilterPO, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(ManageItemsButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(lowStockAlertButton, javax.swing.GroupLayout.DEFAULT_SIZE, 155, Short.MAX_VALUE)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(2, 2, 2)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 689, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(39, Short.MAX_VALUE))
+                            .addComponent(lowStockAlertButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                .addContainerGap(52, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(36, 36, 36)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addComponent(usernamePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(loggedInUsernameLabel)
                     .addComponent(logOutButton)
                     .addComponent(lowStockAlertButton, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(27, 27, 27)
@@ -353,7 +373,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
                     .addComponent(backButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 265, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(43, Short.MAX_VALUE))
+                .addGap(27, 27, 27))
         );
 
         pack();
@@ -394,10 +414,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_ManageSalesButtonActionPerformed
 
     private void logOutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logOutButtonActionPerformed
-        this.dispose(); // Closes the current SalesManagerWindow
-
-        LoginWindow loginWindow = new LoginWindow();
-        loginWindow.setVisible(true);
+        WindowUtil.logoutAndRedirectToLogin(this);
     }//GEN-LAST:event_logOutButtonActionPerformed
 
     private void lowStockAlertButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lowStockAlertButtonActionPerformed
@@ -434,5 +451,6 @@ public class SalesManagerWindow extends javax.swing.JFrame {
     private javax.swing.JTable poTable;
     private javax.swing.JButton searchButton;
     private javax.swing.JTextField searchField;
+    private javax.swing.JPanel usernamePanel;
     // End of variables declaration//GEN-END:variables
 }
