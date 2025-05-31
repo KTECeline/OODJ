@@ -29,7 +29,7 @@ import javax.swing.JPasswordField;
  * Represents a Purchase Manager user with functionalities to view items, suppliers,
  * purchase requisitions, generate purchase orders, and manage (edit/delete) purchase orders.
  */
-public class PurchaseManager extends Manager implements ManageItemInterface {
+public class PurchaseManager extends Manager implements ManageItemInterface, ManagePOInterface {
 
     private static final String PURCHASE_ORDER_FILE = "data/purchase_order.txt";
     private static final String PURCHASE_REQUISITION_FILE = "data/purchase_requisition.txt";
@@ -810,6 +810,13 @@ public static String findExistingPOId(String prId) {
         PurchaseOrder.searchAndDisplayPO(searchField, table, getAllPurchaseOrders(), getAllRequisitions());
     }
 
+    @Override
+    public List<PurchaseOrder> searchPOs(String poId) {
+        return PurchaseOrder.loadPurchaseOrders().stream()
+                .filter(po -> po.getOrderID().toLowerCase().contains(poId.toLowerCase()))
+                .toList();
+    }
+
     // Filter Methods
     public List<PurchaseOrder> getOrdersByStatus(String status) {
         return getAllPurchaseOrders().stream()
@@ -1037,5 +1044,25 @@ public static String findExistingPOId(String prId) {
         }
     }
 }
+
+    @Override
+    public List<PurchaseOrder> generatePO(String supplierId, String createdBy, String prId, List<String> itemIds) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void editPOItem(String poId, String itemId, String newSupplierId, int newQuantity, double newTotalPrice, String newStatus) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void deletePOItem(String poId, String itemId) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public List<PurchaseOrder> viewPOs() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
 }
   

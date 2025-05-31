@@ -1,2 +1,4 @@
 2025-06-01 02:35:03,celine,Purchase Manager,PO Item Update/Edit changed by Purchase Manager,PO0004,IT0004,PENDING->APPROVED
 2025-06-01 02:50:50,celine,Purchase Manager,PO Created by Purchase Manager,PO:PO0007,PR:PR0008,Supplier:SP0002,Items:IT0002:Qty=20;
+2025-06-01 03:35:32,celine,Purchase Manager,PO Item Update/Edit changed by Purchase Manager,PO0004,IT0004,APPROVED->PENDING
+2025-06-01 03:36:01,celine,Purchase Manager,PO Item Deleted by Purchase Manager,PO:PO0007,Item:IT0002

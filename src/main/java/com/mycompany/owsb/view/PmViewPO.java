@@ -9,12 +9,14 @@ import com.mycompany.owsb.model.PurchaseManager;
 import com.mycompany.owsb.model.PurchaseOrder;
 import com.mycompany.owsb.model.PurchaseRequisition;
 import com.mycompany.owsb.model.SupplierItem;
+import com.mycompany.owsb.model.User;
 import com.mycompany.owsb.model.WindowUtil;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -29,6 +31,7 @@ import javax.swing.event.ListSelectionListener;
 public class PmViewPO extends javax.swing.JFrame {
      private final PurchaseManagerWindow parentWindow;
     private final PurchaseManager purchaseManager;
+    
     private double unitCost = 0.0;
     /**
      * Creates new form SmManageDailySalesWindow
@@ -37,12 +40,15 @@ public class PmViewPO extends javax.swing.JFrame {
     public PmViewPO(PurchaseManagerWindow parentWindow, PurchaseManager purchaseManager) {
         this.parentWindow = parentWindow;
         this.purchaseManager = purchaseManager;
+        
         initComponents();
         setupWindowListener();
         
         loadPOsIntoList();
         setupTableSelectionListener();
         setupQuantityFieldListener();
+        String username = purchaseManager.getLoggedInUser().getUsername();
+        Usernamelbl.setText(username);
     }
     
      private void setupWindowListener() {
