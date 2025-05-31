@@ -1,5 +1,7 @@
 package com.mycompany.owsb.model;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
@@ -13,6 +15,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -34,6 +37,7 @@ public class PurchaseOrder {
         private String itemID;
         private int quantity;
         private double totalPrice;
+        private String prId; 
 
         public PurchaseOrderItem(String itemID, int quantity, double totalPrice) {
             if (itemID == null || itemID.isEmpty()) {
@@ -75,6 +79,11 @@ public class PurchaseOrder {
             }
             this.totalPrice = totalPrice;
         }
+
+        public void setPrId(String prId) {
+        this.prId = prId;
+    }
+   
     }
 
     // Constructor
@@ -139,6 +148,9 @@ public class PurchaseOrder {
     }
 
     // Setters
+    
+    
+    
     public void setStatus(String status) {
         if (!isValidStatus(status)) {
             throw new IllegalArgumentException("Invalid status value");
@@ -179,21 +191,27 @@ public class PurchaseOrder {
     }
 
     public static PurchaseOrder fromString(String orderString) {
-        String[] orderData = orderString.split(",", 9);
-        String orderID = orderData[0];
-        String itemID = orderData[1];
-        String supplierID = orderData[2];
-        int quantity = Integer.parseInt(orderData[3]);
-        double totalPrice = Double.parseDouble(orderData[4]);
-        String orderDate = orderData[5];
-        String status = orderData[6];
-        String prId = orderData[7];
-        String createdBy = orderData[8];
+    String[] orderData = orderString.split(",", 9);
 
-        PurchaseOrder po = new PurchaseOrder(orderID, supplierID, orderDate, status, prId, createdBy);
-        po.addItem(new PurchaseOrderItem(itemID, quantity, totalPrice));
-        return po;
+    if (orderData.length < 9) {
+        throw new IllegalArgumentException("Malformed line in purchase_order.txt: " + orderString);
     }
+
+    String orderID = orderData[0];
+    String itemID = orderData[1];
+    String supplierID = orderData[2];
+    int quantity = Integer.parseInt(orderData[3]);
+    double totalPrice = Double.parseDouble(orderData[4]);
+    String orderDate = orderData[5];
+    String status = orderData[6];
+    String prId = orderData[7];
+    String createdBy = orderData[8];
+
+    PurchaseOrder po = new PurchaseOrder(orderID, supplierID, orderDate, status, prId, createdBy);
+    po.addItem(new PurchaseOrderItem(itemID, quantity, totalPrice));
+    return po;
+}
+
 
     public String getFormattedDetails() {
         StringBuilder sb = new StringBuilder();
@@ -310,6 +328,8 @@ public class PurchaseOrder {
 
         targetTable.setModel(tableModel);
         Item.autoResizeColumnWidths(targetTable);
+        
+         applyStatusColorRenderer(targetTable);
     }
     
     // Sales Manager View PO List
@@ -401,6 +421,37 @@ public class PurchaseOrder {
              poDetails.setText("Purchase Order ID not found.");
         }
     }
+
+   public static void applyStatusColorRenderer(JTable table) {
+    table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                                                       boolean hasFocus, int row, int column) {
+            Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            String status = table.getValueAt(row, 6).toString(); // Column index of "Status"
+
+            if (!isSelected) {
+                switch (status.toUpperCase()) {
+                    case "REJECTED":
+                        c.setBackground(new Color(255, 204, 204)); // Light red
+                        break;
+                    case "COMPLETED":
+                        c.setBackground(new Color(204, 255, 204)); // Light green
+                        break;
+                    case "APPROVED":
+                        c.setBackground(new Color(229, 204, 255)); // Light purple
+                        break;
+                    default:
+                        c.setBackground(Color.WHITE); // Default
+                        break;
+                }
+            }
+
+            return c;
+        }
+    });
+}
+
 
     
 }

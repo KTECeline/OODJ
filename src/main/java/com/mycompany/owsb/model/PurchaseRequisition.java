@@ -307,6 +307,28 @@ public class PurchaseRequisition {
             }
         });
 }
+    
+    public void setPRItems(List<PurchaseRequisitionItem> items) {
+    this.items = items;
+}
+
+public List<PurchaseRequisitionItem> getPRItems() {
+    return items;
+}
+
+
+public static List<PurchaseRequisition> filterByStatus(List<PurchaseRequisition> prList, String status) {
+    if (status.equalsIgnoreCase("ALL")) {
+        return prList;
+    }
+    List<PurchaseRequisition> filtered = new ArrayList<>();
+    for (PurchaseRequisition pr : prList) {
+        if (pr.getStatus().equalsIgnoreCase(status)) {
+            filtered.add(pr);
+        }
+    }
+    return filtered;
+}
 
 
     
