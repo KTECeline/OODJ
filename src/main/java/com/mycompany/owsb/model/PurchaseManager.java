@@ -390,7 +390,7 @@ public static String findExistingPOId(String prId) {
                                          targetTable);
 }
     public void updatePOTable(JTable targetTable) {
-        PurchaseOrder.updatePOTableInUI(getAllPurchaseOrders(), targetTable);
+        PurchaseOrder.updatePOTableInUI(getAllPurchaseOrders(), getAllRequisitions(), targetTable);
     }
 
     // Search Methods
@@ -407,7 +407,7 @@ public static String findExistingPOId(String prId) {
     }
 
     public void searchPO(JTextField searchField, JTable table) {
-        PurchaseOrder.searchAndDisplayPO(searchField, table, getAllPurchaseOrders());
+        PurchaseOrder.searchAndDisplayPO(searchField, table, getAllPurchaseOrders(), getAllRequisitions());
     }
 
     // Filter Methods

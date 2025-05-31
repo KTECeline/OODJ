@@ -6,6 +6,7 @@ package com.mycompany.owsb.view;
 
 import com.mycompany.owsb.model.Item;
 import com.mycompany.owsb.model.PurchaseOrder;
+import com.mycompany.owsb.model.PurchaseRequisition;
 import com.mycompany.owsb.model.SalesManager;
 import com.mycompany.owsb.model.User;
 import com.mycompany.owsb.model.WindowUtil;
@@ -15,6 +16,7 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
@@ -31,6 +33,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
 
     // List to hold all loaded purchase orders
     private List<PurchaseOrder> purchaseOrderList;
+    private List<PurchaseRequisition> allPRs;
     private List<Item> itemList;
 
 
@@ -111,9 +114,9 @@ public class SalesManagerWindow extends javax.swing.JFrame {
     private void loadPOsIntoList() {
         // Load the list of Purchase Orders from the purchase order file
         purchaseOrderList = PurchaseOrder.loadPurchaseOrders();
-        
+        allPRs = PurchaseRequisition.loadPurchaseRequisition();
         // Update the JList and details area in the UI with the loaded Purchase Orders
-        PurchaseOrder.updatePOTableInUI(purchaseOrderList, poTable);
+        PurchaseOrder.updatePOTableInUI(purchaseOrderList, allPRs, poTable);
     }
     
     private void updateLowStockAlertButton() {
@@ -134,25 +137,23 @@ public class SalesManagerWindow extends javax.swing.JFrame {
         }
     }
     
-    public void filterPOTableByStatus() {
-        String selectedStatus = FilterPO.getSelectedItem().toString(); // e.g., "Pending", "Approved", "All"
-        List<PurchaseOrder> allPOs = PurchaseOrder.loadPurchaseOrders();
+     public void filterPOTableByStatus() {
+    String selectedStatus = FilterPO.getSelectedItem().toString(); // e.g., "Pending", "Approved", "All"
+   purchaseOrderList = PurchaseOrder.loadPurchaseOrders();
+        allPRs = PurchaseRequisition.loadPurchaseRequisition();
+        
+    List<PurchaseOrder> filteredPOs;
 
-        List<PurchaseOrder> filteredPOs = new ArrayList<>();
-
-        if (selectedStatus.equalsIgnoreCase("All")) {
-            filteredPOs = allPOs; // No filtering
-        } else {
-            for (PurchaseOrder po : allPOs) {
-                if (po.getStatus().equalsIgnoreCase(selectedStatus)) {
-                    filteredPOs.add(po);
-                }
-            }
-        }
-
-        PurchaseOrder.updatePOTableInUI(filteredPOs, poTable);
+    if (selectedStatus.equalsIgnoreCase("All")) {
+        filteredPOs = purchaseOrderList; // No filtering
+    } else {
+        filteredPOs = purchaseOrderList.stream()
+            .filter(po -> po.getStatus().equalsIgnoreCase(selectedStatus))
+            .collect(Collectors.toList());
     }
 
+    PurchaseOrder.updatePOTableInUI(filteredPOs, allPRs, poTable);
+}
  
     /**
      * This method is called from within the constructor to initialize the form.
@@ -400,7 +401,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
 
     private void searchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchButtonActionPerformed
         //PurchaseOrder.searchAndDisplayPO(searchField, poDetails, purchaseOrderList);
-        PurchaseOrder.searchAndDisplayPO(searchField, poTable, purchaseOrderList);
+        PurchaseOrder.searchAndDisplayPO(searchField, poTable, purchaseOrderList, allPRs);
     }//GEN-LAST:event_searchButtonActionPerformed
 
     private void searchFieldMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_searchFieldMouseClicked
@@ -430,7 +431,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
 
     private void backButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backButtonActionPerformed
         // Update JTable to the latest
-        PurchaseOrder.updatePOTableInUI(purchaseOrderList, poTable);
+        PurchaseOrder.updatePOTableInUI(purchaseOrderList, allPRs, poTable);
     }//GEN-LAST:event_backButtonActionPerformed
 
     /**

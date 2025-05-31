@@ -329,14 +329,7 @@ public static List<PurchaseRequisition> filterByStatus(List<PurchaseRequisition>
     }
     return filtered;
 }
-public static PurchaseRequisition getPRByID(String prID, List<PurchaseRequisition> prList){
-    for (PurchaseRequisition pr: prList){
-        if (pr.getPrID().equalsIgnoreCase(prID)){
-            return pr;
-        }
-    }
-    return null;
-}
+
 
     
 }
