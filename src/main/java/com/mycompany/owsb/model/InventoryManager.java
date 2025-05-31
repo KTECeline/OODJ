@@ -8,7 +8,7 @@ public class InventoryManager extends Manager {
 
     @Override
     public boolean isAllowedToPerform(String action) {
-        if (getDepartment().equalsIgnoreCase("Inventory Manager")) {
+        if (getDepartment().equalsIgnoreCase("Inventory Manager") || getDepartment().equalsIgnoreCase("Administrator") ||getDepartment().equalsIgnoreCase("Root Administrator")) {
             // Inventory Manager allowed actions
             if (action.equalsIgnoreCase("ViewItemList") ||
                 action.equalsIgnoreCase("UpdateStock") ||

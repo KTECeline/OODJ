@@ -11,12 +11,12 @@ package com.mycompany.owsb.model;
  * @author timi
  */
 public class User {
-    private final String userId;     // New field with pattern U001, U002, etc.
+    private final String userId;
     private final String username;
     private String password;
     private String role;
     
-    private static int lastUserId = 0;  // To track the last assigned ID
+    private static int lastUserId = 0;
 
     
     

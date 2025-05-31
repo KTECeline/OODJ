@@ -1,7 +1,10 @@
 package com.mycompany.owsb.view;
 
 import com.mycompany.owsb.model.IM_StockReport2;
+import com.mycompany.owsb.model.Item;
 import com.mycompany.owsb.model.User;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.table.DefaultTableModel;
 
 public class IM_StockReportWindow2 extends javax.swing.JFrame {
@@ -18,12 +21,37 @@ public class IM_StockReportWindow2 extends javax.swing.JFrame {
         ItemSelect.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 String selectedItemID = ItemSelect.getSelectedValue();
-                DefaultTableModel model = report.getStockMovementsForItem(selectedItemID);
-                StockMovementTable.setModel(model);
+                if (selectedItemID != null) {
+                    DefaultTableModel model = report.getStockMovementsForItem(selectedItemID);
+                    StockMovementTable.setModel(model);
+                }
             }
         });
     }
 
+    public void lowStockFilter() {
+        List<Item> items = Item.loadItems();
+        List<String> filteredItemIDs = new ArrayList<>();
+
+        if (LowStockCheckBox.isSelected()) {
+            for (Item item : items) {
+                if ("Low".equalsIgnoreCase(item.getStockLevel())) {
+                    filteredItemIDs.add(item.getItemID());
+                }
+            }
+        } else {
+            for (Item item : items) {
+                filteredItemIDs.add(item.getItemID());
+            }
+        }
+
+        String[] itemArray = filteredItemIDs.toArray(new String[0]);
+        ItemSelect.setListData(itemArray);
+
+        ((DefaultTableModel) StockMovementTable.getModel()).setRowCount(0);
+    }   
+
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -39,6 +67,8 @@ public class IM_StockReportWindow2 extends javax.swing.JFrame {
         jScrollPane2 = new javax.swing.JScrollPane();
         ItemSelect = new javax.swing.JList<>();
         Back = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
+        LowStockCheckBox = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -50,11 +80,11 @@ public class IM_StockReportWindow2 extends javax.swing.JFrame {
                 {null, null, null, null, null, null}
             },
             new String [] {
-                "Stock Received ID", "Purchase Order ID", "Item ID", "Item Name", "Amount Received", "Date Received"
+                "Stock Received ID", "Purchase Order ID", "Item ID", "Amount Received", "Date Received", "User ID"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.String.class
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.String.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean [] {
                 false, false, false, false, false, false
@@ -73,7 +103,7 @@ public class IM_StockReportWindow2 extends javax.swing.JFrame {
         jScrollPane1.setViewportView(StockMovementTable);
         StockMovementTable.getColumnModel().getSelectionModel().setSelectionMode(javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
-        jLabel1.setText("Filter Items:");
+        jLabel1.setText("Filter:");
 
         ItemSelect.setModel(new javax.swing.AbstractListModel<String>() {
             String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
@@ -92,35 +122,54 @@ public class IM_StockReportWindow2 extends javax.swing.JFrame {
             }
         });
 
+        jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        jLabel2.setText("Stock Movement Report");
+
+        LowStockCheckBox.setText("Low Stock");
+        LowStockCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                LowStockCheckBoxActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(35, 35, 35)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(11, Short.MAX_VALUE)
+                .addComponent(Back, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(Back, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel2)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(LowStockCheckBox, javax.swing.GroupLayout.Alignment.TRAILING))
                             .addComponent(jLabel1))
-                        .addGap(18, 18, 18)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 617, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(8, 8, 8)
-                .addComponent(Back)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(4, 4, 4)
+                .addComponent(jLabel2)
+                .addGap(16, 16, 16)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 329, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(LowStockCheckBox))
+                            .addComponent(Back))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 303, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(34, Short.MAX_VALUE))
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 279, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 329, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(19, Short.MAX_VALUE))
         );
 
         pack();
@@ -132,11 +181,17 @@ public class IM_StockReportWindow2 extends javax.swing.JFrame {
         new InventoryManagerWindow(loggedInUser).setVisible(true);
     }//GEN-LAST:event_BackActionPerformed
 
+    private void LowStockCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LowStockCheckBoxActionPerformed
+        lowStockFilter();
+    }//GEN-LAST:event_LowStockCheckBoxActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton Back;
     private javax.swing.JList<String> ItemSelect;
+    private javax.swing.JCheckBox LowStockCheckBox;
     private javax.swing.JTable StockMovementTable;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     // End of variables declaration//GEN-END:variables

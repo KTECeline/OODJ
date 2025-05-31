@@ -1,7 +1,6 @@
 package com.mycompany.owsb.model;
 
 import java.io.*;
-import java.time.LocalDate;
 import java.util.*;
 
 public class IM_UpdateStock {
@@ -42,7 +41,7 @@ public class IM_UpdateStock {
         return total;
     }
 
-    public boolean updateStock(String poID, String itemID, int newReceived, int totalOrdered, String receivedDate) {
+    public boolean updateStock(String poID, String itemID, int newReceived, int totalOrdered, String receivedDate, String userId) {
         int currentTotal = getTotalReceivedAmount(poID);
         int newTotal = currentTotal + newReceived;
         boolean isComplete = newTotal >= totalOrdered;
@@ -54,7 +53,7 @@ public class IM_UpdateStock {
         updatePOStatus(poID, isComplete ? "RECEIVED" : "UNFULFILLED");
 
         // 3. Add record to stock_received.txt
-        return logStockReceived(poID, newReceived, receivedDate);
+        return logStockReceived(poID, newReceived, receivedDate, userId);
     }
 
     private void updateItemQuantity(String itemID, int addAmount) {
@@ -114,9 +113,9 @@ public class IM_UpdateStock {
         }
     }
 
-    private boolean logStockReceived(String poID, int receivedAmount, String receivedDate) {
+    private boolean logStockReceived(String poID, int receivedAmount, String receivedDate, String userId) {
         String srID = generateSRID();
-        String line = srID + "," + poID + "," + receivedAmount + "," + receivedDate;
+        String line = srID + "," + poID + "," + receivedAmount + "," + receivedDate + "," + userId;
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(stockReceivedFile, true))) {
             bw.write(line);
             bw.newLine();
