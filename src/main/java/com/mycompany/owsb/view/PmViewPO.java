@@ -8,6 +8,7 @@ package com.mycompany.owsb.view;
 import com.mycompany.owsb.model.PurchaseManager;
 import com.mycompany.owsb.model.PurchaseOrder;
 import com.mycompany.owsb.model.PurchaseRequisition;
+import com.mycompany.owsb.model.SupplierItem;
 import com.mycompany.owsb.model.WindowUtil;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -15,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.swing.JOptionPane;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -26,7 +29,7 @@ import javax.swing.event.ListSelectionListener;
 public class PmViewPO extends javax.swing.JFrame {
      private final PurchaseManagerWindow parentWindow;
     private final PurchaseManager purchaseManager;
-    
+    private double unitCost = 0.0;
     /**
      * Creates new form SmManageDailySalesWindow
      * @param parentWindow
@@ -38,6 +41,8 @@ public class PmViewPO extends javax.swing.JFrame {
         setupWindowListener();
         
         loadPOsIntoList();
+        setupTableSelectionListener();
+        setupQuantityFieldListener();
     }
     
      private void setupWindowListener() {
@@ -62,7 +67,7 @@ public class PmViewPO extends javax.swing.JFrame {
     
 
     
-    public void filterPOTableByStatus() {
+   /* public void filterPOTableByStatus() {
     String selectedStatus = Filter.getSelectedItem().toString(); // e.g., "Pending", "Approved", "All"
     List<PurchaseOrder> allPOs = purchaseManager.getAllPurchaseOrders();
     List<PurchaseRequisition> allPRs = purchaseManager.getAllRequisitions();
@@ -78,9 +83,22 @@ public class PmViewPO extends javax.swing.JFrame {
     }
 
     PurchaseOrder.updatePOTableInUI(filteredPOs, allPRs, poTable);
-}
+}*/
+    public void filterPOTableByStatus() {
+        String selectedStatus = Filter.getSelectedItem().toString();
+        List<PurchaseOrder> allPOs = purchaseManager.getAllPurchaseOrders();
+        List<PurchaseRequisition> allPRs = purchaseManager.getAllRequisitions();
 
-    private void setupTableSelectionListener() {
+        List<PurchaseOrder> filteredPOs = selectedStatus.equalsIgnoreCase("ALL") ?
+            allPOs :
+            allPOs.stream()
+                .filter(po -> po.getStatus().equalsIgnoreCase(selectedStatus))
+                .collect(Collectors.toList());
+
+        PurchaseOrder.updatePOTableInUI(filteredPOs, allPRs, poTable);
+    }
+
+    /*private void setupTableSelectionListener() {
         poTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
@@ -90,7 +108,150 @@ public class PmViewPO extends javax.swing.JFrame {
                 }
             }
         });
+    }*/
+    
+    private void setupTableSelectionListener() {
+        poTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (!e.getValueIsAdjusting()) {
+                    boolean rowSelected = poTable.getSelectedRow() != -1;
+                    dltBtn.setEnabled(rowSelected);
+                    jButton7.setEnabled(rowSelected);
+                    updateFieldsFromSelectedRow();
+                }
+            }
+        });
     }
+
+    private void updateFieldsFromSelectedRow() {
+        int selectedRow = poTable.getSelectedRow();
+        if (selectedRow == -1) {
+            clearFields();
+            return;
+        }
+
+        String orderId = poTable.getValueAt(selectedRow, 0).toString();
+        String itemId = poTable.getValueAt(selectedRow, 1).toString();
+        String supplierId = poTable.getValueAt(selectedRow, 2).toString();
+        String quantityStr = poTable.getValueAt(selectedRow, 3).toString();
+        String totalPriceStr = poTable.getValueAt(selectedRow, 4).toString();
+        String orderDate = poTable.getValueAt(selectedRow, 5).toString();
+        String status = poTable.getValueAt(selectedRow, 6).toString();
+        String prId = poTable.getValueAt(selectedRow, 7).toString();
+        String requiredDate = poTable.getValueAt(selectedRow, 8).toString();
+        String createdBy = poTable.getValueAt(selectedRow, 9).toString();
+
+        // Calculate unit cost
+        try {
+            int quantity = Integer.parseInt(quantityStr);
+            double totalPrice = Double.parseDouble(totalPriceStr);
+            unitCost = quantity > 0 ? totalPrice / quantity : 0.0;
+        } catch (NumberFormatException e) {
+            unitCost = 0.0;
+        }
+
+        // Update fields
+        poField.setText(orderId);
+        itemField.setText(itemId);
+        quantityField.setText(quantityStr);
+        totalField.setText(totalPriceStr);
+        dateLbl.setText(orderDate);
+        statusField.setSelectedItem(status);
+        PRField.setText(prId);
+        RequiredField.setText(requiredDate);
+        createdField.setText(createdBy);
+
+        // Populate SupplierField with valid suppliers
+        SupplierField.removeAllItems();
+        List<SupplierItem> supplierItems = SupplierItem.loadSupplierItems();
+        List<String> validSuppliers = supplierItems.stream()
+            .filter(si -> si.getItemID().equalsIgnoreCase(itemId))
+            .map(SupplierItem::getSupplierID)
+            .distinct()
+            .sorted()
+            .collect(Collectors.toList());
+        validSuppliers.forEach(SupplierField::addItem);
+        SupplierField.setSelectedItem(supplierId);
+    }
+    
+    private void clearFields() {
+        poField.setText("");
+        itemField.setText("");
+        SupplierField.removeAllItems();
+        quantityField.setText("");
+        totalField.setText("");
+        dateLbl.setText("");
+        statusField.setSelectedIndex(0);
+        PRField.setText("");
+        RequiredField.setText("");
+        createdField.setText("");
+        unitCost = 0.0;
+    }
+
+    private void setupQuantityFieldListener() {
+        quantityField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) { updateTotalPrice(); }
+            @Override
+            public void removeUpdate(DocumentEvent e) { updateTotalPrice(); }
+            @Override
+            public void changedUpdate(DocumentEvent e) { updateTotalPrice(); }
+
+            private void updateTotalPrice() {
+                try {
+                    int quantity = Integer.parseInt(quantityField.getText().trim());
+                    if (quantity > 0) {
+                        double totalPrice = quantity * unitCost;
+                        totalField.setText(String.format("%.1f", totalPrice));
+                    } else {
+                        totalField.setText("0.0");
+                    }
+                } catch (NumberFormatException ex) {
+                    totalField.setText("0.0");
+                }
+            }
+        });
+    }
+    
+    
+    private void editSelectedPO() {
+        int selectedRow = poTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Please select a purchase order item to edit.", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String orderId = poField.getText();
+        String itemId = itemField.getText();
+        String newSupplierId = SupplierField.getSelectedItem() != null ? SupplierField.getSelectedItem().toString() : "";
+        String newStatus = statusField.getSelectedItem().toString();
+
+        if (newSupplierId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a valid supplier.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            int newQuantity = Integer.parseInt(quantityField.getText().trim());
+            if (newQuantity <= 0) {
+                JOptionPane.showMessageDialog(this, "Quantity must be positive.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            double newTotalPrice = Double.parseDouble(totalField.getText());
+            purchaseManager.updatePurchaseOrderItem(orderId, itemId, newSupplierId, newQuantity, newTotalPrice, newStatus);
+            filterPOTableByStatus();
+            JOptionPane.showMessageDialog(this, "Purchase order item updated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Invalid quantity format.", "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            // Error shown in updatePurchaseOrderItem
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Unexpected error updating PO item: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
 private void deleteSelectedPO() {
         int selectedRow = poTable.getSelectedRow();
         if (selectedRow == -1) {
@@ -288,21 +449,18 @@ private void deleteSelectedPO() {
 
         jPanel3.setBackground(new java.awt.Color(255, 255, 255));
 
-        poLbl.setText("PO ID");
+        poLbl.setText("PO ID:");
 
-        itemLbl.setText("Item ID");
+        itemLbl.setText("Item ID:");
 
-        jLabel3.setText("Supplier ID");
+        jLabel3.setText("Supplier ID:");
 
-        poField.setText("jLabel8");
+        poField.setText("poID");
 
         itemField.setText("item");
 
-        SupplierField.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jLabel8.setText("Quantity:");
 
-        jLabel8.setText("Quantity");
-
-        quantityField.setText("jTextField1");
         quantityField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 quantityFieldActionPerformed(evt);
@@ -311,96 +469,96 @@ private void deleteSelectedPO() {
 
         jLabel10.setText("Total:");
 
-        totalField.setText("jLabel11");
+        totalField.setText("Total");
 
-        jLabel11.setText("OrderDate;");
+        jLabel11.setText("OrderDate:");
 
-        dateLbl.setText("jLabel12");
+        dateLbl.setText("Order Date");
 
         jLabel12.setText("Status:");
 
-        statusField.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ALL", "PENDING", "APPROVED", "REJECTED", "RECEIVED", "UNFULFILLED", "COMPLETED" }));
+        statusField.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "PENDING", "APPROVED", "REJECTED", "RECEIVED", "UNFULFILLED", "COMPLETED" }));
 
         jLabel13.setText("PR ID:");
 
-        PRField.setText("jLabel14");
+        PRField.setText("PR id");
 
         jLabel14.setText("Required Date:");
 
-        RequiredField.setText("jLabel15");
+        RequiredField.setText("Required Date");
 
         jLabel15.setText("Created by:");
 
-        createdField.setText("jLabel16");
+        createdField.setText("User ID");
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(18, 18, 18)
-                        .addComponent(statusField, 0, 109, Short.MAX_VALUE)
-                        .addGap(22, 22, 22))
-                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addGap(22, 22, 22)
                         .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(SupplierField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGroup(jPanel3Layout.createSequentialGroup()
-                                    .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGap(34, 34, 34)
-                                    .addComponent(quantityField, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGroup(jPanel3Layout.createSequentialGroup()
-                                    .addGap(91, 91, 91)
-                                    .addComponent(dateLbl, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(poLbl, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(itemLbl, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel3))
+                            .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel3Layout.createSequentialGroup()
-                                .addGap(47, 47, 47)
-                                .addComponent(totalField, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addComponent(statusField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(PRField, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel3Layout.createSequentialGroup()
+                                .addGap(26, 26, 26)
+                                .addComponent(poLbl, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(poField, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(itemField, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(48, 48, 48))))
+                                    .addComponent(jLabel10, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(itemLbl, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.TRAILING))))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(SupplierField, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(poField, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)
+                                .addComponent(itemField, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(totalField, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(PRField, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGroup(jPanel3Layout.createSequentialGroup()
-                                    .addComponent(jLabel15, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGap(27, 27, 27)
-                                    .addComponent(createdField, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGroup(jPanel3Layout.createSequentialGroup()
-                                    .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGap(18, 18, 18)
-                                    .addComponent(RequiredField, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                        .addGap(0, 0, Short.MAX_VALUE))))
+                        .addGap(12, 12, 12)
+                        .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(RequiredField, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addGap(21, 21, 21)
+                        .addComponent(jLabel15, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(createdField, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                                .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(quantityField, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                                .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(dateLbl, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                .addGap(22, 22, 22))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addGap(15, 15, 15)
-                        .addComponent(poLbl))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(poField)))
+                .addGap(15, 15, 15)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(poLbl)
+                    .addComponent(poField))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(itemLbl)
@@ -437,7 +595,7 @@ private void deleteSelectedPO() {
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel15)
                     .addComponent(createdField))
-                .addContainerGap(45, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jButton7.setText("Edit PO");
@@ -459,7 +617,7 @@ private void deleteSelectedPO() {
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(Usernamelbl, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 107, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
@@ -469,7 +627,7 @@ private void deleteSelectedPO() {
                         .addComponent(jButton12, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(83, 83, 83)
                         .addComponent(jButton1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 107, Short.MAX_VALUE)
                         .addComponent(jButton2)
                         .addGap(88, 88, 88)
                         .addComponent(jButton3)
@@ -492,7 +650,7 @@ private void deleteSelectedPO() {
                                 .addComponent(jButton6)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 12, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(288, 288, 288)
                         .addComponent(dltBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -522,7 +680,7 @@ private void deleteSelectedPO() {
                             .addComponent(Usernamelbl)
                             .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(searchField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -530,7 +688,7 @@ private void deleteSelectedPO() {
                             .addComponent(jButton6))
                         .addGap(18, 18, 18)
                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(dltBtn)
@@ -550,6 +708,7 @@ private void deleteSelectedPO() {
 
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
         // TODO add your handling code here:
+        editSelectedPO();
     }//GEN-LAST:event_jButton7ActionPerformed
 
     private void searchFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchFieldActionPerformed
@@ -559,6 +718,7 @@ private void deleteSelectedPO() {
     private void dltBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dltBtnActionPerformed
         // TODO add your handling code here:
         deleteSelectedPO();
+       
     }//GEN-LAST:event_dltBtnActionPerformed
 
     private void jButton11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton11ActionPerformed
