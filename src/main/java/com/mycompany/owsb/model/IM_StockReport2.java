@@ -59,25 +59,16 @@ public class IM_StockReport2 {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split(",");
-                if (parts.length >= 5) {
+                if (parts.length >= 6) {
+                    String srID = parts[0];
                     String poID = parts[1];
+                    String itemIdFromFile = parts[2];
+                    String amountReceived = parts[3];
+                    String dateReceived = parts[4];
+                    String userID = parts[5];
 
-                    // Check if poID exists in filteredPOs
-                    String[] matchingPO = null;
-                    for (String[] po : filteredPOs) {
-                        if (po[0].equals(poID)) {
-                            matchingPO = po;
-                            break;
-                        }
-                    }
-
-                    if (matchingPO != null) {
-                        String srID = parts[0];
-                        int amountReceived = Integer.parseInt(parts[2]);
-                        String dateReceived = parts[3];
-                        String userID = parts[4];
-
-                        model.addRow(new Object[] { srID, poID, itemID, amountReceived, dateReceived, userID });
+                    if (itemID.equals(itemIdFromFile)) {
+                        model.addRow(new Object[] { srID, poID, itemIdFromFile, amountReceived, dateReceived, userID });
                     }
                 }
             }

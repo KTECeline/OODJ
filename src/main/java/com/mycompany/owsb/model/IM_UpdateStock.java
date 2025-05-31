@@ -5,10 +5,15 @@ import java.util.*;
 
 public class IM_UpdateStock {
 
+    //File path for required data
     private final String poFile = "data/purchase_order.txt";
     private final String itemFile = "data/items.txt";
     private final String stockReceivedFile = "data/stock_received.txt";
 
+    /**
+     * Retrieves all purchase orders that are either Approved or Unfulfilled.
+     * @return List of matching PO records, each record as a String array).
+     */
     public List<String[]> getUnfulfilledApprovedPOs() {
         List<String[]> list = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(poFile))) {
@@ -25,14 +30,15 @@ public class IM_UpdateStock {
         return list;
     }
 
-    public int getTotalReceivedAmount(String poID) {
+    //Retrieve the total stock received before for the specific purchase order 
+    public int getTotalReceivedAmount(String poID, String itemId) {
         int total = 0;
         try (BufferedReader br = new BufferedReader(new FileReader(stockReceivedFile))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split(",");
-                if (parts.length >= 3 && parts[1].equals(poID)) {
-                    total += Integer.parseInt(parts[2]);
+                if (parts.length >= 3 && parts[1].equals(poID) && parts[2].equals(itemId)) {
+                    total += Integer.parseInt(parts[3]);
                 }
             }
         } catch (IOException e) {
@@ -42,7 +48,7 @@ public class IM_UpdateStock {
     }
 
     public boolean updateStock(String poID, String itemID, int newReceived, int totalOrdered, String receivedDate, String userId) {
-        int currentTotal = getTotalReceivedAmount(poID);
+        int currentTotal = getTotalReceivedAmount(poID,itemID);
         int newTotal = currentTotal + newReceived;
         boolean isComplete = newTotal >= totalOrdered;
 
@@ -50,10 +56,10 @@ public class IM_UpdateStock {
         updateItemQuantity(itemID, newReceived);
 
         // 2. Update purchase_order.txt status
-        updatePOStatus(poID, isComplete ? "RECEIVED" : "UNFULFILLED");
+        updatePOStatus(poID, itemID, isComplete ? "RECEIVED" : "UNFULFILLED");
 
         // 3. Add record to stock_received.txt
-        return logStockReceived(poID, newReceived, receivedDate, userId);
+        return logStockReceived(poID, itemID, newReceived, receivedDate, userId);
     }
 
     private void updateItemQuantity(String itemID, int addAmount) {
@@ -85,7 +91,7 @@ public class IM_UpdateStock {
         }
     }
 
-    private void updatePOStatus(String poID, String newStatus) {
+    private void updatePOStatus(String poID, String itemID, String newStatus) {
         File file = new File(poFile);
         List<String> updatedLines = new ArrayList<>();
 
@@ -93,7 +99,7 @@ public class IM_UpdateStock {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split(",");
-                if (parts[0].equals(poID)) {
+                if (parts[0].equals(poID) && parts[1].equals(itemID)) {
                     parts[6] = newStatus;
                     updatedLines.add(String.join(",", parts));
                 } else {
@@ -113,9 +119,9 @@ public class IM_UpdateStock {
         }
     }
 
-    private boolean logStockReceived(String poID, int receivedAmount, String receivedDate, String userId) {
+    private boolean logStockReceived(String poID, String itemID, int receivedAmount, String receivedDate, String userId) {
         String srID = generateSRID();
-        String line = srID + "," + poID + "," + receivedAmount + "," + receivedDate + "," + userId;
+        String line = srID + "," + poID + "," + itemID + "," + receivedAmount + "," + receivedDate + "," + userId;
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(stockReceivedFile, true))) {
             bw.write(line);
             bw.newLine();
