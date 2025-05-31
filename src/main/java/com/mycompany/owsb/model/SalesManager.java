@@ -53,8 +53,12 @@ public class SalesManager extends Manager implements ManageItemInterface{
     @Override
     public boolean isAllowedToPerform(String action) {
         // Check if user is logged in and role matches "Sales"
+        
+        
         if (getLoggedInUser() == null || getLoggedInUser().getRole() == null || 
-            !getLoggedInUser().getRole().equalsIgnoreCase("Sales Manager")) {
+            !(getLoggedInUser().getRole().equalsIgnoreCase("Sales Manager") ||
+            getLoggedInUser().getRole().equalsIgnoreCase("Administrator") ||
+            getLoggedInUser().getRole().equalsIgnoreCase("Root Administrator"))) {
             return false;
         }
 
