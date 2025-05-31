@@ -19,22 +19,28 @@ public class IM_StockReportWindow1 extends javax.swing.JFrame {
     public IM_StockReportWindow1(User loggedInUser) {
         this.loggedInUser = loggedInUser;
         initComponents();
+        //Load the data from txt file and display on the table
         loadAndDisplayData();
     }
 
     private void loadAndDisplayData() {
+        //Get item data from backend
         fullItemList = reportLogic.getAllItems();
+        //display data on the table
         updateTable(fullItemList);
         updateSummary(fullItemList);
     }
 
     private void updateTable(List<Item> itemList) {
         DefaultTableModel model = new DefaultTableModel(new Object[]{"Item ID", "Item Name", "Quantity In Stock"}, 0);
+
+        //Add each item data into each row
         for (Item item : itemList) {
             model.addRow(new Object[]{item.getItemID(), item.getItemName(), item.getStock()});
         }
         StockSummaryTable.setModel(model);
 
+        //Custom cell-renderer to color rows based on stock level
         StockSummaryTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
@@ -46,6 +52,7 @@ public class IM_StockReportWindow1 extends javax.swing.JFrame {
                     try {
                         int stock = Integer.parseInt(table.getModel().getValueAt(row, 2).toString());
 
+                        //Red color if stock less than 10, otherwise green color
                         if (stock < 10) {
                             c.setBackground(new Color(255, 204, 204));
                         } else {
@@ -63,6 +70,7 @@ public class IM_StockReportWindow1 extends javax.swing.JFrame {
         });
     }
 
+    //Display the total number of items and stocks
     private void updateSummary(List<Item> itemList) {
         TNI.setText(String.valueOf(reportLogic.calculateTotalItems(itemList)));
         TNS.setText(String.valueOf(reportLogic.calculateTotalStocks(itemList)));
@@ -188,14 +196,20 @@ public class IM_StockReportWindow1 extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     public void BackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BackActionPerformed
-        this.dispose();  // Close current window
+        //Close current window
+        this.dispose();
+        //Navigate back to the main page of inventory manager
         new InventoryManagerWindow(loggedInUser).setVisible(true);
     }//GEN-LAST:event_BackActionPerformed
 
+    //Filter to show items that only low stock level
     private void LowStockCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LowStockCheckBoxActionPerformed
         List<Item> filteredList = LowStockCheckBox.isSelected()
+        //Filter out if the Combobox checked
         ? reportLogic.filterLowStock(fullItemList)
+        //Else display all items
         : fullItemList;
+        //Refresh the table and summary
         updateTable(filteredList);
         updateSummary(filteredList);
     }//GEN-LAST:event_LowStockCheckBoxActionPerformed
