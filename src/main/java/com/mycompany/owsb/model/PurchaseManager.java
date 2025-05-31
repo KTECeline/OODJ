@@ -1,21 +1,20 @@
 package com.mycompany.owsb.model;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.table.DefaultTableModel;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import javax.swing.JComboBox;
 
@@ -199,7 +198,11 @@ public class PurchaseManager extends Manager implements ManageItemInterface {
 
         if (atLeastOneApproved) {
             // Create PO ID per PR
-            String poId = PurchaseOrder.generateNewOrderId();
+            String poId = findExistingPOId(prId);
+            if (poId == null) {
+                poId = PurchaseOrder.generateNewOrderId();
+            }
+
             PurchaseOrder po = new PurchaseOrder(poId, supplierId, new SimpleDateFormat("yyyy-MM-dd").format(new Date()), "PENDING", prId, createdBy);
 
             for (PurchaseOrder.PurchaseOrderItem item : poItems) {
@@ -233,6 +236,25 @@ public class PurchaseManager extends Manager implements ManageItemInterface {
     }
 
     return generatedPOs;
+}
+public static String findExistingPOId(String prId) {
+    try (BufferedReader reader = new BufferedReader(new FileReader(PURCHASE_ORDER_FILE))) {
+        String line;
+        while ((line = reader.readLine()) != null) {
+            String[] parts = line.split(",");
+            if (parts.length >= 8) {
+                String existingPoId = parts[0];
+                String existingPrId = parts[7];
+
+                if (existingPrId.equalsIgnoreCase(prId)) {
+                    return existingPoId; // Found an existing PO ID for the PR
+                }
+            }
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+    return null; // Not found
 }
 
 
