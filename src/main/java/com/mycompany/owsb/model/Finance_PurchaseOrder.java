@@ -41,7 +41,7 @@ public class Finance_PurchaseOrder {
     // Setters
     public void setStatus(String status) { 
         if (status.equals("PENDING") || status.equals("APPROVED") || 
-            status.equals("REJECTED") || status.equals("PAID")) {
+            status.equals("REJECTED") || status.equals("COMPLETED")) {
             this.status = status; 
         }
     }
