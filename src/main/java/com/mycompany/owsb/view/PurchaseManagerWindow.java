@@ -6,6 +6,7 @@ import com.mycompany.owsb.model.PurchaseOrder;
 import com.mycompany.owsb.model.PurchaseRequisition;
 import com.mycompany.owsb.model.PurchaseRequisitionItem;
 import com.mycompany.owsb.model.User;
+import com.mycompany.owsb.model.WindowUtil;
 import com.mycompany.owsb.view.LoginWindow;
 import com.mycompany.owsb.view.PmViewItem;
 import java.util.ArrayList;
@@ -122,18 +123,15 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
 
     
      private void loadSummaryLabels() {
-        int totalItems = purchaseManager.getAllItems().size();
-        int totalSuppliers = purchaseManager.getAllSuppliers().size();
-        long pendingPRs = purchaseManager.getAllRequisitions().stream()
-                             .filter(pr -> pr.getStatus().equalsIgnoreCase("PENDING"))
-                             .count();
-        int pendingPOs = purchaseManager.getOrdersByStatus("PENDING").size();
+    Map<String, Object> stats = purchaseManager.getSummaryStats();
 
-       lblTotalItems.setText(Integer.toString(totalItems));
-        lblTotalSuppliers.setText(Integer.toString( totalSuppliers));
-        lblPendingPRs.setText(Long.toString(pendingPRs));
-        lblPendingPOs.setText(Integer.toString (pendingPOs));
+    lblTotalItems.setText(stats.get("totalItems").toString());
+    lblTotalSuppliers.setText(stats.get("totalSuppliers").toString());
+    lblPendingPRs.setText(stats.get("pendingPRs").toString());
+    lblPendingPOs.setText(stats.get("pendingPOs").toString());
+    Usernamelbl.setText(stats.get("username").toString());
 }
+
     
     private List<String> getApprovedItemIDsFromPR(String prId) {
     List<PurchaseRequisitionItem> prItems = PurchaseRequisitionItem.loadPurchaseRequisitionItems();
@@ -225,7 +223,7 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
 
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        LoggedIn = new javax.swing.JLabel();
+        Usernamelbl = new javax.swing.JLabel();
         jToggleButton1 = new javax.swing.JToggleButton();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
@@ -254,7 +252,7 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
 
         jLabel2.setText("Logged in as: ");
 
-        LoggedIn.setText("jLabel3");
+        Usernamelbl.setText("jLabel3");
 
         jToggleButton1.setText("Log Out");
         jToggleButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -280,6 +278,11 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
         lblPendingPOs.setText("jLabel10");
 
         jTextField1.setText("Search PR");
+        jTextField1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextField1ActionPerformed(evt);
+            }
+        });
 
         jButton6.setText("Search");
         jButton6.addActionListener(new java.awt.event.ActionListener() {
@@ -360,16 +363,12 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(281, 281, 281)
-                .addComponent(jLabel1)
-                .addGap(0, 0, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(34, 34, 34)
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(LoggedIn, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(Usernamelbl, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(42, 42, 42)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -380,9 +379,8 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 584, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jToggleButton1)
-                                    .addComponent(jButton7)))
+                                .addComponent(jToggleButton1)
+                                .addGap(24, 24, 24))
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(layout.createSequentialGroup()
@@ -417,6 +415,15 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                                 .addComponent(lblPendingPOs, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)))))))))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(281, 281, 281)
+                        .addComponent(jLabel1))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(238, 238, 238)
+                        .addComponent(jButton7)))
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -428,7 +435,7 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
                         .addGap(11, 11, 11)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel2)
-                            .addComponent(LoggedIn)))
+                            .addComponent(Usernamelbl)))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(19, 19, 19)
                         .addComponent(jToggleButton1)))
@@ -455,14 +462,11 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
                     .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton6)
                     .addComponent(Filter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(294, 294, 294)
-                        .addComponent(jButton7))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(18, 18, 18)
-                        .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 303, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(38, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 303, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 9, Short.MAX_VALUE)
+                .addComponent(jButton7)
+                .addContainerGap())
         );
 
         pack();
@@ -471,11 +475,8 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
 
     private void jToggleButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton1ActionPerformed
         // TODO add your handling code here:
-        this.dispose(); // Closes the current SalesManagerWindow
+        WindowUtil.logoutAndRedirectToLogin(this);
 
-        LoginWindow loginWindow = new LoginWindow();
-        loginWindow.setVisible(true);
-        
     }//GEN-LAST:event_jToggleButton1ActionPerformed
 
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
@@ -484,27 +485,27 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
 
     private void ItembtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ItembtnActionPerformed
         // TODO add your handling code here:
-        PmViewItem viewItemsWindow = new PmViewItem(this, purchaseManager);
-        viewItemsWindow.setVisible(true);
-        this.setVisible(false); // Hide current window
+        WindowUtil.switchWindow(this, new PmViewItem(this, purchaseManager));
+
     }//GEN-LAST:event_ItembtnActionPerformed
 
     private void SupplierbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SupplierbtnActionPerformed
         // TODO add your handling code here:
-        PmViewSupplier viewSupplierWindow = new PmViewSupplier(this, purchaseManager);
-        viewSupplierWindow.setVisible(true);
-        this.setVisible(false);
+         
+        WindowUtil.switchWindow(this, new PmViewSupplier(this, purchaseManager));
+
     }//GEN-LAST:event_SupplierbtnActionPerformed
 
     private void PRbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_PRbtnActionPerformed
         // TODO add your handling code here:
+        
+        WindowUtil.switchWindow(this, new PmViewPR(this, purchaseManager));
     }//GEN-LAST:event_PRbtnActionPerformed
 
     private void pendingbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pendingbtnActionPerformed
         // TODO add your handling code here:
-        PmViewPO viewPOWindow = new PmViewPO(this, purchaseManager);
-        viewPOWindow.setVisible(true);
-        this.setVisible(false);
+         
+        WindowUtil.switchWindow(this, new PmViewPO(this, purchaseManager));
 
     }//GEN-LAST:event_pendingbtnActionPerformed
 
@@ -540,6 +541,10 @@ if (searchQuery.isEmpty() || searchQuery.equalsIgnoreCase("Enter PR ID")) {
 
     }//GEN-LAST:event_jButton6ActionPerformed
 
+    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField1ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -574,9 +579,9 @@ if (searchQuery.isEmpty() || searchQuery.equalsIgnoreCase("Enter PR ID")) {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox<String> Filter;
     private javax.swing.JButton Itembtn;
-    private javax.swing.JLabel LoggedIn;
     private javax.swing.JButton PRbtn;
     private javax.swing.JButton Supplierbtn;
+    private javax.swing.JLabel Usernamelbl;
     private javax.swing.JButton jButton6;
     private javax.swing.JButton jButton7;
     private javax.swing.JButton jButton8;

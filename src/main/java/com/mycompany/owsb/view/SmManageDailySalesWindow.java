@@ -60,6 +60,36 @@ public class SmManageDailySalesWindow extends javax.swing.JFrame {
         // Update UI to the latest
         Sales.updateSalesUI(salesDataList, salesItemDataList, itemDataList, salesIDList, salesDetailsArea, salesItemTable);
     }
+    
+    private Sales getSelectedSale() {
+        String selectedSalesID = salesIDList.getSelectedValue();
+        if (selectedSalesID == null) return null;
+
+        for (Sales sale : salesDataList) {
+            if (sale.getSalesID().equalsIgnoreCase(selectedSalesID)) {
+                return sale;
+            }
+        }
+        return null;
+    }
+    
+    private SalesItem getSelectedSalesItemFromTable() {
+        int selectedRow = salesItemTable.getSelectedRow();
+        if (selectedRow == -1) return null;
+
+        String itemID = salesItemTable.getValueAt(selectedRow, 0).toString();
+        String salesID = salesIDList.getSelectedValue();
+
+        for (SalesItem item : salesItemDataList) {
+            if (item.getSalesID().equalsIgnoreCase(salesID) &&
+                item.getItemID().equalsIgnoreCase(itemID)) {
+                return item;
+            }
+        }
+        return null;
+    }
+
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -87,6 +117,7 @@ public class SmManageDailySalesWindow extends javax.swing.JFrame {
         deleteItemButton = new javax.swing.JButton();
         addItemButton = new javax.swing.JButton();
         editItemButton = new javax.swing.JButton();
+        homeButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Daily Sales");
@@ -231,45 +262,58 @@ public class SmManageDailySalesWindow extends javax.swing.JFrame {
             }
         });
 
+        homeButton.setBackground(new java.awt.Color(204, 204, 255));
+        homeButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        homeButton.setText("Home");
+        homeButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                homeButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addGap(34, 34, 34)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(backButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(searchField)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(searchButton, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane3, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addComponent(deleteSalesButton, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(addSalesButton, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(editSalesButton, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel2Layout.createSequentialGroup()
-                                .addComponent(jLabel2)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(deleteItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(addItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(editItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(homeButton)
+                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addGroup(jPanel2Layout.createSequentialGroup()
+                            .addComponent(backButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(searchField)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(searchButton, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(jPanel2Layout.createSequentialGroup()
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                            .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jScrollPane3, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(jPanel2Layout.createSequentialGroup()
+                                    .addComponent(deleteSalesButton, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(addSalesButton, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(editSalesButton, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel2Layout.createSequentialGroup()
+                                    .addComponent(jLabel2)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(deleteItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(addItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(editItemButton, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE))))))
                 .addContainerGap(42, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(66, 66, 66)
+                .addGap(21, 21, 21)
+                .addComponent(homeButton)
+                .addGap(26, 26, 26)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE, false)
                     .addComponent(searchField)
                     .addComponent(backButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -336,7 +380,31 @@ public class SmManageDailySalesWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_searchButtonActionPerformed
 
     private void editSalesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editSalesButtonActionPerformed
+        String selectedSalesID = salesIDList.getSelectedValue();
 
+        if (selectedSalesID == null) {
+            JOptionPane.showMessageDialog(this, "Please select a Sales ID to edit.");
+            return;
+        }
+
+        // Find the matching Sales object
+        Sales saleToEdit = null;
+        for (Sales sale : salesDataList) {
+            if (sale.getSalesID().equalsIgnoreCase(selectedSalesID)) {
+                saleToEdit = sale;
+                break;
+            }
+        }
+
+        if (saleToEdit == null) {
+            JOptionPane.showMessageDialog(this, "Selected Sales ID not found.");
+            return;
+        }
+
+        // Call the edit method
+        salesManager.editSalesRecord(this, saleToEdit, salesDataList);
+
+        loadDataIntoUI();
     }//GEN-LAST:event_editSalesButtonActionPerformed
 
     private void addSalesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addSalesButtonActionPerformed
@@ -344,7 +412,7 @@ public class SmManageDailySalesWindow extends javax.swing.JFrame {
         
         Sales newSale = salesManager.addSales(this, username, salesDataList);
         if (newSale != null) {
-            salesManager.addSalesItems(this, newSale, itemDataList, salesItemDataList, salesDataList);
+            salesManager.addSalesItems(this, newSale, itemDataList, salesItemDataList, salesDataList, true);
         }
         
         loadDataIntoUI();
@@ -361,16 +429,82 @@ public class SmManageDailySalesWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_deleteSalesButtonActionPerformed
 
     private void deleteItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteItemButtonActionPerformed
-        
+        // Check if a sale is selected
+        Sales selectedSale = getSelectedSale(); 
+        if (selectedSale == null) {
+            JOptionPane.showMessageDialog(this, "Please select a sales record first.");
+            return;
+        }
+
+        // Check if a sales item is selected
+        SalesItem selectedSalesItem = getSelectedSalesItemFromTable();  // <- you need to implement this
+        if (selectedSalesItem == null) {
+            JOptionPane.showMessageDialog(this, "Please select a sales item from the table.");
+            return;
+        }
+
+        // Call the deletion method in SalesManager
+        salesManager.deleteSalesItem(this, selectedSale, selectedSalesItem, salesItemDataList, salesDataList, itemDataList);
+
+        // Refresh the UI to reflect changes
+        Sales.updateSalesUI(salesDataList, salesItemDataList, itemDataList, salesIDList, salesDetailsArea, salesItemTable);
+
     }//GEN-LAST:event_deleteItemButtonActionPerformed
 
     private void addItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addItemButtonActionPerformed
-        
+        String selectedSalesID = salesIDList.getSelectedValue();
+
+        if (selectedSalesID == null || selectedSalesID.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a sales record first.");
+            return;
+        }
+
+        Sales selectedSale = null;
+        for (Sales s : salesDataList) {
+            if (s.getSalesID().equalsIgnoreCase(selectedSalesID)) {
+                selectedSale = s;
+                break;
+            }
+        }
+
+        if (selectedSale == null) {
+            JOptionPane.showMessageDialog(this, "Selected sales record not found.");
+            return;
+        }
+
+        // Now call the method
+        salesManager.addSalesItems(this, selectedSale, itemDataList, salesItemDataList, salesDataList, false);
+
+        // After adding, refresh UI
+        Sales.updateSalesUI(salesDataList, salesItemDataList, itemDataList, salesIDList, salesDetailsArea, salesItemTable);
+
     }//GEN-LAST:event_addItemButtonActionPerformed
 
     private void editItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editItemButtonActionPerformed
-        
+        // Check if a sale is selected
+        Sales selectedSale = getSelectedSale();        
+        SalesItem selectedSalesItem = getSelectedSalesItemFromTable();
+
+        if (selectedSale == null || selectedSalesItem == null) {
+            JOptionPane.showMessageDialog(this, "Please select a sales record and an item to edit.");
+            return;
+        }
+
+        // Call the edit method
+        salesManager.editSalesItemQuantity(this, selectedSale, selectedSalesItem, salesItemDataList, salesDataList, itemDataList);
+
+        // After editing, update the UI (refresh table + sales details)
+        Sales.updateSalesUI(salesDataList, salesItemDataList, itemDataList, 
+                            salesIDList, salesDetailsArea, salesItemTable);
     }//GEN-LAST:event_editItemButtonActionPerformed
+
+    private void homeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_homeButtonActionPerformed
+        // Close the current window
+        this.dispose();
+
+        // Open the SalesManagerWindow
+        parentWindow.showSmWindow(); // Show the homepage
+    }//GEN-LAST:event_homeButtonActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -381,6 +515,7 @@ public class SmManageDailySalesWindow extends javax.swing.JFrame {
     private javax.swing.JButton deleteSalesButton;
     private javax.swing.JButton editItemButton;
     private javax.swing.JButton editSalesButton;
+    private javax.swing.JButton homeButton;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;

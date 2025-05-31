@@ -317,6 +317,19 @@ public List<PurchaseRequisitionItem> getPRItems() {
 }
 
 
+public static List<PurchaseRequisition> filterByStatus(List<PurchaseRequisition> prList, String status) {
+    if (status.equalsIgnoreCase("ALL")) {
+        return prList;
+    }
+    List<PurchaseRequisition> filtered = new ArrayList<>();
+    for (PurchaseRequisition pr : prList) {
+        if (pr.getStatus().equalsIgnoreCase(status)) {
+            filtered.add(pr);
+        }
+    }
+    return filtered;
+}
+
 
     
 }

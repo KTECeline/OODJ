@@ -8,7 +8,15 @@ import com.mycompany.owsb.model.Item;
 import com.mycompany.owsb.model.PurchaseOrder;
 import com.mycompany.owsb.model.SalesManager;
 import com.mycompany.owsb.model.User;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import javax.swing.ImageIcon;
+import javax.swing.JPanel;
 
 /**
  *
@@ -35,6 +43,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
         this.loggedInUser = loggedInUser;
         this.salesManager = salesManager;
         initComponents();
+        setBackgroundImage();
         
         String username = loggedInUser.getUsername();
         loggedInUsernameLabel.setText("Welcome, " + username);
@@ -45,9 +54,56 @@ public class SalesManagerWindow extends javax.swing.JFrame {
     
     // Method to show the UserWindow and ensure the user list is updated
     public void showSmWindow() {
-        poDetails.setText("");
         loadPOsIntoList();
         setVisible(true);  // Show the window
+    }
+    
+    private void setBackgroundImage() {
+        // Load the image
+        ImageIcon icon = new ImageIcon(getClass().getResource("/background.jpg"));
+        Image image = icon.getImage();
+
+        // Create a custom panel to hold the background image
+        JPanel backgroundPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.drawImage(image, 0, 0, getWidth(), getHeight(), this);
+            }
+        };
+
+        // Set the layout to null for absolute positioning
+        backgroundPanel.setLayout(null);
+
+        // Set the size of the background panel
+        backgroundPanel.setPreferredSize(new Dimension(750, 500));
+        
+        backgroundPanel.setBackground(new Color(155,237,255));
+
+        // Set the custom panel as the content pane
+        setContentPane(backgroundPanel);
+
+        // Re-add existing components to the background panel
+        backgroundPanel.add(loggedInUsernameLabel);
+        backgroundPanel.add(logOutButton);
+        backgroundPanel.add(lowStockAlertButton);
+        backgroundPanel.add(ManageSuppliersButton);
+        backgroundPanel.add(ManageSalesButton);
+        backgroundPanel.add(ManagePRButton);
+        backgroundPanel.add(ManageItemsButton); 
+        backgroundPanel.add(backButton);
+        backgroundPanel.add(searchField);
+        backgroundPanel.add(searchButton);
+        backgroundPanel.add(FilterPO);
+        backgroundPanel.add(poTable);
+        backgroundPanel.add(jScrollPane1);
+        
+        // Set bounds for the components position (x, y, width, height)
+        jScrollPane1.setViewportView(poTable);
+
+        pack(); // Adjusts frame size based on the preferred size of the content pane
+        revalidate();
+        repaint();
     }
     
     // Method to load Purchase Orders from file and display them in the UI list
@@ -56,7 +112,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
         purchaseOrderList = PurchaseOrder.loadPurchaseOrders();
         
         // Update the JList and details area in the UI with the loaded Purchase Orders
-        PurchaseOrder.updatePOListInUI(purchaseOrderList, poList, poDetails);
+        PurchaseOrder.updatePOTableInUI(purchaseOrderList, poTable);
     }
     
     private void updateLowStockAlertButton() {
@@ -76,6 +132,26 @@ public class SalesManagerWindow extends javax.swing.JFrame {
             lowStockAlertButton.setVisible(false);
         }
     }
+    
+    public void filterPOTableByStatus() {
+        String selectedStatus = FilterPO.getSelectedItem().toString(); // e.g., "Pending", "Approved", "All"
+        List<PurchaseOrder> allPOs = PurchaseOrder.loadPurchaseOrders();
+
+        List<PurchaseOrder> filteredPOs = new ArrayList<>();
+
+        if (selectedStatus.equalsIgnoreCase("All")) {
+            filteredPOs = allPOs; // No filtering
+        } else {
+            for (PurchaseOrder po : allPOs) {
+                if (po.getStatus().equalsIgnoreCase(selectedStatus)) {
+                    filteredPOs.add(po);
+                }
+            }
+        }
+
+        PurchaseOrder.updatePOTableInUI(filteredPOs, poTable);
+    }
+
  
     /**
      * This method is called from within the constructor to initialize the form.
@@ -88,22 +164,22 @@ public class SalesManagerWindow extends javax.swing.JFrame {
 
         ManageItemsButton = new javax.swing.JButton();
         ManageSuppliersButton = new javax.swing.JButton();
-        ManageDailySalesButton = new javax.swing.JButton();
-        CreatePRButton = new javax.swing.JButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        poDetails = new javax.swing.JTextArea();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        poList = new javax.swing.JList<>();
+        ManageSalesButton = new javax.swing.JButton();
+        ManagePRButton = new javax.swing.JButton();
         searchField = new javax.swing.JTextField();
         searchButton = new javax.swing.JButton();
         loggedInUsernameLabel = new javax.swing.JLabel();
         logOutButton = new javax.swing.JButton();
         lowStockAlertButton = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        poTable = new javax.swing.JTable();
+        FilterPO = new javax.swing.JComboBox<>();
+        backButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Sales Manager");
 
-        ManageItemsButton.setBackground(new java.awt.Color(216, 178, 255));
+        ManageItemsButton.setBackground(new java.awt.Color(189, 131, 248));
         ManageItemsButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
         ManageItemsButton.setText("Manage Items");
         ManageItemsButton.addActionListener(new java.awt.event.ActionListener() {
@@ -112,7 +188,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
             }
         });
 
-        ManageSuppliersButton.setBackground(new java.awt.Color(204, 153, 255));
+        ManageSuppliersButton.setBackground(new java.awt.Color(214, 174, 255));
         ManageSuppliersButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
         ManageSuppliersButton.setText("Manage Suppliers");
         ManageSuppliersButton.addActionListener(new java.awt.event.ActionListener() {
@@ -121,42 +197,23 @@ public class SalesManagerWindow extends javax.swing.JFrame {
             }
         });
 
-        ManageDailySalesButton.setBackground(new java.awt.Color(167, 126, 250));
-        ManageDailySalesButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
-        ManageDailySalesButton.setText("Manage Daily Sales");
-        ManageDailySalesButton.addActionListener(new java.awt.event.ActionListener() {
+        ManageSalesButton.setBackground(new java.awt.Color(186, 152, 255));
+        ManageSalesButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        ManageSalesButton.setText("Manage Sales");
+        ManageSalesButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                ManageDailySalesButtonActionPerformed(evt);
+                ManageSalesButtonActionPerformed(evt);
             }
         });
 
-        CreatePRButton.setBackground(new java.awt.Color(153, 102, 255));
-        CreatePRButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
-        CreatePRButton.setText("Manage Purchase Requisition");
-        CreatePRButton.addActionListener(new java.awt.event.ActionListener() {
+        ManagePRButton.setBackground(new java.awt.Color(176, 137, 255));
+        ManagePRButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        ManagePRButton.setText("Manage Purchase Requisition");
+        ManagePRButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                CreatePRButtonActionPerformed(evt);
+                ManagePRButtonActionPerformed(evt);
             }
         });
-
-        poDetails.setEditable(false);
-        poDetails.setColumns(20);
-        poDetails.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
-        poDetails.setRows(5);
-        jScrollPane1.setViewportView(poDetails);
-
-        poList.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
-        poList.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
-        });
-        poList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                poListValueChanged(evt);
-            }
-        });
-        jScrollPane2.setViewportView(poList);
 
         searchField.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
         searchField.setForeground(new java.awt.Color(51, 51, 51));
@@ -177,11 +234,12 @@ public class SalesManagerWindow extends javax.swing.JFrame {
         });
 
         loggedInUsernameLabel.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
-        loggedInUsernameLabel.setText("welcome username");
+        loggedInUsernameLabel.setForeground(new java.awt.Color(51, 51, 51));
+        loggedInUsernameLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        loggedInUsernameLabel.setText("Welcome");
 
-        logOutButton.setBackground(new java.awt.Color(51, 51, 51));
         logOutButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
-        logOutButton.setForeground(new java.awt.Color(255, 255, 255));
+        logOutButton.setForeground(new java.awt.Color(51, 51, 51));
         logOutButton.setText("Log Out");
         logOutButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -199,66 +257,103 @@ public class SalesManagerWindow extends javax.swing.JFrame {
             }
         });
 
+        poTable.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        poTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        poTable.setIntercellSpacing(new java.awt.Dimension(0, 2));
+        poTable.setSelectionBackground(new java.awt.Color(102, 102, 102));
+        poTable.setSelectionForeground(new java.awt.Color(255, 255, 255));
+        jScrollPane1.setViewportView(poTable);
+
+        FilterPO.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        FilterPO.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ALL", "PENDING", "APPROVED", "REJECTED", "RECEIVED", "COMPLETED" }));
+        FilterPO.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                FilterPOActionPerformed(evt);
+            }
+        });
+
+        backButton.setBackground(new java.awt.Color(102, 102, 102));
+        backButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
+        backButton.setForeground(new java.awt.Color(255, 255, 255));
+        backButton.setText("<");
+        backButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                backButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(33, 33, 33)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(loggedInUsernameLabel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(lowStockAlertButton))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addComponent(CreatePRButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 201, Short.MAX_VALUE)
-                            .addComponent(ManageDailySalesButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(ManageSuppliersButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(ManageItemsButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(logOutButton, javax.swing.GroupLayout.DEFAULT_SIZE, 201, Short.MAX_VALUE))
-                        .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(searchField, javax.swing.GroupLayout.PREFERRED_SIZE, 253, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(searchButton, javax.swing.GroupLayout.DEFAULT_SIZE, 88, Short.MAX_VALUE))
-                            .addComponent(jScrollPane2)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 347, Short.MAX_VALUE))))
-                .addContainerGap(37, Short.MAX_VALUE))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(ManageSuppliersButton, javax.swing.GroupLayout.PREFERRED_SIZE, 161, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(ManageSalesButton, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(ManagePRButton))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(2, 2, 2)
+                                        .addComponent(backButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(searchField, javax.swing.GroupLayout.PREFERRED_SIZE, 253, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(searchButton, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(logOutButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(loggedInUsernameLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(126, 126, 126)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(FilterPO, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(ManageItemsButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(lowStockAlertButton, javax.swing.GroupLayout.DEFAULT_SIZE, 155, Short.MAX_VALUE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(2, 2, 2)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 689, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(39, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(24, 24, 24)
-                        .addComponent(loggedInUsernameLabel)
-                        .addGap(21, 21, 21))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(lowStockAlertButton, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(searchField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(searchButton))
-                        .addGap(18, 18, 18)
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 234, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(ManageItemsButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(ManageSuppliersButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(5, 5, 5)
-                        .addComponent(ManageDailySalesButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(CreatePRButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(logOutButton, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(33, Short.MAX_VALUE))
+                .addGap(36, 36, 36)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(loggedInUsernameLabel)
+                    .addComponent(logOutButton)
+                    .addComponent(lowStockAlertButton, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(27, 27, 27)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(ManageSalesButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(ManagePRButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(ManageSuppliersButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(ManageItemsButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(searchField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(searchButton)
+                    .addComponent(FilterPO, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(backButton))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 265, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(43, Short.MAX_VALUE))
         );
 
         pack();
@@ -277,26 +372,26 @@ public class SalesManagerWindow extends javax.swing.JFrame {
         this.setVisible(false); // Hide current window
     }//GEN-LAST:event_ManageSuppliersButtonActionPerformed
 
-    private void CreatePRButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CreatePRButtonActionPerformed
+    private void ManagePRButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ManagePRButtonActionPerformed
         SmManagePrWindow createPrWindow = new SmManagePrWindow(this, salesManager);
         createPrWindow.setVisible(true);
         this.setVisible(false); // Hide current window
-    }//GEN-LAST:event_CreatePRButtonActionPerformed
+    }//GEN-LAST:event_ManagePRButtonActionPerformed
 
     private void searchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchButtonActionPerformed
         //PurchaseOrder.searchAndDisplayPO(searchField, poDetails, purchaseOrderList);
-        PurchaseOrder.searchAndDisplayPOInList(searchField, poDetails, purchaseOrderList);
+        PurchaseOrder.searchAndDisplayPO(searchField, poTable, purchaseOrderList);
     }//GEN-LAST:event_searchButtonActionPerformed
 
     private void searchFieldMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_searchFieldMouseClicked
         searchField.setText("");
     }//GEN-LAST:event_searchFieldMouseClicked
 
-    private void ManageDailySalesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ManageDailySalesButtonActionPerformed
+    private void ManageSalesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ManageSalesButtonActionPerformed
         SmManageDailySalesWindow manageDailySalesWindow = new SmManageDailySalesWindow(this, salesManager);
         manageDailySalesWindow.setVisible(true);
         this.setVisible(false); // Hide current window
-    }//GEN-LAST:event_ManageDailySalesButtonActionPerformed
+    }//GEN-LAST:event_ManageSalesButtonActionPerformed
 
     private void logOutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logOutButtonActionPerformed
         this.dispose(); // Closes the current SalesManagerWindow
@@ -312,40 +407,31 @@ public class SalesManagerWindow extends javax.swing.JFrame {
         this.setVisible(false); // Hide current window
     }//GEN-LAST:event_lowStockAlertButtonActionPerformed
 
-    private void poListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_poListValueChanged
-        // Load the list of Purchase Orders from the purchase order file
-        purchaseOrderList = PurchaseOrder.loadPurchaseOrders();
-        
-        if (!evt.getValueIsAdjusting()) {  // only act on final selection
-        String selectedPOID = poList.getSelectedValue();
-        if (selectedPOID != null) {
-            for (PurchaseOrder po : purchaseOrderList) {
-                if (po.getOrderID().equals(selectedPOID)) {
-                    String details = po.getFormattedDetails();
-                    poDetails.setText(details);
-                    break;
-                }
-            }
-        }
-    }
-    }//GEN-LAST:event_poListValueChanged
+    private void FilterPOActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_FilterPOActionPerformed
+        filterPOTableByStatus();
+    }//GEN-LAST:event_FilterPOActionPerformed
+
+    private void backButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backButtonActionPerformed
+        // Update JTable to the latest
+        PurchaseOrder.updatePOTableInUI(purchaseOrderList, poTable);
+    }//GEN-LAST:event_backButtonActionPerformed
 
     /**
      * @param args the command line arguments
      */
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton CreatePRButton;
-    private javax.swing.JButton ManageDailySalesButton;
+    private javax.swing.JComboBox<String> FilterPO;
     private javax.swing.JButton ManageItemsButton;
+    private javax.swing.JButton ManagePRButton;
+    private javax.swing.JButton ManageSalesButton;
     private javax.swing.JButton ManageSuppliersButton;
+    private javax.swing.JButton backButton;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JButton logOutButton;
     private javax.swing.JLabel loggedInUsernameLabel;
     private javax.swing.JButton lowStockAlertButton;
-    private javax.swing.JTextArea poDetails;
-    private javax.swing.JList<String> poList;
+    private javax.swing.JTable poTable;
     private javax.swing.JButton searchButton;
     private javax.swing.JTextField searchField;
     // End of variables declaration//GEN-END:variables

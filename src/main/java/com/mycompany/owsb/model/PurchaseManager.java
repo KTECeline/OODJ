@@ -1,22 +1,22 @@
 package com.mycompany.owsb.model;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.table.DefaultTableModel;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
+import javax.swing.JComboBox;
 
 /**
  * Represents a Purchase Manager user with functionalities to view items, suppliers,
@@ -28,10 +28,11 @@ public class PurchaseManager extends Manager implements ManageItemInterface {
     private static final String PURCHASE_REQUISITION_FILE = "data/purchase_requisition.txt";
     private static final String ITEMS_FILE = "data/items.txt";
     private static final String SUPPLIERS_FILE = "data/suppliers.txt";
-    
+    private final User loggedInUser;
     
     public PurchaseManager(User loggedInUser) {
         super(loggedInUser);
+        this.loggedInUser = loggedInUser;
     
     }
 
@@ -197,7 +198,11 @@ public class PurchaseManager extends Manager implements ManageItemInterface {
 
         if (atLeastOneApproved) {
             // Create PO ID per PR
-            String poId = PurchaseOrder.generateNewOrderId();
+            String poId = findExistingPOId(prId);
+            if (poId == null) {
+                poId = PurchaseOrder.generateNewOrderId();
+            }
+
             PurchaseOrder po = new PurchaseOrder(poId, supplierId, new SimpleDateFormat("yyyy-MM-dd").format(new Date()), "PENDING", prId, createdBy);
 
             for (PurchaseOrder.PurchaseOrderItem item : poItems) {
@@ -231,6 +236,25 @@ public class PurchaseManager extends Manager implements ManageItemInterface {
     }
 
     return generatedPOs;
+}
+public static String findExistingPOId(String prId) {
+    try (BufferedReader reader = new BufferedReader(new FileReader(PURCHASE_ORDER_FILE))) {
+        String line;
+        while ((line = reader.readLine()) != null) {
+            String[] parts = line.split(",");
+            if (parts.length >= 8) {
+                String existingPoId = parts[0];
+                String existingPrId = parts[7];
+
+                if (existingPrId.equalsIgnoreCase(prId)) {
+                    return existingPoId; // Found an existing PO ID for the PR
+                }
+            }
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+    return null; // Not found
 }
 
 
@@ -435,50 +459,71 @@ public class PurchaseManager extends Manager implements ManageItemInterface {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
     
-    public int generatePOsFromSelections(DefaultTableModel model, String createdBy) {
-    if (model.getRowCount() == 0) {
-        throw new IllegalStateException("Table is empty. No PRs to process.");
+    public Map<String, Object> getSummaryStats() {
+    Map<String, Object> stats = new HashMap<>();
+    stats.put("totalItems", getAllItems().size());
+    stats.put("totalSuppliers", getAllSuppliers().size());
+    stats.put("pendingPRs", getAllRequisitions().stream()
+                        .filter(pr -> pr.getStatus().equalsIgnoreCase("PENDING"))
+                        .count());
+    stats.put("pendingPOs", getOrdersByStatus("PENDING").size());
+    stats.put("username", loggedInUser.getUsername());
+    return stats;
+}
+
+    public List<PurchaseRequisition> getFilteredRequisitions(String statusFilter) {
+    List<PurchaseRequisition> allPRs = getAllRequisitions(); // Load all PRs
+    List<PurchaseRequisitionItem> allItems = PurchaseRequisitionItem.loadPurchaseRequisitionItems();
+
+    // Attach items to PRs
+    for (PurchaseRequisition pr : allPRs) {
+        List<PurchaseRequisitionItem> itemsForPR = allItems.stream()
+            .filter(item -> item.getPrID().equalsIgnoreCase(pr.getPrID()))
+            .collect(Collectors.toList());
+        pr.setPRItems(itemsForPR); // Make sure this method exists in PR class
     }
 
-    Map<String, Map<String, List<String>>> selections = new HashMap<>();
-    boolean hasSelections = false;
+    // Filter by status
+    if (statusFilter.equalsIgnoreCase("ALL")) {
+        return allPRs;
+    }
 
-    for (int row = 0; row < model.getRowCount(); row++) {
-        Boolean isSelected = (Boolean) model.getValueAt(row, 9);
-        if (isSelected != null && isSelected) {
-            hasSelections = true;
-            String prId = model.getValueAt(row, 0).toString();
-            String itemId = model.getValueAt(row, 1).toString().split(" - ")[0];
-            String supplierId = model.getValueAt(row, 2).toString();
-            String status = model.getValueAt(row, 8).toString();
+    return allPRs.stream()
+        .filter(pr -> pr.getStatus().equalsIgnoreCase(statusFilter))
+        .collect(Collectors.toList());
+}
 
-            if (!status.equalsIgnoreCase("PENDING")) {
-                throw new IllegalArgumentException("Only PENDING PRs can be selected. Invalid PR: " + prId);
+    
+    public void performSearchOrFilter(JTextField searchField, JComboBox<String> Filter, JTable PrTable) {
+        String searchQuery = searchField.getText().trim();
+
+        if (searchQuery.isEmpty() || searchQuery.equalsIgnoreCase("Enter PR ID")) {
+            String selectedStatus = Filter.getSelectedItem().toString();
+            loadViewPR(selectedStatus, PrTable);  // You need to adapt this method to accept PrTable
+        } else {
+            List<PurchaseRequisition> allPRs = getAllRequisitions();
+            List<PurchaseRequisitionItem> prItems = PurchaseRequisitionItem.loadPurchaseRequisitionItems();
+            List<Item> items = getAllItems();
+
+            for (PurchaseRequisition pr : allPRs) {
+                List<PurchaseRequisitionItem> itemsForPR = prItems.stream()
+                    .filter(item -> item.getPrID().equalsIgnoreCase(pr.getPrID()))
+                    .collect(Collectors.toList());
+                pr.setPRItems(itemsForPR);
             }
 
-            selections.computeIfAbsent(prId, k -> new HashMap<>())
-                      .computeIfAbsent(supplierId, k -> new ArrayList<>())
-                      .add(itemId);
+            PurchaseRequisition.searchAndDisplayPRInTable(searchField, PrTable, allPRs, items, prItems);
         }
     }
+    
+    public void loadViewPR(String statusFilter, JTable targetTable) {
+    List<PurchaseRequisition> filteredPRs = getFilteredRequisitions(statusFilter);
+    List<PurchaseRequisitionItem> prItems = PurchaseRequisitionItem.loadPurchaseRequisitionItems();
+    List<Item> items = getAllItems();
 
-    if (!hasSelections) {
-        throw new IllegalArgumentException("No rows selected for PO generation.");
-    }
-
-    int poCount = 0;
-    for (String prId : selections.keySet()) {
-    for (String supplierId : selections.get(prId).keySet()) {
-        Map<String, List<String>> approvedItemsByPR = selections.get(prId); // gets map of supplier -> list<itemID>
-        generatePurchaseOrdersFromMultiplePRs(supplierId, createdBy, approvedItemsByPR);
-        poCount++;
-    }
+    PurchaseRequisition.updatePRTableInUI(filteredPRs, prItems, items, targetTable);
 }
-
-
-    return poCount;
-}
-
+    
     
 }
 
