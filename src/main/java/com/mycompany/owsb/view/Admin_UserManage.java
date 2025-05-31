@@ -36,7 +36,7 @@ import java.awt.Color;
  *
  * @author timi
  */
-public class AdminWindow extends javax.swing.JFrame {
+public class Admin_UserManage extends javax.swing.JFrame {
     //get logged in user 
     private final User loggedInUser;
 
@@ -57,7 +57,7 @@ public class AdminWindow extends javax.swing.JFrame {
     /**
      * Creates new form AdminWindow
      */
-    public AdminWindow(User loggedInUser) {
+    public Admin_UserManage(User loggedInUser) {
         this.loggedInUser = loggedInUser; // Use the provided user
         this.users = loadUsers();
         initComponents();
@@ -104,6 +104,7 @@ public class AdminWindow extends javax.swing.JFrame {
         backgroundPanel.add(updateUser);
         backgroundPanel.add(deleteUser);
         backgroundPanel.add(createUpdateProfileButton);
+        backgroundPanel.add(BackButton); // Add the Back button
         backgroundPanel.add(jScrollPane1); 
         backgroundPanel.add(userDetails);
         backgroundPanel.add(jTabbedPane1);
@@ -115,8 +116,9 @@ public class AdminWindow extends javax.swing.JFrame {
         updateUser.setBounds(40, 140, 150, 30);
         deleteUser.setBounds(40, 180, 150, 30);
         createUpdateProfileButton.setBounds(40, 220, 150, 30);
+        BackButton.setBounds(40, 260, 150, 30); // Position the Back button below the createUpdateProfileButton
         jScrollPane1.setBounds(210, 103, 370, 105);
-        jTabbedPane1.setBounds(210,223,370,260);
+        jTabbedPane1.setBounds(210, 223, 370, 260);
         
         // Add JTextArea instances to JScrollPane components
         jScrollPane2.setViewportView(profileArea);
@@ -546,6 +548,7 @@ public class AdminWindow extends javax.swing.JFrame {
         userDetails = new javax.swing.JTextArea();
         jScrollPane3 = new javax.swing.JScrollPane();
         profileArea = new javax.swing.JTextArea();
+        BackButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Administration");
@@ -642,6 +645,15 @@ public class AdminWindow extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Profile", jScrollPane3);
 
+        BackButton.setBackground(new java.awt.Color(153, 153, 255));
+        BackButton.setFont(new java.awt.Font("Heiti TC", 0, 11)); // NOI18N
+        BackButton.setText("Back");
+        BackButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                BackButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -650,12 +662,12 @@ public class AdminWindow extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                .addComponent(createUpdateProfileButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(updateUser, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(deleteUser, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                            .addComponent(createUser, javax.swing.GroupLayout.PREFERRED_SIZE, 149, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(createUpdateProfileButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(updateUser, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(deleteUser, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(createUser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(BackButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addGap(34, 34, 34)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 341, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -682,7 +694,9 @@ public class AdminWindow extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(deleteUser, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(createUpdateProfileButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(createUpdateProfileButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(BackButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -695,7 +709,18 @@ public class AdminWindow extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void createUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createUserActionPerformed
+        // Always allow proceeding to create user window
+        boolean canProceed = true;
+        
+        // Create a new CreateUserWindow
         CreateUserWindow createUserWindow = new CreateUserWindow(this);
+        
+        // Set restrictions on what roles can be created based on logged in user
+        if (!"Root Administrator".equals(loggedInUser.getRole())) {
+            // For non-Root admins, disable Administrator role
+            createUserWindow.setAdminRoleEnabled(false);
+        }
+        
         createUserWindow.setVisible(true);
         this.setVisible(false); // Hide current window
     }//GEN-LAST:event_createUserActionPerformed
@@ -712,10 +737,28 @@ public class AdminWindow extends javax.swing.JFrame {
         if (selectedUser != null && !selectedUser.isEmpty()) {
             User user = getUser(selectedUser);
             if (user != null) {
-                // Open the UpdateUserWindow with the selected user
-                UpdateUserWindow updateUserUI = new UpdateUserWindow(this, user);
-                updateUserUI.setVisible(true);
-                this.setVisible(false); // Hide the current window
+                // Check permissions based on roles
+                boolean canEdit = true;
+                
+                // If logged in user is not Root Admin, check what they can edit
+                if (!"Root Administrator".equals(loggedInUser.getRole())) {
+                    // Regular Admins cannot edit Root Admins or other Admins EXCEPT themselves
+                    if (("Root Administrator".equals(user.getRole()) || 
+                        "Administrator".equals(user.getRole())) && 
+                        !user.getUsername().equals(loggedInUser.getUsername())) {
+                        JOptionPane.showMessageDialog(this, 
+                            "You don't have permission to modify other " + user.getRole() + " accounts.",
+                            "Permission Denied", 
+                            JOptionPane.WARNING_MESSAGE);
+                        canEdit = false;
+                    }
+                }
+                
+                if (canEdit) {
+                    UpdateUserWindow updateUserUI = new UpdateUserWindow(this, user);
+                    updateUserUI.setVisible(true);
+                    this.setVisible(false); // Hide the current window
+                }
             } else {
                 JOptionPane.showMessageDialog(this, "User not found!", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -737,18 +780,36 @@ public class AdminWindow extends javax.swing.JFrame {
             User user = getUser(selectedUser);
 
             if (user != null) {
-                int confirmation = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete/disable this user?", "Confirm", JOptionPane.YES_NO_OPTION);
-                if (confirmation == JOptionPane.YES_OPTION) {
-                    users.remove(user);
-                    saveUsers();
-                    updateUserList(); // Refresh the list
-                    JOptionPane.showMessageDialog(this, "User deleted/disabled successfully!");
+                // Check permissions based on roles
+                boolean canDelete = true;
+                
+                // If logged in user is not Root Admin, check what they can delete
+                if (!"Root Administrator".equals(loggedInUser.getRole())) {
+                    // Regular Admins cannot delete Root Admins or other Admins
+                    if ("Root Administrator".equals(user.getRole()) || 
+                        "Administrator".equals(user.getRole())) {
+                        JOptionPane.showMessageDialog(this, 
+                            "You don't have permission to delete " + user.getRole() + " accounts.",
+                            "Permission Denied", 
+                            JOptionPane.WARNING_MESSAGE);
+                        canDelete = false;
+                    }
                 }
-
+                
+                if (canDelete) {
+                    int confirmation = JOptionPane.showConfirmDialog(this, 
+                        "Are you sure you want to delete/disable this user?", 
+                        "Confirm", JOptionPane.YES_NO_OPTION);
+                    if (confirmation == JOptionPane.YES_OPTION) {
+                        users.remove(user);
+                        saveUsers();
+                        updateUserList(); // Refresh the list
+                        JOptionPane.showMessageDialog(this, "User deleted/disabled successfully!");
+                    }
+                }
             } else {
                 JOptionPane.showMessageDialog(this, "User not found!", "Error", JOptionPane.ERROR_MESSAGE);
             }
-
         } else {
             JOptionPane.showMessageDialog(this, "No user selected or entered!", "Error", JOptionPane.WARNING_MESSAGE);
         }
@@ -800,20 +861,38 @@ public class AdminWindow extends javax.swing.JFrame {
 
         // Check if the search field is not empty
         if (!searchText.isEmpty()) {
-            // Find the user by username
-            User foundUser = getUser(searchText);
+            // Find the user by username - reload users first to ensure latest data
+            users = loadUsers(); // Refresh the users list
+            User foundUser = null;
+            
+            // Search for the user more thoroughly
+            for (User user : users) {
+                if (user.getUsername().equalsIgnoreCase(searchText)) {
+                    foundUser = user;
+                    break;
+                }
+            }
 
             // Check if the user was found
             if (foundUser != null) {
                 // Display user details in the userDetails JTextArea
                 userDetails.setText(
+                    "UserID: " + foundUser.getUserId() + "\n\n" +
                     "Username: " + foundUser.getUsername() + "\n\n" +
                     "Password: " + foundUser.getPassword() + "\n\n" +
                     "Role: " + foundUser.getRole() + "\n\n"
                 );
+                
+                // Also display profile if available
+                displayProfile(foundUser.getUsername());
+                
+                // Select the user in the list if possible
+                listUser.setSelectedValue(foundUser.getUsername(), true);
+                
             } else {
                 // Display a message in the userDetails JTextArea if the user was not found
                 userDetails.setText("User not found");
+                profileArea.setText("No profile available");
             }
         } else {
             // Prompt user to enter a search term if the field is empty
@@ -825,15 +904,42 @@ public class AdminWindow extends javax.swing.JFrame {
         String selectedUsername = listUser.getSelectedValue();
 
         if (selectedUsername != null) {
-            if (profiles.containsKey(selectedUsername)) {
-                updateProfile(selectedUsername);
-            } else {
-                createProfile(selectedUsername);
+            User selectedUser = getUser(selectedUsername);
+            boolean canManageProfile = true;
+            
+            // Check if the current user has permission to manage this profile
+            if (!"Root Administrator".equals(loggedInUser.getRole())) {
+                if (selectedUser != null && 
+                    ((("Root Administrator".equals(selectedUser.getRole()) || 
+                  "Administrator".equals(selectedUser.getRole()))) && 
+                 !selectedUser.getUsername().equals(loggedInUser.getUsername()))) {
+                    JOptionPane.showMessageDialog(this, 
+                        "You don't have permission to manage profiles for other " + 
+                        selectedUser.getRole() + " accounts.",
+                        "Permission Denied", 
+                        JOptionPane.WARNING_MESSAGE);
+                    canManageProfile = false;
+                }
+            }
+            
+            if (canManageProfile) {
+                if (profiles.containsKey(selectedUsername)) {
+                    updateProfile(selectedUsername);
+                } else {
+                    createProfile(selectedUsername);
+                }
             }
         } else {
             JOptionPane.showMessageDialog(this, "Please select a username from the list.");
         }
     }//GEN-LAST:event_createUpdateProfileButtonActionPerformed
+
+
+    private void BackButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createUpdateProfileButton1ActionPerformed
+        // Close this window
+        this.dispose();
+        
+    }//GEN-LAST:event_createUpdateProfileButton1ActionPerformed
     
      
         
@@ -854,25 +960,27 @@ public class AdminWindow extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(AdminWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Admin_UserManage.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(AdminWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Admin_UserManage.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(AdminWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Admin_UserManage.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(AdminWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Admin_UserManage.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new AdminWindow(null).setVisible(true);
+                new Admin_UserManage(null).setVisible(true);
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton BackButton;
     private javax.swing.JButton createUpdateProfileButton;
     private javax.swing.JButton createUser;
     private javax.swing.JButton deleteUser;
