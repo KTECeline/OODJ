@@ -329,23 +329,9 @@ public class PurchaseOrder {
         targetTable.setModel(tableModel);
         Item.autoResizeColumnWidths(targetTable);
         
-         applyStatusColorRenderer(targetTable);
+        applyStatusColorRenderer(targetTable);
     }
-    
-    // Sales Manager View PO List
-    public static void updatePOListInUI(List<PurchaseOrder> poList, JList<String> list, JTextArea poDetails) {
-        poList = PurchaseOrder.loadPurchaseOrders();
-        
-        DefaultListModel<String> listModel = new DefaultListModel<>();
-        for (PurchaseOrder po : poList) {
-
-            listModel.addElement(po.getOrderID());
-        }
-        
-        list.setModel(listModel);  // set the JList model
-
-        poDetails.setText(""); // Clear details
-    }
+   
 
     
     public static void searchAndDisplayPO(JTextField searchField, JTable targetTable, List<PurchaseOrder> poList) {
@@ -393,34 +379,7 @@ public class PurchaseOrder {
     }
     
     
-    
-    public static void searchAndDisplayPOInList(
-    JTextField searchField, 
-    
-    JTextArea poDetails, 
-    List<PurchaseOrder> poList) {
-
-    
-        String searchID = searchField.getText().trim().toUpperCase();
-        boolean found = false;
-
-        if (poList.isEmpty()) {
-            poDetails.setText("No Purchase Orders loaded.");
-            return;
-        }
-
-        for (PurchaseOrder po : poList) {
-            if (po.getOrderID().equalsIgnoreCase(searchID)) {
-                 poDetails.setText(po.getFormattedDetails());
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-             poDetails.setText("Purchase Order ID not found.");
-        }
-    }
+   
 
    public static void applyStatusColorRenderer(JTable table) {
     table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
@@ -441,10 +400,17 @@ public class PurchaseOrder {
                     case "APPROVED":
                         c.setBackground(new Color(229, 204, 255)); // Light purple
                         break;
+                    case "PENDING":
+                        c.setBackground(Color.WHITE); // White
+                        break;
+                    case "RECEIVED":
+                        c.setBackground(new Color(200, 220, 255)); // Light Blue
+                        break;
                     default:
                         c.setBackground(Color.WHITE); // Default
                         break;
                 }
+            
             }
 
             return c;

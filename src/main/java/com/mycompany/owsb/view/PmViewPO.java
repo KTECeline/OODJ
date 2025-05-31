@@ -44,37 +44,37 @@ public class PmViewPO extends javax.swing.JFrame {
         });
     }
      
-      private void loadSummaryLabels() {
-    Map<String, Object> stats = purchaseManager.getSummaryStats();
+    private void loadSummaryLabels() {
+        Map<String, Object> stats = purchaseManager.getSummaryStats();
 
-    lblTotalItems.setText(stats.get("totalItems").toString());
-    jLabel5.setText(stats.get("totalSuppliers").toString());
-    lblPendingPRs.setText(stats.get("pendingPRs").toString());
-    lblPendingPOs.setText(stats.get("pendingPOs").toString());
-    Usernamelbl.setText(stats.get("username").toString());
-}
-
-      public void loadPOTable() {
-    List<PurchaseOrder> allPOs = purchaseManager.getAllPurchaseOrders(); // Or however you retrieve them
-    PurchaseOrder.updatePOTableInUI(allPOs, poTable);
-    
-}
-      public void filterPOTableByStatus() {
-    String selectedStatus = Filter.getSelectedItem().toString(); // e.g., "Pending", "Approved", "All"
-    List<PurchaseOrder> allPOs = purchaseManager.getAllPurchaseOrders();
-
-    List<PurchaseOrder> filteredPOs;
-
-    if (selectedStatus.equalsIgnoreCase("All")) {
-        filteredPOs = allPOs; // No filtering
-    } else {
-        filteredPOs = allPOs.stream()
-            .filter(po -> po.getStatus().equalsIgnoreCase(selectedStatus))
-            .collect(Collectors.toList());
+        lblTotalItems.setText(stats.get("totalItems").toString());
+        jLabel5.setText(stats.get("totalSuppliers").toString());
+        lblPendingPRs.setText(stats.get("pendingPRs").toString());
+        lblPendingPOs.setText(stats.get("pendingPOs").toString());
+        Usernamelbl.setText(stats.get("username").toString());
     }
 
-    PurchaseOrder.updatePOTableInUI(filteredPOs, poTable);
-}
+    public void loadPOTable() {
+        List<PurchaseOrder> allPOs = purchaseManager.getAllPurchaseOrders(); // Or however you retrieve them
+        PurchaseOrder.updatePOTableInUI(allPOs, poTable);
+    }
+    
+    public void filterPOTableByStatus() {
+        String selectedStatus = Filter.getSelectedItem().toString(); // e.g., "Pending", "Approved", "All"
+        List<PurchaseOrder> allPOs = purchaseManager.getAllPurchaseOrders();
+
+        List<PurchaseOrder> filteredPOs;
+
+        if (selectedStatus.equalsIgnoreCase("All")) {
+            filteredPOs = allPOs; // No filtering
+        } else {
+            filteredPOs = allPOs.stream()
+                .filter(po -> po.getStatus().equalsIgnoreCase(selectedStatus))
+                .collect(Collectors.toList());
+        }
+
+        PurchaseOrder.updatePOTableInUI(filteredPOs, poTable);
+    }
 
 
     /**
@@ -468,9 +468,9 @@ public class PmViewPO extends javax.swing.JFrame {
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
         // TODO add your handling code here:
         String searchText = searchField.getText().trim();
-List<PurchaseOrder> allPOs = purchaseManager.getAllPurchaseOrders();
+        List<PurchaseOrder> allPOs = purchaseManager.getAllPurchaseOrders();
 
-PurchaseOrder.searchAndDisplayPO(searchField, poTable, allPOs);
+        PurchaseOrder.searchAndDisplayPO(searchField, poTable, allPOs);
 
     }//GEN-LAST:event_jButton6ActionPerformed
 
