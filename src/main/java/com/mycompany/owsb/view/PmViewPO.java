@@ -386,7 +386,7 @@ private void deleteSelectedPO() {
             }
         });
 
-        Filter.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ALL", "PENDING", "APPROVED", "REJECTED", "RECEIVED", "UNFULFILLED", "COMPLETED" }));
+        Filter.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ALL", "PENDING", "APPROVED", "VERIFIED", "REJECTED", "RECEIVED", "UNFULFILLED", "COMPLETED" }));
         Filter.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 FilterActionPerformed(evt);
