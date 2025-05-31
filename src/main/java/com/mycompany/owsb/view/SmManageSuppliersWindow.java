@@ -8,7 +8,6 @@ import com.mycompany.owsb.model.Item;
 import com.mycompany.owsb.model.SalesManager;
 import com.mycompany.owsb.model.Supplier;
 import com.mycompany.owsb.model.SupplierItem;
-import com.mycompany.owsb.model.User;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
