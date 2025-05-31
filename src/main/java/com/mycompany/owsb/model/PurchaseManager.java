@@ -327,33 +327,64 @@ public static String findExistingPOId(String prId) {
      * Deletes a Purchase Order if it is in PENDING status.
      * @param poId The ID of the Purchase Order to delete.
      */
-    public void deletePurchaseOrder(String poId) {
-        PurchaseOrder po = PurchaseOrder.findById(poId);
-        if (po == null) {
-            JOptionPane.showMessageDialog(null, "Purchase Order not found.", "Error", JOptionPane.ERROR_MESSAGE);
-            throw new IllegalArgumentException("Purchase Order not found");
+    public void deletePurchaseOrderItem(String poId, String itemId) {
+        List<String> lines = new ArrayList<>();
+        boolean found = false;
+        String prId = null;
+        boolean isPending = true;
+        boolean hasRemainingItems = false;
+
+        // Read purchase_order.txt and filter out the specific item
+        try (BufferedReader reader = new BufferedReader(new FileReader(PURCHASE_ORDER_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length >= 9 && parts[0].equalsIgnoreCase(poId) && parts[1].equalsIgnoreCase(itemId)) {
+                    found = true;
+                    prId = parts[7]; // PR ID
+                    if (!parts[6].equalsIgnoreCase("PENDING")) {
+                        isPending = false;
+                    }
+                } else {
+                    lines.add(line);
+                    if (parts.length >= 9 && parts[0].equalsIgnoreCase(poId)) {
+                        hasRemainingItems = true;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Failed to read purchase orders.", "Error", JOptionPane.ERROR_MESSAGE);
+            throw new RuntimeException("Failed to read purchase orders", e);
         }
 
-        if (!po.getStatus().equals("PENDING")) {
-            JOptionPane.showMessageDialog(null, "Only pending orders can be deleted.", "Error", JOptionPane.ERROR_MESSAGE);
-            throw new IllegalStateException("Only pending orders can be deleted");
+        if (!found) {
+            JOptionPane.showMessageDialog(null, "Purchase Order item not found: PO " + poId + ", Item " + itemId, "Error", JOptionPane.ERROR_MESSAGE);
+            throw new IllegalArgumentException("Purchase Order item not found");
         }
 
-        List<PurchaseOrder> poList = PurchaseOrder.loadPurchaseOrders();
-        poList.removeIf(p -> p.getOrderID().equals(poId));
-        try (java.io.BufferedWriter writer = new java.io.BufferedWriter(new java.io.FileWriter(PURCHASE_ORDER_FILE))) {
-            for (PurchaseOrder p : poList) {
-                writer.write(p.toString());
+        if (!isPending) {
+            JOptionPane.showMessageDialog(null, "Only pending order items can be deleted.", "Error", JOptionPane.ERROR_MESSAGE);
+            throw new IllegalStateException("Only pending order items can be deleted");
+        }
+
+        // Write back remaining lines
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(PURCHASE_ORDER_FILE))) {
+            for (String line : lines) {
+                writer.write(line);
                 writer.newLine();
             }
-        } catch (java.io.IOException e) {
+        } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "Failed to save purchase orders.", "Error", JOptionPane.ERROR_MESSAGE);
+            throw new RuntimeException("Failed to save purchase orders", e);
         }
 
-        PurchaseRequisition pr = PurchaseRequisition.findById(po.getPrId());
-        if (pr != null) {
-            pr.setStatus("PENDING");
-            PurchaseRequisition.update(pr);
+        // Update PR status if no items remain
+        if (!hasRemainingItems && prId != null) {
+            PurchaseRequisition pr = PurchaseRequisition.findById(prId);
+            if (pr != null) {
+                pr.setStatus("PENDING");
+                PurchaseRequisition.update(pr);
+            }
         }
     }
 

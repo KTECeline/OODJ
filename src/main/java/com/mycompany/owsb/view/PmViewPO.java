@@ -4,18 +4,20 @@
  */
 package com.mycompany.owsb.view;
 
-import com.mycompany.owsb.model.Item;
+
 import com.mycompany.owsb.model.PurchaseManager;
 import com.mycompany.owsb.model.PurchaseOrder;
 import com.mycompany.owsb.model.PurchaseRequisition;
-import com.mycompany.owsb.model.User;
 import com.mycompany.owsb.model.WindowUtil;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.JOptionPane;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
 
 /**
  *
@@ -34,7 +36,8 @@ public class PmViewPO extends javax.swing.JFrame {
         this.purchaseManager = purchaseManager;
         initComponents();
         setupWindowListener();
-        loadPOTable();
+        loadSummaryLabels();
+        loadPOsIntoList();
     }
     
      private void setupWindowListener() {
@@ -56,51 +59,15 @@ public class PmViewPO extends javax.swing.JFrame {
         lblPendingPOs.setText(stats.get("pendingPOs").toString());
         Usernamelbl.setText(stats.get("username").toString());
     }
-
-    public void loadPOTable() {
-    List<PurchaseOrder> allPOs = purchaseManager.getAllPurchaseOrders();
-    List<PurchaseRequisition> allPRs = purchaseManager.getAllRequisitions();
-    // First, update the PO table with the default columns
-    PurchaseOrder.updatePOTableInUI(allPOs, allPRs, poTable);
-
-    // Now, add a checkbox column in the GUI after loading
-    DefaultTableModel originalModel = (DefaultTableModel) poTable.getModel();
-    int rowCount = originalModel.getRowCount();
-    int columnCount = originalModel.getColumnCount();
-
-    // Create new model with checkbox column
-    DefaultTableModel newModel = new DefaultTableModel() {
-        @Override
-        public boolean isCellEditable(int row, int column) {
-            return column == 0; // Only checkbox column is editable
-        }
-
-        @Override
-        public Class<?> getColumnClass(int columnIndex) {
-            if (columnIndex == 0) return Boolean.class;
-            return String.class;
-        }
-    };
-
-    // Set new column names with checkbox at index 0
-    newModel.addColumn("Select");
-    for (int i = 0; i < columnCount; i++) {
-        newModel.addColumn(originalModel.getColumnName(i));
+    
+    private void loadPOsIntoList() {
+        // Load the list of Purchase Orders from the purchase order file
+        List<PurchaseOrder> allPOs = purchaseManager.getAllPurchaseOrders();
+    List<PurchaseRequisition> allPRs = purchaseManager.getAllRequisitions();;
+        // Update the JList and details area in the UI with the loaded Purchase Orders
+        PurchaseOrder.updatePOTableInUI(allPOs, allPRs, poTable);
     }
-
-    // Copy data from original model and add false checkbox by default
-    for (int i = 0; i < rowCount; i++) {
-        Object[] rowData = new Object[columnCount + 1];
-        rowData[0] = false; // Checkbox not selected
-        for (int j = 0; j < columnCount; j++) {
-            rowData[j + 1] = originalModel.getValueAt(i, j);
-        }
-        newModel.addRow(rowData);
-    }
-
-    poTable.setModel(newModel);
-    Item.autoResizeColumnWidths(poTable);
-}
+    
 
     
     public void filterPOTableByStatus() {
@@ -121,7 +88,45 @@ public class PmViewPO extends javax.swing.JFrame {
     PurchaseOrder.updatePOTableInUI(filteredPOs, allPRs, poTable);
 }
 
+    private void setupTableSelectionListener() {
+        poTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (!e.getValueIsAdjusting()) {
+                    boolean rowSelected = poTable.getSelectedRow() != -1;
+                    dltBtn.setEnabled(rowSelected);
+                }
+            }
+        });
+    }
+private void deleteSelectedPO() {
+        int selectedRow = poTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Please select a purchase order item to delete.", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
+        String orderId = poTable.getValueAt(selectedRow, 0).toString();
+        String itemId = poTable.getValueAt(selectedRow, 1).toString().split(" - ")[0];
+
+        int confirm = JOptionPane.showConfirmDialog(this,
+            "Are you sure you want to delete PO " + orderId + " (Item: " + itemId + ")?",
+            "Confirm Deletion",
+            JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                purchaseManager.deletePurchaseOrderItem(orderId, itemId);
+                filterPOTableByStatus();
+                JOptionPane.showMessageDialog(this, "Purchase order item deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+            } catch (IllegalArgumentException | IllegalStateException e) {
+                // Error already shown via JOptionPane in deletePurchaseOrderItem
+                filterPOTableByStatus();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Unexpected error deleting PO item: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -139,25 +144,25 @@ public class PmViewPO extends javax.swing.JFrame {
         searchField = new javax.swing.JTextField();
         jButton6 = new javax.swing.JButton();
         Filter = new javax.swing.JComboBox<>();
-        jButton7 = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jScrollPane6 = new javax.swing.JScrollPane();
         poTable = new javax.swing.JTable();
-        jButton8 = new javax.swing.JButton();
+        jButton11 = new javax.swing.JButton();
+        jButton12 = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
+        jButton3 = new javax.swing.JButton();
+        lblPendingPRs = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
+        lblPendingPOs = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
-        jLabel6 = new javax.swing.JLabel();
         lblTotalItems = new javax.swing.JLabel();
-        jButton11 = new javax.swing.JButton();
         jLabel7 = new javax.swing.JLabel();
-        jButton12 = new javax.swing.JButton();
-        lblPendingPRs = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
-        jLabel9 = new javax.swing.JLabel();
-        jButton2 = new javax.swing.JButton();
-        lblPendingPOs = new javax.swing.JLabel();
-        jButton3 = new javax.swing.JButton();
+        jButton7 = new javax.swing.JButton();
+        dltBtn = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -195,13 +200,6 @@ public class PmViewPO extends javax.swing.JFrame {
             }
         });
 
-        jButton7.setText("Edit PO");
-        jButton7.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton7ActionPerformed(evt);
-            }
-        });
-
         poTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null, null, null},
@@ -230,31 +228,14 @@ public class PmViewPO extends javax.swing.JFrame {
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 659, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addContainerGap()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 697, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(27, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 215, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(22, Short.MAX_VALUE))
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 271, Short.MAX_VALUE)
         );
-
-        jButton8.setText("Delete PO");
-        jButton8.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton8ActionPerformed(evt);
-            }
-        });
-
-        jLabel4.setText("Total Suppliers: ");
-
-        jLabel5.setText("jLabel5");
-
-        jLabel6.setText("Total Items: ");
-
-        lblTotalItems.setText("jLabel6");
 
         jButton11.setText("Home");
         jButton11.addActionListener(new java.awt.event.ActionListener() {
@@ -263,16 +244,12 @@ public class PmViewPO extends javax.swing.JFrame {
             }
         });
 
-        jLabel7.setText("Pending PRs:");
-
         jButton12.setText("View Item");
         jButton12.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton12ActionPerformed(evt);
             }
         });
-
-        lblPendingPRs.setText("label");
 
         jButton1.setText("View Supplier");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -281,16 +258,12 @@ public class PmViewPO extends javax.swing.JFrame {
             }
         });
 
-        jLabel9.setText("Pending POs:");
-
         jButton2.setText("View PR");
         jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton2ActionPerformed(evt);
             }
         });
-
-        lblPendingPOs.setText("jLabel10");
 
         jButton3.setText("View PO");
         jButton3.addActionListener(new java.awt.event.ActionListener() {
@@ -299,131 +272,159 @@ public class PmViewPO extends javax.swing.JFrame {
             }
         });
 
+        lblPendingPRs.setText("label");
+
+        jLabel9.setText("Pending POs:");
+
+        lblPendingPOs.setText("jLabel10");
+
+        jLabel6.setText("Total Items: ");
+
+        jLabel4.setText("Total Suppliers: ");
+
+        jLabel5.setText("jLabel5");
+
+        lblTotalItems.setText("jLabel6");
+
+        jLabel7.setText("Pending PRs:");
+
+        jButton7.setText("Edit PO");
+        jButton7.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton7ActionPerformed(evt);
+            }
+        });
+
+        dltBtn.setText("Delete PO");
+        dltBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dltBtnActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
+                .addGap(52, 52, 52)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(281, 281, 281)
-                        .addComponent(jLabel1))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(200, 200, 200)
-                        .addComponent(jButton7, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(97, 97, 97)
-                        .addComponent(jButton8, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(0, 0, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(34, 34, 34)
-                .addComponent(jLabel2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(Usernamelbl, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jToggleButton1)
-                .addGap(60, 60, 60))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(24, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jButton11)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel2)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(Usernamelbl, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(jToggleButton1)
+                                .addGap(38, 38, 38))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(jButton1)
+                                .addGap(79, 79, 79)
+                                .addComponent(jButton2)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 95, Short.MAX_VALUE)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jButton7, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jButton3))
+                                .addGap(53, 53, 53))))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(layout.createSequentialGroup()
+                                .addComponent(searchField, javax.swing.GroupLayout.PREFERRED_SIZE, 397, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(71, 71, 71)
+                                .addComponent(Filter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel6)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(lblTotalItems, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(53, 53, 53)
+                                .addComponent(jLabel4)
+                                .addGap(18, 18, 18)
+                                .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(96, 96, 96)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(layout.createSequentialGroup()
-                                        .addGap(49, 49, 49)
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(jLabel6)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 281, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(lblPendingPOs, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                            .addComponent(jButton6)
                                             .addGroup(layout.createSequentialGroup()
-                                                .addGap(14, 14, 14)
-                                                .addComponent(lblTotalItems, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                                    .addComponent(jButton11))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addGroup(layout.createSequentialGroup()
-                                                .addGap(24, 24, 24)
-                                                .addComponent(jLabel4))
-                                            .addGroup(layout.createSequentialGroup()
-                                                .addGap(48, 48, 48)
-                                                .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                        .addGap(58, 58, 58)
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                                 .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addGap(54, 54, 54)
-                                                .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                                 .addComponent(lblPendingPRs, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addGap(87, 87, 87)
-                                                .addComponent(lblPendingPOs, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addGap(29, 29, 29))))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jButton12)
-                                        .addGap(37, 37, 37)
-                                        .addComponent(jButton1)
-                                        .addGap(34, 34, 34)
-                                        .addComponent(jButton2)
-                                        .addGap(40, 40, 40)
-                                        .addComponent(jButton3)))))
-                        .addGap(24, 24, 24))
+                                                .addGap(85, 85, 85)
+                                                .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                        .addGap(29, 29, 29))))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(230, 230, 230)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jButton12, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel1))))
+                        .addGap(0, 161, Short.MAX_VALUE))))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(35, 35, 35)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(searchField, javax.swing.GroupLayout.PREFERRED_SIZE, 397, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(Filter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButton6)
-                        .addGap(38, 38, 38))))
+                        .addGap(283, 283, 283)
+                        .addComponent(dltBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(8, 8, 8)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(Usernamelbl)
-                    .addComponent(jToggleButton1))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton11)
-                    .addComponent(jButton12)
-                    .addComponent(jButton1)
-                    .addComponent(jButton2)
-                    .addComponent(jButton3))
-                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
+                        .addGap(14, 14, 14)
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 31, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jButton1)
+                            .addComponent(jButton11)
+                            .addComponent(jButton12)
+                            .addComponent(jButton2)
+                            .addComponent(jButton3)))
+                    .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel7)
-                            .addComponent(jLabel9))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(lblPendingPRs)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(lblPendingPOs, javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                        .addComponent(lblTotalItems)
-                                        .addComponent(jLabel5))
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 1, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jLabel6)
-                        .addComponent(jLabel4)))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(28, 28, 28)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(jLabel2)
+                                    .addComponent(Usernamelbl)))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(33, 33, 33)
+                                .addComponent(jToggleButton1)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel6)
+                    .addComponent(lblTotalItems)
+                    .addComponent(jLabel7)
+                    .addComponent(lblPendingPRs)
+                    .addComponent(jLabel4)
+                    .addComponent(jLabel5)
+                    .addComponent(jLabel9)
+                    .addComponent(lblPendingPOs))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(searchField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton6)
-                    .addComponent(Filter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(13, 13, 13)
+                    .addComponent(Filter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton6))
+                .addGap(18, 18, 18)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton8)
-                    .addComponent(jButton7))
-                .addContainerGap())
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 18, Short.MAX_VALUE)
+                        .addComponent(dltBtn)
+                        .addGap(26, 26, 26))
+                    .addGroup(layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jButton7)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
 
         pack();
@@ -432,7 +433,7 @@ public class PmViewPO extends javax.swing.JFrame {
 
     private void jToggleButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton1ActionPerformed
         // TODO add your handling code here:
-       
+        WindowUtil.logoutAndRedirectToLogin(this);
         
     }//GEN-LAST:event_jToggleButton1ActionPerformed
 
@@ -444,9 +445,10 @@ public class PmViewPO extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_searchFieldActionPerformed
 
-    private void jButton8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton8ActionPerformed
+    private void dltBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dltBtnActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jButton8ActionPerformed
+        deleteSelectedPO();
+    }//GEN-LAST:event_dltBtnActionPerformed
 
     private void jButton11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton11ActionPerformed
         // TODO add your handling code here:
@@ -536,6 +538,7 @@ public class PmViewPO extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox<String> Filter;
     private javax.swing.JLabel Usernamelbl;
+    private javax.swing.JButton dltBtn;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton11;
     private javax.swing.JButton jButton12;
@@ -543,7 +546,6 @@ public class PmViewPO extends javax.swing.JFrame {
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton6;
     private javax.swing.JButton jButton7;
-    private javax.swing.JButton jButton8;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;

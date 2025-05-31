@@ -330,10 +330,10 @@ public class PurchaseOrder {
             tableModel.addRow(row);
         }
     }
-
+    applyStatusColorRenderer(targetTable);
     targetTable.setModel(tableModel);
     Item.autoResizeColumnWidths(targetTable);
-    applyStatusColorRenderer(targetTable);
+    
 }
 
 private static PurchaseRequisition getRequisitionById(String prID, List<PurchaseRequisition> prList) {
@@ -344,9 +344,6 @@ private static PurchaseRequisition getRequisitionById(String prID, List<Purchase
     }
     return null;
 }
-
-
-   
 
     
     public static void searchAndDisplayPO(JTextField searchField, JTable targetTable, List<PurchaseOrder> poList, List<PurchaseRequisition> prList) {
@@ -394,6 +391,7 @@ private static PurchaseRequisition getRequisitionById(String prID, List<Purchase
     }
 
     targetTable.setModel(model);
+    applyStatusColorRenderer(targetTable);
     Item.autoResizeColumnWidths(targetTable);
 
     if (!found) {

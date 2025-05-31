@@ -26,41 +26,77 @@
           <Group type="102" attributes="0">
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace min="-2" pref="65" max="-2" attributes="0"/>
-                      <Component id="quantityLabel" min="-2" pref="37" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="59" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="POlbl" alignment="0" min="-2" pref="37" max="-2" attributes="0"/>
+                          <Component id="itemlbl" alignment="0" min="-2" pref="37" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="102" attributes="0">
+                              <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+                              <Component id="itemIDlbl" min="-2" pref="37" max="-2" attributes="0"/>
+                          </Group>
+                          <Component id="POIDlbl" min="-2" pref="37" max="-2" attributes="0"/>
+                      </Group>
+                  </Group>
+                  <Group type="102" alignment="0" attributes="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="102" attributes="0">
+                              <EmptySpace min="-2" pref="59" max="-2" attributes="0"/>
+                              <Component id="supplierLabel" min="-2" pref="75" max="-2" attributes="0"/>
+                          </Group>
+                          <Group type="102" attributes="0">
+                              <EmptySpace min="-2" pref="49" max="-2" attributes="0"/>
+                              <Component id="quantityLabel" min="-2" pref="107" max="-2" attributes="0"/>
+                          </Group>
+                      </Group>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="quantityField" min="-2" pref="71" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="quantityField" min="-2" pref="71" max="-2" attributes="0"/>
+                          <Component id="supplierField" min="-2" pref="71" max="-2" attributes="0"/>
+                      </Group>
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
                       <EmptySpace min="-2" pref="57" max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="1" attributes="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="jLabel2" min="-2" pref="37" max="-2" attributes="0"/>
                           <Component id="jLabel1" min="-2" pref="37" max="-2" attributes="0"/>
-                          <Component id="supplierLabel" min="-2" pref="37" max="-2" attributes="0"/>
                       </Group>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Component id="supplierField" min="-2" pref="71" max="-2" attributes="0"/>
                   </Group>
               </Group>
-              <EmptySpace pref="217" max="32767" attributes="0"/>
+              <EmptySpace pref="167" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
     <DimensionLayout dim="1">
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="0" attributes="0">
-              <EmptySpace min="-2" pref="101" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="67" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="quantityLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="quantityField" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="POlbl" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="POIDlbl" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace min="-2" pref="5" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="itemlbl" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="itemIDlbl" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="supplierLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="supplierField" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="quantityField" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="quantityLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
               <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
-              <EmptySpace pref="121" max="32767" attributes="0"/>
+              <EmptySpace pref="96" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -89,6 +125,31 @@
     <Component class="javax.swing.JLabel" name="jLabel1">
       <Properties>
         <Property name="text" type="java.lang.String" value="jLabel1"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="POlbl">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="PO ID: "/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="POIDlbl">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="jLabel2"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="itemlbl">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Item ID: "/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="itemIDlbl">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="jLabel3"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel2">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="jLabel2"/>
       </Properties>
     </Component>
   </SubComponents>
