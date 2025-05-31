@@ -28,8 +28,8 @@ public class PurchaseOrder {
     private String status;
     private String prId;
     private String createdBy;
-    private List<PurchaseOrderItem> items;
-
+    private List<PurchaseOrder.PurchaseOrderItem> items;
+   
     private static final String PURCHASE_ORDER_FILE = "data/purchase_order.txt";
 
     // Inner class to represent an item in a PO
@@ -306,10 +306,12 @@ public class PurchaseOrder {
 
     public static void updatePOTableInUI(List<PurchaseOrder> poList, JTable targetTable) {
         String[] columnNames = {"PO ID", "Item ID", "Supplier ID", "Quantity", "Total Price (RM)", 
-                               "Order Date", "Status", "PR ID", "Created By"};
+                               "Order Date", "Status", "PR ID", "Required Date", "Created By"};
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
+        
 
         for (PurchaseOrder po : poList) {
+           
             for (PurchaseOrderItem item : po.getItems()) {
                 Object[] row = {
                     po.getOrderID(),
@@ -331,6 +333,7 @@ public class PurchaseOrder {
         
         applyStatusColorRenderer(targetTable);
     }
+
    
 
     
@@ -405,6 +408,9 @@ public class PurchaseOrder {
                         break;
                     case "RECEIVED":
                         c.setBackground(new Color(200, 220, 255)); // Light Blue
+                        break;
+                    case "UNFULFILLED":
+                        c.setBackground(new Color(255, 255, 204)); // Light Yellow
                         break;
                     default:
                         c.setBackground(Color.WHITE); // Default
