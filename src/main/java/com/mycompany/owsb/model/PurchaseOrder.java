@@ -110,14 +110,14 @@ public class PurchaseOrder {
     }
 
     private boolean isValidStatus(String status) {
-    return status != null && 
-           (status.equals("PENDING") || 
-            status.equals("APPROVED") || 
-            status.equals("REJECTED") || 
-            status.equals("UNFULFILLED") ||
-            status.equals("RECEIVED") ||
-            status.equals("COMPLETED"));
-}
+        return status != null && 
+               (status.equals("PENDING") || 
+                status.equals("APPROVED") || 
+                status.equals("REJECTED") || 
+                status.equals("UNFULFILLED") ||
+                status.equals("RECEIVED") ||
+                status.equals("COMPLETED"));
+    }
     
     public String getOrderID() {
         return orderID;
@@ -405,6 +405,9 @@ public class PurchaseOrder {
                         break;
                     case "RECEIVED":
                         c.setBackground(new Color(200, 220, 255)); // Light Blue
+                        break;
+                    case "UNFULFILLED":
+                        c.setBackground(new Color(255, 255, 204)); // Light Yellow
                         break;
                     default:
                         c.setBackground(Color.WHITE); // Default
