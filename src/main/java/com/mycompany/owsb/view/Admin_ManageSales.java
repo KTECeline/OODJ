@@ -17,8 +17,7 @@ import javax.swing.JOptionPane;
  *
  * @author timi
  */
-public class SmManageDailySalesWindow extends javax.swing.JFrame {
-    private final SalesManagerWindow parentWindow;
+public class Admin_ManageSales extends javax.swing.JFrame {
     
     // Instance of SalesManager to call sales-related methods
     private final SalesManager salesManager;
@@ -29,10 +28,8 @@ public class SmManageDailySalesWindow extends javax.swing.JFrame {
 
     /**
      * Creates new form SmManageDailySalesWindow
-     * @param parentWindow
      */
-    public SmManageDailySalesWindow(SalesManagerWindow parentWindow, SalesManager salesManager) {
-        this.parentWindow = parentWindow;
+    public Admin_ManageSales(SalesManager salesManager) {
         this.salesManager = salesManager;
         initComponents();
         loadDataIntoUI();
@@ -44,7 +41,6 @@ public class SmManageDailySalesWindow extends javax.swing.JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                parentWindow.showSmWindow(); // Show the homepage
                 dispose(); // Close the current window
             }
         });
@@ -333,7 +329,8 @@ public class SmManageDailySalesWindow extends javax.swing.JFrame {
                                 .addComponent(editItemButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(addItemButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(deleteItemButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                            .addComponent(jLabel2))
+                            .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(jLabel2)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 234, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jScrollPane2))
@@ -501,9 +498,6 @@ public class SmManageDailySalesWindow extends javax.swing.JFrame {
     private void homeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_homeButtonActionPerformed
         // Close the current window
         this.dispose();
-
-        // Open the SalesManagerWindow
-        parentWindow.showSmWindow(); // Show the homepage
     }//GEN-LAST:event_homeButtonActionPerformed
 
 

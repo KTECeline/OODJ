@@ -6,26 +6,14 @@ package com.mycompany.owsb.view;
 
 import com.mycompany.owsb.model.Item;
 import com.mycompany.owsb.model.PurchaseManager;
-import com.mycompany.owsb.model.PurchaseOrder;
 import com.mycompany.owsb.model.PurchaseRequisition;
 import com.mycompany.owsb.model.PurchaseRequisitionItem;
-import com.mycompany.owsb.model.Supplier;
-import com.mycompany.owsb.model.SupplierItem;
-
-import com.mycompany.owsb.model.User;
+import com.mycompany.owsb.model.Stats;
 import com.mycompany.owsb.model.WindowUtil;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.List;
-import java.util.Map;
-import java.util.logging.Filter;
-import java.util.stream.Collectors;
-import javax.swing.JButton;
-import javax.swing.JOptionPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableRowSorter;
+
 
 /**
  *
@@ -69,13 +57,13 @@ public class PmViewPR extends javax.swing.JFrame {
 
 
      private void loadSummaryLabels() {
-    Map<String, Object> stats = purchaseManager.getSummaryStats();
+    Stats stats = purchaseManager.getSummaryStats();
 
-    lblTotalItems.setText(stats.get("totalItems").toString());
-    jLabel5.setText(stats.get("totalSuppliers").toString());
-    lblPendingPRs.setText(stats.get("pendingPRs").toString());
-    lblPendingPOs.setText(stats.get("pendingPOs").toString());
-    Usernamelbl.setText(stats.get("username").toString());
+    lblTotalItems.setText(String.valueOf(stats.getTotalItems()));
+    jLabel5.setText(String.valueOf(stats.getTotalSuppliers()));
+    lblPendingPRs.setText(String.valueOf(stats.getPendingPRs()));
+    lblPendingPOs.setText(String.valueOf(stats.getPendingPOs()));
+    Usernamelbl.setText(stats.getUsername());
 }
 
 

@@ -14,10 +14,10 @@ import javax.swing.JTable;
  */
 public interface ManageSupplierInterface {
     
-    void addSupplier(JFrame parent, List<Supplier> supplierList, JTable supplierTable);
+    void addSupplier(JFrame parent, List<Supplier> supplierList, List<SupplierItem> supplierItemList, List<Item> itemList, JTable supplierTable);
     
-    void editSupplier(Supplier supplierToEdit, List<Supplier> supplierList, JTable supplierTable);
+    void editSupplier(Supplier supplierToEdit, List<Supplier> supplierList, List<SupplierItem> supplierItemList, List<Item> itemList, JTable supplierTable);
     
-    void deleteSupplier(JFrame parent, List<Supplier> supplierList, List<Item> itemList, JTable supplierTable);
+    void deleteSupplier(JFrame parent, List<Supplier> supplierList, List<SupplierItem> supplierItemList, JTable supplierTable);
     
 }

@@ -6,16 +6,13 @@ package com.mycompany.owsb.view;
 
 import com.mycompany.owsb.model.Item;
 import com.mycompany.owsb.model.PurchaseManager;
-import com.mycompany.owsb.model.PurchaseOrder;
+import com.mycompany.owsb.model.Stats;
 import com.mycompany.owsb.model.User;
 import com.mycompany.owsb.model.WindowUtil;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.List;
-import java.util.Map;
-import javax.swing.JButton;
 import javax.swing.JOptionPane;
-import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -69,15 +66,16 @@ public class PmViewItem extends javax.swing.JFrame {
     Item.updateItemTableInUI(itemList, itemTable);
 }
      
-     private void loadSummaryLabels() {
-    Map<String, Object> stats = purchaseManager.getSummaryStats();
+    private void loadSummaryLabels() {
+    Stats stats = purchaseManager.getSummaryStats();
 
-    lblTotalItems.setText(stats.get("totalItems").toString());
-    jLabel5.setText(stats.get("totalSuppliers").toString());
-    lblPendingPRs.setText(stats.get("pendingPRs").toString());
-    lblPendingPOs.setText(stats.get("pendingPOs").toString());
-    Usernamelbl.setText(stats.get("username").toString());
+    lblTotalItems.setText(String.valueOf(stats.getTotalItems()));
+    jLabel5.setText(String.valueOf(stats.getTotalSuppliers()));
+    lblPendingPRs.setText(String.valueOf(stats.getPendingPRs()));
+    lblPendingPOs.setText(String.valueOf(stats.getPendingPOs()));
+    Usernamelbl.setText(stats.getUsername());
 }
+
      
     /**
      * This method is called from within the constructor to initialize the form.

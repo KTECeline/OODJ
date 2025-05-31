@@ -8,6 +8,7 @@ import com.mycompany.owsb.model.Item;
 import com.mycompany.owsb.model.SalesManager;
 import com.mycompany.owsb.model.Supplier;
 import com.mycompany.owsb.model.SupplierItem;
+import com.mycompany.owsb.model.User;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
@@ -17,8 +18,7 @@ import javax.swing.JOptionPane;
  *
  * @author timi
  */
-public class SmManageSuppliersWindow extends javax.swing.JFrame {
-    private final SalesManagerWindow parentWindow;
+public class Admin_ManageSuppliersWindow extends javax.swing.JFrame {
     
     // Instance of SalesManager to call sales-related methods
     private final SalesManager salesManager;
@@ -32,11 +32,9 @@ public class SmManageSuppliersWindow extends javax.swing.JFrame {
 
     /**
      * Creates new form SmManageSuppliersWindow
-     * @param parentWindow
      * @param salesManager
      */
-    public SmManageSuppliersWindow(SalesManagerWindow parentWindow, SalesManager salesManager) {
-        this.parentWindow = parentWindow;
+    public Admin_ManageSuppliersWindow(SalesManager salesManager) {
         this.salesManager = salesManager;
         initComponents();
         loadDataIntoList(); 
@@ -48,7 +46,6 @@ public class SmManageSuppliersWindow extends javax.swing.JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                parentWindow.showSmWindow(); // Show the homepage
                 dispose(); // Close the current window
             }
         });
@@ -344,8 +341,6 @@ public class SmManageSuppliersWindow extends javax.swing.JFrame {
         // Close the current window
         this.dispose();
         
-        // Open the SalesManagerWindow
-        parentWindow.showSmWindow(); // Show the homepage
     }//GEN-LAST:event_homeButtonActionPerformed
 
     /**

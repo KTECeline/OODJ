@@ -4,14 +4,11 @@
  */
 package com.mycompany.owsb.model;
 
-import com.mycompany.owsb.view.SmManageItemsWindow;
 import java.awt.*;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import javax.swing.*;
 import java.util.List;
 import javax.swing.event.DocumentEvent;
@@ -23,7 +20,9 @@ import javax.swing.event.DocumentListener;
  */
 
 
-public class SalesManager extends Manager implements ManageItemInterface{
+public class SalesManager extends Manager implements ManageItemInterface, ManageSupplierInterface, 
+                                                    ManagePRInterface, ManageSalesInterface{
+    
     // String representing the file path for item data
     private static final String ITEM_FILE = "data/items.txt";
     
@@ -53,8 +52,12 @@ public class SalesManager extends Manager implements ManageItemInterface{
     @Override
     public boolean isAllowedToPerform(String action) {
         // Check if user is logged in and role matches "Sales"
+        
+        
         if (getLoggedInUser() == null || getLoggedInUser().getRole() == null || 
-            !getLoggedInUser().getRole().equalsIgnoreCase("Sales Manager")) {
+            !(getLoggedInUser().getRole().equalsIgnoreCase("Sales Manager") ||
+            getLoggedInUser().getRole().equalsIgnoreCase("Administrator") ||
+            getLoggedInUser().getRole().equalsIgnoreCase("Root Administrator"))) {
             return false;
         }
 
@@ -421,7 +424,8 @@ public class SalesManager extends Manager implements ManageItemInterface{
     
     // Method to DELETE item
     @Override
-    public void deleteItem(JFrame parent, List<Item> itemList, List<SupplierItem> supplierItemList, List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, JTable itemTable) {
+    public void deleteItem(JFrame parent, List<Item> itemList, List<SupplierItem> supplierItemList, 
+                        List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, JTable itemTable) {
 
         if (!isAllowedToPerform("delete item")) {
             JOptionPane.showMessageDialog(parent, "Not authorized to delete items.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
@@ -526,7 +530,9 @@ public class SalesManager extends Manager implements ManageItemInterface{
     //SUPPLIER SECTION
     
     // Method to ADD new supplier
-    public void addSupplier(JFrame parent, List<Supplier> supplierList, List<SupplierItem> supplierItemList, List<Item> itemList, JTable supplierTable) {
+    @Override
+    public void addSupplier(JFrame parent, List<Supplier> supplierList, List<SupplierItem> supplierItemList, 
+                        List<Item> itemList, JTable supplierTable) {
         if (!isAllowedToPerform("add supplier")) {
             JOptionPane.showMessageDialog(null, "Not authorized to add suppliers.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
             return;
@@ -658,7 +664,9 @@ public class SalesManager extends Manager implements ManageItemInterface{
     }
 
     // Method to EDIT supplier
-    public void editSupplier(Supplier supplierToEdit, List<Supplier> supplierList, List<SupplierItem> supplierItemList, List<Item> itemList, JTable supplierTable) {
+    @Override
+    public void editSupplier(Supplier supplierToEdit, List<Supplier> supplierList, 
+                        List<SupplierItem> supplierItemList, List<Item> itemList, JTable supplierTable) {
         if (!isAllowedToPerform("edit supplier")) {
             JOptionPane.showMessageDialog(null, "Not authorized to edit suppliers.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
             return;
@@ -813,7 +821,9 @@ public class SalesManager extends Manager implements ManageItemInterface{
 
 
     // Method to DELETE supplier
-    public void deleteSupplier(JFrame parent, List<Supplier> supplierList, List<SupplierItem> supplierItemList, JTable supplierTable) {
+    @Override
+    public void deleteSupplier(JFrame parent, List<Supplier> supplierList, 
+                            List<SupplierItem> supplierItemList, JTable supplierTable) {
         if (!isAllowedToPerform("delete supplier")) {
             JOptionPane.showMessageDialog(null, "Not authorized to delete suppliers.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
             return;
@@ -880,6 +890,7 @@ public class SalesManager extends Manager implements ManageItemInterface{
     //PURCHASE REQUISITION SECTION
     
     // Method to add new purchase requisition
+    @Override
     public void addPurchaseRequisition(JFrame parent, List<Item> itemList, List<PurchaseRequisition> prList, 
                                     List<PurchaseRequisitionItem> prItemList, List<Supplier> supplierList, 
                                     List<SupplierItem> supplierItemList, JTable prTable) {
@@ -1171,7 +1182,8 @@ public class SalesManager extends Manager implements ManageItemInterface{
         dialog.setVisible(true);
     }
     
-    
+    // Method to edit purchase requisition
+    @Override
     public void editPurchaseRequisition(JFrame parent, PurchaseRequisition prToEdit, PurchaseRequisitionItem itemToEdit,
                                     List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList,
                                     List<SupplierItem> supplierItemList, List<Item> itemList, List<Supplier> supplierList,
@@ -1422,8 +1434,10 @@ public class SalesManager extends Manager implements ManageItemInterface{
     }
 
 
-    
-    public void deletePurchaseRequisition(JFrame parent, List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, List<Item> itemList, JTable prTable) {
+    // Method to delete purchase requisition
+    @Override
+    public void deletePurchaseRequisition(JFrame parent, List<PurchaseRequisition> prList, 
+                                    List<PurchaseRequisitionItem> prItemList, List<Item> itemList, JTable prTable) {
         
         int selectedRow = prTable.getSelectedRow();
 
@@ -1520,6 +1534,9 @@ public class SalesManager extends Manager implements ManageItemInterface{
 
     
     // SALES SECTION
+    
+    // Method to add sales
+    @Override
     public Sales addSales(JFrame parent, String loggedInUsername, List<Sales> salesList) {
         
         if (!isAllowedToPerform("add sale")) {
@@ -1615,7 +1632,175 @@ public class SalesManager extends Manager implements ManageItemInterface{
         return result[0];  // Will return after dialog is closed
     }
 
-    public void addSalesItems(JFrame parent, Sales sale, List<Item> itemList, List<SalesItem> salesItemList, List<Sales> salesList, boolean allowCancelSale) {
+    // Method to edit sales record
+    @Override
+    public void editSalesRecord(JFrame parent, Sales sale, List<Sales> salesList) {
+        // Check permission first
+        if (!isAllowedToPerform("edit sale")) {
+            JOptionPane.showMessageDialog(parent, "Not authorized to edit sales.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Prepare fields prefilled with current data
+        JTextField dateField = new JTextField(sale.getDate().toString(), 10);
+        JTextField remarksField = new JTextField(sale.getRemarks(), 20);
+        JLabel dateError = new JLabel();
+        dateError.setForeground(Color.RED);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        // Build panel
+        JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        panel.setBackground(Color.WHITE);
+
+        panel.add(new JLabel("Sales ID:"));
+        panel.add(new JLabel(sale.getSalesID()));
+        panel.add(new JLabel("Date (YYYY-MM-DD):"));
+        panel.add(dateField);
+        panel.add(new JLabel());
+        panel.add(dateError);
+        panel.add(new JLabel("Remarks:"));
+        panel.add(remarksField);
+
+        // Build dialog
+        JDialog dialog = new JDialog(parent, "Edit Sales Record", true);
+        dialog.getContentPane().add(panel, BorderLayout.CENTER);
+
+        JButton saveBtn = new JButton("Save");
+        JButton cancelBtn = new JButton("Cancel");
+
+        saveBtn.setBackground(Color.RED);
+        saveBtn.setForeground(Color.WHITE);
+
+        cancelBtn.setBackground(Color.BLACK);
+        cancelBtn.setForeground(Color.WHITE);
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(Color.WHITE);
+        buttonPanel.add(saveBtn);
+        buttonPanel.add(cancelBtn);
+
+        dialog.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
+        dialog.pack();
+        dialog.setLocationRelativeTo(parent);
+
+        // Button actions
+        saveBtn.addActionListener(e -> {
+            String dateInput = dateField.getText().trim();
+            String remarks = remarksField.getText().trim();
+
+            if (dateInput.isEmpty()) {
+                dateError.setText("* Date cannot be empty.");
+                return;
+            }
+
+            try {
+                LocalDate newDate = LocalDate.parse(dateInput, formatter);
+                if (newDate.isBefore(LocalDate.now())) {
+                    dateError.setText("* Date cannot be in the past.");
+                    return;
+                }
+
+                if (remarks.isEmpty()) {
+                    remarks = "None";
+                }
+
+                // Apply updates
+                sale.setDate(newDate);
+                sale.setRemarks(remarks);
+                
+                // Update the in-memory sales list (find and replace the edited sale)
+                for (int i = 0; i < salesList.size(); i++) {
+                    if (salesList.get(i).getSalesID().equals(sale.getSalesID())) {
+                        salesList.set(i, sale);  // replace the old with the updated one
+                        break;
+                    }
+                }
+
+                // Save the updated list back to the file
+                FileUtil.saveListToFile(SALES_FILE, salesList);
+
+                JOptionPane.showMessageDialog(parent, "Sales record updated successfully.");
+                dialog.dispose();
+
+            } catch (DateTimeParseException ex) {
+                dateError.setText("* Invalid date format. Use YYYY-MM-DD.");
+            }
+        });
+
+        cancelBtn.addActionListener(e -> dialog.dispose());
+
+        dialog.setVisible(true);
+    }
+    
+    // Method to delete sales record
+    @Override
+    public void deleteSalesRecord(JFrame parent, String salesID, List<Sales> salesList, 
+                              List<SalesItem> salesItemList, List<Item> itemList, 
+                              JList<String> salesIDList, JTextArea salesDetailsArea, JTable salesItemTable) {
+
+        if (!isAllowedToPerform("delete sale")) {
+            JOptionPane.showMessageDialog(parent, "Not authorized to delete sales record.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        int confirm = JOptionPane.showConfirmDialog(parent, 
+            "Are you sure you want to delete Sale ID: " + salesID + "?", 
+            "Confirm Delete", 
+            JOptionPane.YES_NO_OPTION);
+
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;  // User cancelled
+        }
+
+        // Find and remove the sale
+        Sales saleToRemove = null;
+        for (Sales sale : salesList) {
+            if (sale.getSalesID().equalsIgnoreCase(salesID)) {
+                saleToRemove = sale;
+                break;
+            }
+        }
+
+        if (saleToRemove != null) {
+            // OPTIONAL: restore stock if needed
+            for (SalesItem si : salesItemList) {
+                if (si.getSalesID().equalsIgnoreCase(salesID)) {
+                    for (Item item : itemList) {
+                        if (item.getItemID().equalsIgnoreCase(si.getItemID())) {
+                            item.setStock(item.getStock() + si.getQuantitySold());
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Remove the sale
+            salesList.remove(saleToRemove);
+
+            // Remove its sales items
+            salesItemList.removeIf(si -> si.getSalesID().equalsIgnoreCase(salesID));
+
+            // Save updates
+            FileUtil.saveListToFile(SALES_FILE, salesList);
+            FileUtil.saveListToFile(SALES_ITEM_FILE, salesItemList);
+            FileUtil.saveListToFile(ITEM_FILE, itemList);
+
+            // Update the UI
+            Sales.updateSalesUI(salesList, salesItemList, itemList, salesIDList, salesDetailsArea, salesItemTable);
+
+            JOptionPane.showMessageDialog(parent, "Sale ID " + salesID + " deleted successfully.");
+        } else {
+            JOptionPane.showMessageDialog(parent, "Sale ID " + salesID + " not found.");
+        }
+    }
+    
+    
+    // Method to add sales items
+    @Override
+    public void addSalesItems(JFrame parent, Sales sale, List<Item> itemList, List<SalesItem> salesItemList, 
+                        List<Sales> salesList, boolean allowCancelSale) {
         boolean addingItems = true;
         List<String> addedItemIDs = new ArrayList<>();
         final boolean[] stopAdding = {false};
@@ -1825,239 +2010,10 @@ public class SalesManager extends Manager implements ManageItemInterface{
 
     }
 
-    public void deleteSalesRecord(JFrame parent, String salesID, List<Sales> salesList, 
-                              List<SalesItem> salesItemList, List<Item> itemList, 
-                              JList<String> salesIDList, JTextArea salesDetailsArea, JTable salesItemTable) {
-
-        if (!isAllowedToPerform("delete sale")) {
-            JOptionPane.showMessageDialog(parent, "Not authorized to delete sales record.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        
-        int confirm = JOptionPane.showConfirmDialog(parent, 
-            "Are you sure you want to delete Sale ID: " + salesID + "?", 
-            "Confirm Delete", 
-            JOptionPane.YES_NO_OPTION);
-
-        if (confirm != JOptionPane.YES_OPTION) {
-            return;  // User cancelled
-        }
-
-        // Find and remove the sale
-        Sales saleToRemove = null;
-        for (Sales sale : salesList) {
-            if (sale.getSalesID().equalsIgnoreCase(salesID)) {
-                saleToRemove = sale;
-                break;
-            }
-        }
-
-        if (saleToRemove != null) {
-            // OPTIONAL: restore stock if needed
-            for (SalesItem si : salesItemList) {
-                if (si.getSalesID().equalsIgnoreCase(salesID)) {
-                    for (Item item : itemList) {
-                        if (item.getItemID().equalsIgnoreCase(si.getItemID())) {
-                            item.setStock(item.getStock() + si.getQuantitySold());
-                            break;
-                        }
-                    }
-                }
-            }
-
-            // Remove the sale
-            salesList.remove(saleToRemove);
-
-            // Remove its sales items
-            salesItemList.removeIf(si -> si.getSalesID().equalsIgnoreCase(salesID));
-
-            // Save updates
-            FileUtil.saveListToFile(SALES_FILE, salesList);
-            FileUtil.saveListToFile(SALES_ITEM_FILE, salesItemList);
-            FileUtil.saveListToFile(ITEM_FILE, itemList);
-
-            // Update the UI
-            Sales.updateSalesUI(salesList, salesItemList, itemList, salesIDList, salesDetailsArea, salesItemTable);
-
-            JOptionPane.showMessageDialog(parent, "Sale ID " + salesID + " deleted successfully.");
-        } else {
-            JOptionPane.showMessageDialog(parent, "Sale ID " + salesID + " not found.");
-        }
-    }
-    
-    public void editSalesRecord(JFrame parent, Sales sale, List<Sales> salesList) {
-        // Check permission first
-        if (!isAllowedToPerform("edit sale")) {
-            JOptionPane.showMessageDialog(parent, "Not authorized to edit sales.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        // Prepare fields prefilled with current data
-        JTextField dateField = new JTextField(sale.getDate().toString(), 10);
-        JTextField remarksField = new JTextField(sale.getRemarks(), 20);
-        JLabel dateError = new JLabel();
-        dateError.setForeground(Color.RED);
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-        // Build panel
-        JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));
-        panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
-        panel.setBackground(Color.WHITE);
-
-        panel.add(new JLabel("Sales ID:"));
-        panel.add(new JLabel(sale.getSalesID()));
-        panel.add(new JLabel("Date (YYYY-MM-DD):"));
-        panel.add(dateField);
-        panel.add(new JLabel());
-        panel.add(dateError);
-        panel.add(new JLabel("Remarks:"));
-        panel.add(remarksField);
-
-        // Build dialog
-        JDialog dialog = new JDialog(parent, "Edit Sales Record", true);
-        dialog.getContentPane().add(panel, BorderLayout.CENTER);
-
-        JButton saveBtn = new JButton("Save");
-        JButton cancelBtn = new JButton("Cancel");
-
-        saveBtn.setBackground(Color.RED);
-        saveBtn.setForeground(Color.WHITE);
-
-        cancelBtn.setBackground(Color.BLACK);
-        cancelBtn.setForeground(Color.WHITE);
-
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setBackground(Color.WHITE);
-        buttonPanel.add(saveBtn);
-        buttonPanel.add(cancelBtn);
-
-        dialog.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
-        dialog.pack();
-        dialog.setLocationRelativeTo(parent);
-
-        // Button actions
-        saveBtn.addActionListener(e -> {
-            String dateInput = dateField.getText().trim();
-            String remarks = remarksField.getText().trim();
-
-            if (dateInput.isEmpty()) {
-                dateError.setText("* Date cannot be empty.");
-                return;
-            }
-
-            try {
-                LocalDate newDate = LocalDate.parse(dateInput, formatter);
-                if (newDate.isBefore(LocalDate.now())) {
-                    dateError.setText("* Date cannot be in the past.");
-                    return;
-                }
-
-                if (remarks.isEmpty()) {
-                    remarks = "None";
-                }
-
-                // Apply updates
-                sale.setDate(newDate);
-                sale.setRemarks(remarks);
-                
-                // Update the in-memory sales list (find and replace the edited sale)
-                for (int i = 0; i < salesList.size(); i++) {
-                    if (salesList.get(i).getSalesID().equals(sale.getSalesID())) {
-                        salesList.set(i, sale);  // replace the old with the updated one
-                        break;
-                    }
-                }
-
-                // Save the updated list back to the file
-                FileUtil.saveListToFile(SALES_FILE, salesList);
-
-                JOptionPane.showMessageDialog(parent, "Sales record updated successfully.");
-                dialog.dispose();
-
-            } catch (DateTimeParseException ex) {
-                dateError.setText("* Invalid date format. Use YYYY-MM-DD.");
-            }
-        });
-
-        cancelBtn.addActionListener(e -> dialog.dispose());
-
-        dialog.setVisible(true);
-    }
-    
-    public void deleteSalesItem(JFrame parent, Sales selectedSale, SalesItem selectedSalesItem, List<SalesItem> salesItemList, List<Sales> salesList, List<Item> itemList) {
-        if (selectedSalesItem == null) {
-            JOptionPane.showMessageDialog(parent, "No sales item selected.");
-            return;
-        }
-        
-        if (!isAllowedToPerform("delete sales item")) {
-            JOptionPane.showMessageDialog(parent, "Not authorized to delete sales item record.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        int confirm = JOptionPane.showConfirmDialog(parent, 
-            "Are you sure you want to delete sales item " + selectedSalesItem.getItemID() + " from Sale " + selectedSale.getSalesID() + "?", 
-            "Confirm Delete Item", 
-            JOptionPane.YES_NO_OPTION);
-
-        if (confirm != JOptionPane.YES_OPTION) {
-            return;
-        }
-        
-        // Remove from sale’s internal list
-        selectedSale.getItems().removeIf(item -> 
-            item.getItemID().equalsIgnoreCase(selectedSalesItem.getItemID())
-        );
-
-        // Remove from global salesItemList
-        salesItemList.removeIf(item -> 
-            item.getSalesID().equalsIgnoreCase(selectedSale.getSalesID()) &&
-            item.getItemID().equalsIgnoreCase(selectedSalesItem.getItemID())
-        );
-
-        // Restore stock
-        for (Item item : itemList) {
-            if (item.getItemID().equalsIgnoreCase(selectedSalesItem.getItemID())) {
-                item.setStock(item.getStock() + selectedSalesItem.getQuantitySold());
-                break;
-            }
-        }
-
-        // Recalculate total amount
-        double newTotal = 0;
-        for (SalesItem s : salesItemList) {
-            if (s.getSalesID().equalsIgnoreCase(selectedSale.getSalesID())) {
-                newTotal += s.getSubtotal();
-            }
-        }
-        selectedSale.setTotalAmount(newTotal);
-
-        // If no more items, remove the sale entirely
-        boolean hasOtherItems = false;
-        for (SalesItem s : salesItemList) {
-            if (s.getSalesID().equalsIgnoreCase(selectedSale.getSalesID())) {
-                hasOtherItems = true;
-                break;
-            }
-        }
-
-        if (!hasOtherItems) {
-            salesList.removeIf(s -> s.getSalesID().equalsIgnoreCase(selectedSale.getSalesID()));
-            JOptionPane.showMessageDialog(parent, 
-                "No more items left in this sale. Sale record deleted.");
-        }
-
-
-        // Save updates to files
-        FileUtil.saveListToFile(SALES_FILE, salesList);
-        FileUtil.saveListToFile(SALES_ITEM_FILE, salesItemList);
-        FileUtil.saveListToFile(ITEM_FILE, itemList);
-
-        JOptionPane.showMessageDialog(parent, "Sales item deleted successfully.");
-    }
-    
-    public void editSalesItemQuantity(JFrame parent, Sales selectedSale, SalesItem selectedSalesItem, List<SalesItem> salesItemList, List<Sales> salesList, List<Item> itemList) {
+    // Method to edit sales item
+    @Override
+    public void editSalesItemQuantity(JFrame parent, Sales selectedSale, SalesItem selectedSalesItem, 
+                                List<SalesItem> salesItemList, List<Sales> salesList, List<Item> itemList) {
         if (selectedSalesItem == null) {
             JOptionPane.showMessageDialog(parent, "No sales item selected.");
             return;
@@ -2183,4 +2139,79 @@ public class SalesManager extends Manager implements ManageItemInterface{
         dialog.setVisible(true);
     }
 
+    // Method to delete sales item
+    @Override
+    public void deleteSalesItem(JFrame parent, Sales selectedSale, SalesItem selectedSalesItem, 
+                            List<SalesItem> salesItemList, List<Sales> salesList, List<Item> itemList) {
+        if (selectedSalesItem == null) {
+            JOptionPane.showMessageDialog(parent, "No sales item selected.");
+            return;
+        }
+        
+        if (!isAllowedToPerform("delete sales item")) {
+            JOptionPane.showMessageDialog(parent, "Not authorized to delete sales item record.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(parent, 
+            "Are you sure you want to delete sales item " + selectedSalesItem.getItemID() + " from Sale " + selectedSale.getSalesID() + "?", 
+            "Confirm Delete Item", 
+            JOptionPane.YES_NO_OPTION);
+
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+        
+        // Remove from sale’s internal list
+        selectedSale.getItems().removeIf(item -> 
+            item.getItemID().equalsIgnoreCase(selectedSalesItem.getItemID())
+        );
+
+        // Remove from global salesItemList
+        salesItemList.removeIf(item -> 
+            item.getSalesID().equalsIgnoreCase(selectedSale.getSalesID()) &&
+            item.getItemID().equalsIgnoreCase(selectedSalesItem.getItemID())
+        );
+
+        // Restore stock
+        for (Item item : itemList) {
+            if (item.getItemID().equalsIgnoreCase(selectedSalesItem.getItemID())) {
+                item.setStock(item.getStock() + selectedSalesItem.getQuantitySold());
+                break;
+            }
+        }
+
+        // Recalculate total amount
+        double newTotal = 0;
+        for (SalesItem s : salesItemList) {
+            if (s.getSalesID().equalsIgnoreCase(selectedSale.getSalesID())) {
+                newTotal += s.getSubtotal();
+            }
+        }
+        selectedSale.setTotalAmount(newTotal);
+
+        // If no more items, remove the sale entirely
+        boolean hasOtherItems = false;
+        for (SalesItem s : salesItemList) {
+            if (s.getSalesID().equalsIgnoreCase(selectedSale.getSalesID())) {
+                hasOtherItems = true;
+                break;
+            }
+        }
+
+        if (!hasOtherItems) {
+            salesList.removeIf(s -> s.getSalesID().equalsIgnoreCase(selectedSale.getSalesID()));
+            JOptionPane.showMessageDialog(parent, 
+                "No more items left in this sale. Sale record deleted.");
+        }
+
+
+        // Save updates to files
+        FileUtil.saveListToFile(SALES_FILE, salesList);
+        FileUtil.saveListToFile(SALES_ITEM_FILE, salesItemList);
+        FileUtil.saveListToFile(ITEM_FILE, itemList);
+
+        JOptionPane.showMessageDialog(parent, "Sales item deleted successfully.");
+    }
+    
 }    
