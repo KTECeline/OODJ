@@ -1615,10 +1615,10 @@ public class SalesManager extends Manager implements ManageItemInterface{
         return result[0];  // Will return after dialog is closed
     }
 
-    public void addSalesItems(JFrame parent, Sales sale, List<Item> itemList, List<SalesItem> salesItemList, List<Sales> salesList) {
+    public void addSalesItems(JFrame parent, Sales sale, List<Item> itemList, List<SalesItem> salesItemList, List<Sales> salesList, boolean allowCancelSale) {
         boolean addingItems = true;
-        
         List<String> addedItemIDs = new ArrayList<>();
+        final boolean[] stopAdding = {false};
 
         while (addingItems) {
             JTextField itemIDField = new JTextField(10);
@@ -1643,7 +1643,7 @@ public class SalesManager extends Manager implements ManageItemInterface{
             
             JButton backBtn = new JButton("Back");
             JButton addBtn = new JButton("Add Item");
-            JButton cancelBtn = new JButton("Cancel Sale");
+            JButton cancelBtn = new JButton("Cancel");
 
             addBtn.setBackground(Color.RED);
             addBtn.setForeground(Color.WHITE);
@@ -1659,7 +1659,9 @@ public class SalesManager extends Manager implements ManageItemInterface{
             
             btnPanel.add(backBtn);
             btnPanel.add(addBtn);
-            btnPanel.add(cancelBtn);
+            if (allowCancelSale) {
+                btnPanel.add(cancelBtn);  // Only add if allowed
+            }
 
             dialog.getContentPane().add(btnPanel, BorderLayout.SOUTH);
             dialog.pack();
@@ -1679,17 +1681,21 @@ public class SalesManager extends Manager implements ManageItemInterface{
                     return;
                 }
 
-                boolean alreadyAdded = false;
-                for (String addedID : addedItemIDs) {
-                    if (addedID.equalsIgnoreCase(itemID)) {
-                        alreadyAdded = true;
+                boolean alreadyExistsInSalesItemList = false;
+                for (SalesItem existing : salesItemList) {
+                    if (existing.getSalesID().equalsIgnoreCase(sale.getSalesID()) &&
+                        existing.getItemID().equalsIgnoreCase(itemID)) {
+                        alreadyExistsInSalesItemList = true;
                         break;
                     }
                 }
-                if (alreadyAdded) {
-                    errorLabel.setText("* Item already added.");
+
+                if (alreadyExistsInSalesItemList) {
+                    errorLabel.setText("* Item already exists in this sale.");
                     return;
                 }
+
+
 
                 Item matchedItem = null;
                 for (Item item : itemList) {
@@ -1720,48 +1726,39 @@ public class SalesManager extends Manager implements ManageItemInterface{
                 SalesItem salesItem = new SalesItem(sale.getSalesID(), itemID, quantity, matchedItem.getCost());
                 sale.getItems().add(salesItem);
                 salesItemList.add(salesItem);
-                addedItemIDs.add(itemID);
                 itemAdded[0] = true;
 
                 dialog.dispose();
             });
 
             backBtn.addActionListener(e -> {
-                int confirm = JOptionPane.showConfirmDialog(parent,
-                    "Do you want to save the current sale before going back?",
-                    "Confirm Save",
-                    JOptionPane.YES_NO_CANCEL_OPTION);
-
-                if (confirm == JOptionPane.YES_OPTION) {
-                    goBack[0] = true;  // mark to break loop and save later
-                } else if (confirm == JOptionPane.NO_OPTION) {
-                    sale.getItems().clear();
-                    salesList.removeIf(s -> s.getSalesID().equals(sale.getSalesID()));
-                    JOptionPane.showMessageDialog(parent, "Sale discarded.");
-                    canceledSale[0] = true;  // mark to break loop and skip saving
-                }
                 dialog.dispose();
             });
 
 
-            cancelBtn.addActionListener(e -> {
-                int confirm = JOptionPane.showConfirmDialog(parent, "Cancel the entire sale?", "Confirm Cancel", JOptionPane.YES_NO_OPTION);
-                if (confirm == JOptionPane.YES_OPTION) {
-                    sale.getItems().clear();
+            if (allowCancelSale) {
+                cancelBtn.addActionListener(e -> {
+                    int confirm = JOptionPane.showConfirmDialog(parent, "Cancel the entire sale?", "Confirm Cancel", JOptionPane.YES_NO_OPTION);
+                    if (confirm == JOptionPane.YES_OPTION) {
+                        sale.getItems().clear();
+                        salesList.removeIf(s -> s.getSalesID().equals(sale.getSalesID()));
+                        dialog.dispose();
+                        JOptionPane.showMessageDialog(parent, "Sale canceled.");
+                        canceledSale[0] = true;
+                        stopAdding[0] = true;
+                    }
+                });
+            }
 
-                    // Remove the sale record from the main list (if it's already there)
-                    salesList.removeIf(s -> s.getSalesID().equals(sale.getSalesID()));
-
-                    dialog.dispose();
-                    JOptionPane.showMessageDialog(parent, "Sale canceled.");
-                    canceledSale [0] = true;
-                }
-            });
 
             dialog.setVisible(true);
             
             if (canceledSale[0]) {
                 return;  // exit entirely
+            }
+            
+            if (stopAdding[0]) {
+                break;
             }
 
             int option = JOptionPane.showConfirmDialog(parent, "Add another item?", "Continue", JOptionPane.YES_NO_OPTION);
@@ -1773,8 +1770,11 @@ public class SalesManager extends Manager implements ManageItemInterface{
         if (!sale.getItems().isEmpty()) {
             double totalAmount = 0;
 
-            for (SalesItem item : sale.getItems()) {
-                totalAmount += item.getSubtotal();
+            for (SalesItem item : salesItemList) {
+                if (item.getSalesID().equalsIgnoreCase(sale.getSalesID())) {
+                    totalAmount += item.getSubtotal();
+                }
+
 
                 // Now actually reduce stock on the matched item
                 for (Item stockItem : itemList) {
@@ -1787,15 +1787,41 @@ public class SalesManager extends Manager implements ManageItemInterface{
 
             sale.setTotalAmount(totalAmount);
 
-            FileUtil.saveLine(SALES_FILE, sale.toString());
-            for (SalesItem item : sale.getItems()) {
-                FileUtil.saveLine(SALES_ITEM_FILE, item.toString());
+            // Update the sale inside salesList (not add duplicate)
+            for (int i = 0; i < salesList.size(); i++) {
+                if (salesList.get(i).getSalesID().equalsIgnoreCase(sale.getSalesID())) {
+                    salesList.set(i, sale);
+                    break;
+                }
             }
             
+            // Check if the sale exists in the salesList
+            boolean saleExists = false;
+            for (Sales s : salesList) {
+                if (s.getSalesID().equalsIgnoreCase(sale.getSalesID())) {
+                    saleExists = true;
+                    break;
+                }
+            }
+
+            if (!saleExists) {
+                // This is a brand new sale → add it
+                salesList.add(sale);
+            }
+
+            // Rewrite the full sales list back to file
+            FileUtil.saveListToFile(SALES_FILE, salesList);
+
+            // Rewrite the full sales item list back to file
+            FileUtil.saveListToFile(SALES_ITEM_FILE, salesItemList);
+
+            // Rewrite updated item stock list
             FileUtil.saveListToFile(ITEM_FILE, itemList);
 
             JOptionPane.showMessageDialog(parent, "Sale saved successfully!");
         }
+
+
 
     }
 
@@ -1857,6 +1883,304 @@ public class SalesManager extends Manager implements ManageItemInterface{
         } else {
             JOptionPane.showMessageDialog(parent, "Sale ID " + salesID + " not found.");
         }
+    }
+    
+    public void editSalesRecord(JFrame parent, Sales sale, List<Sales> salesList) {
+        // Check permission first
+        if (!isAllowedToPerform("edit sale")) {
+            JOptionPane.showMessageDialog(parent, "Not authorized to edit sales.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Prepare fields prefilled with current data
+        JTextField dateField = new JTextField(sale.getDate().toString(), 10);
+        JTextField remarksField = new JTextField(sale.getRemarks(), 20);
+        JLabel dateError = new JLabel();
+        dateError.setForeground(Color.RED);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        // Build panel
+        JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        panel.setBackground(Color.WHITE);
+
+        panel.add(new JLabel("Sales ID:"));
+        panel.add(new JLabel(sale.getSalesID()));
+        panel.add(new JLabel("Date (YYYY-MM-DD):"));
+        panel.add(dateField);
+        panel.add(new JLabel());
+        panel.add(dateError);
+        panel.add(new JLabel("Remarks:"));
+        panel.add(remarksField);
+
+        // Build dialog
+        JDialog dialog = new JDialog(parent, "Edit Sales Record", true);
+        dialog.getContentPane().add(panel, BorderLayout.CENTER);
+
+        JButton saveBtn = new JButton("Save");
+        JButton cancelBtn = new JButton("Cancel");
+
+        saveBtn.setBackground(Color.RED);
+        saveBtn.setForeground(Color.WHITE);
+
+        cancelBtn.setBackground(Color.BLACK);
+        cancelBtn.setForeground(Color.WHITE);
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(Color.WHITE);
+        buttonPanel.add(saveBtn);
+        buttonPanel.add(cancelBtn);
+
+        dialog.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
+        dialog.pack();
+        dialog.setLocationRelativeTo(parent);
+
+        // Button actions
+        saveBtn.addActionListener(e -> {
+            String dateInput = dateField.getText().trim();
+            String remarks = remarksField.getText().trim();
+
+            if (dateInput.isEmpty()) {
+                dateError.setText("* Date cannot be empty.");
+                return;
+            }
+
+            try {
+                LocalDate newDate = LocalDate.parse(dateInput, formatter);
+                if (newDate.isBefore(LocalDate.now())) {
+                    dateError.setText("* Date cannot be in the past.");
+                    return;
+                }
+
+                if (remarks.isEmpty()) {
+                    remarks = "None";
+                }
+
+                // Apply updates
+                sale.setDate(newDate);
+                sale.setRemarks(remarks);
+                
+                // Update the in-memory sales list (find and replace the edited sale)
+                for (int i = 0; i < salesList.size(); i++) {
+                    if (salesList.get(i).getSalesID().equals(sale.getSalesID())) {
+                        salesList.set(i, sale);  // replace the old with the updated one
+                        break;
+                    }
+                }
+
+                // Save the updated list back to the file
+                FileUtil.saveListToFile(SALES_FILE, salesList);
+
+                JOptionPane.showMessageDialog(parent, "Sales record updated successfully.");
+                dialog.dispose();
+
+            } catch (DateTimeParseException ex) {
+                dateError.setText("* Invalid date format. Use YYYY-MM-DD.");
+            }
+        });
+
+        cancelBtn.addActionListener(e -> dialog.dispose());
+
+        dialog.setVisible(true);
+    }
+    
+    public void deleteSalesItem(JFrame parent, Sales selectedSale, SalesItem selectedSalesItem, List<SalesItem> salesItemList, List<Sales> salesList, List<Item> itemList) {
+        if (selectedSalesItem == null) {
+            JOptionPane.showMessageDialog(parent, "No sales item selected.");
+            return;
+        }
+        
+        if (!isAllowedToPerform("delete sales item")) {
+            JOptionPane.showMessageDialog(parent, "Not authorized to delete sales item record.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(parent, 
+            "Are you sure you want to delete sales item " + selectedSalesItem.getItemID() + " from Sale " + selectedSale.getSalesID() + "?", 
+            "Confirm Delete Item", 
+            JOptionPane.YES_NO_OPTION);
+
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+        
+        // Remove from sale’s internal list
+        selectedSale.getItems().removeIf(item -> 
+            item.getItemID().equalsIgnoreCase(selectedSalesItem.getItemID())
+        );
+
+        // Remove from global salesItemList
+        salesItemList.removeIf(item -> 
+            item.getSalesID().equalsIgnoreCase(selectedSale.getSalesID()) &&
+            item.getItemID().equalsIgnoreCase(selectedSalesItem.getItemID())
+        );
+
+        // Restore stock
+        for (Item item : itemList) {
+            if (item.getItemID().equalsIgnoreCase(selectedSalesItem.getItemID())) {
+                item.setStock(item.getStock() + selectedSalesItem.getQuantitySold());
+                break;
+            }
+        }
+
+        // Recalculate total amount
+        double newTotal = 0;
+        for (SalesItem s : salesItemList) {
+            if (s.getSalesID().equalsIgnoreCase(selectedSale.getSalesID())) {
+                newTotal += s.getSubtotal();
+            }
+        }
+        selectedSale.setTotalAmount(newTotal);
+
+        // If no more items, remove the sale entirely
+        boolean hasOtherItems = false;
+        for (SalesItem s : salesItemList) {
+            if (s.getSalesID().equalsIgnoreCase(selectedSale.getSalesID())) {
+                hasOtherItems = true;
+                break;
+            }
+        }
+
+        if (!hasOtherItems) {
+            salesList.removeIf(s -> s.getSalesID().equalsIgnoreCase(selectedSale.getSalesID()));
+            JOptionPane.showMessageDialog(parent, 
+                "No more items left in this sale. Sale record deleted.");
+        }
+
+
+        // Save updates to files
+        FileUtil.saveListToFile(SALES_FILE, salesList);
+        FileUtil.saveListToFile(SALES_ITEM_FILE, salesItemList);
+        FileUtil.saveListToFile(ITEM_FILE, itemList);
+
+        JOptionPane.showMessageDialog(parent, "Sales item deleted successfully.");
+    }
+    
+    public void editSalesItemQuantity(JFrame parent, Sales selectedSale, SalesItem selectedSalesItem, List<SalesItem> salesItemList, List<Sales> salesList, List<Item> itemList) {
+        if (selectedSalesItem == null) {
+            JOptionPane.showMessageDialog(parent, "No sales item selected.");
+            return;
+        }
+
+        // Find related item (for stock + price)
+        final Item[] matchedItemHolder = {null};
+        for (Item item : itemList) {
+            if (item.getItemID().equalsIgnoreCase(selectedSalesItem.getItemID())) {
+                matchedItemHolder[0] = item;
+                break;
+            }
+        }
+
+
+        if (matchedItemHolder[0] == null) {
+            JOptionPane.showMessageDialog(parent, "Related item not found.");
+            return;
+        }
+
+        JTextField quantityField = new JTextField(String.valueOf(selectedSalesItem.getQuantitySold()), 10);
+        JLabel errorLabel = new JLabel();
+        errorLabel.setForeground(Color.RED);
+
+        JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        panel.setBackground(Color.WHITE);
+        panel.setPreferredSize(new Dimension(400, 180));
+
+        panel.add(new JLabel("Item ID:"));
+        panel.add(new JLabel(selectedSalesItem.getItemID()));
+        panel.add(new JLabel("Current Quantity:"));
+        panel.add(new JLabel(String.valueOf(selectedSalesItem.getQuantitySold())));
+        panel.add(new JLabel("New Quantity:"));
+        panel.add(quantityField);
+        panel.add(new JLabel());  // blank
+        panel.add(errorLabel);
+
+        JDialog dialog = new JDialog(parent, "Edit Sales Item Quantity", true);
+        dialog.getContentPane().setBackground(Color.WHITE);
+        dialog.getContentPane().add(panel, BorderLayout.CENTER);
+
+        JButton saveBtn = new JButton("Save");
+        JButton cancelBtn = new JButton("Cancel");
+
+        saveBtn.setBackground(Color.RED);
+        saveBtn.setForeground(Color.WHITE);
+
+        cancelBtn.setBackground(Color.BLACK);
+        cancelBtn.setForeground(Color.WHITE);
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(Color.WHITE);
+        buttonPanel.add(saveBtn);
+        buttonPanel.add(cancelBtn);
+
+        dialog.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
+        dialog.pack();
+        dialog.setLocationRelativeTo(parent);
+
+        saveBtn.addActionListener(e -> {
+            Item matchedItem = matchedItemHolder[0];
+            if (matchedItem == null) {
+                errorLabel.setText("* Matched item not found.");
+                return;
+            }
+
+            String qtyInput = quantityField.getText().trim();
+            int currentQuantity = selectedSalesItem.getQuantitySold();
+            int newQuantity;
+
+            if (qtyInput.isEmpty()) {
+                errorLabel.setText("* Quantity cannot be empty.");
+                return;
+            }
+
+            try {
+                newQuantity = Integer.parseInt(qtyInput);
+                if (newQuantity <= 0) {
+                    errorLabel.setText("* Quantity must be positive.");
+                    return;
+                }
+            } catch (NumberFormatException ex) {
+                errorLabel.setText("* Invalid quantity input.");
+                return;
+            }
+
+            if (newQuantity > currentQuantity) {
+                int extraNeeded = newQuantity - currentQuantity;
+                if (extraNeeded > matchedItem.getStock()) {
+                    errorLabel.setText("* Not enough stock. Available: " + matchedItem.getStock());
+                    return;
+                }
+                matchedItem.setStock(matchedItem.getStock() - extraNeeded);
+            } else if (newQuantity < currentQuantity) {
+                int toReturn = currentQuantity - newQuantity;
+                matchedItem.setStock(matchedItem.getStock() + toReturn);
+            }
+
+            // Update the sales item
+            selectedSalesItem.setQuantitySold(newQuantity);
+            selectedSalesItem.setSubtotal(newQuantity * matchedItem.getCost());
+
+            // Recalculate total for the sale
+            double newTotal = 0;
+            for (SalesItem s : salesItemList) {
+                if (s.getSalesID().equalsIgnoreCase(selectedSale.getSalesID())) {
+                    newTotal += s.getSubtotal();
+                }
+            }
+            selectedSale.setTotalAmount(newTotal);
+
+            // Save updates
+            FileUtil.saveListToFile(SALES_FILE, salesList);
+            FileUtil.saveListToFile(SALES_ITEM_FILE, salesItemList);
+            FileUtil.saveListToFile(ITEM_FILE, itemList);
+
+            dialog.dispose();
+        });
+
+        cancelBtn.addActionListener(e -> dialog.dispose());
+
+        dialog.setVisible(true);
     }
 
 }    
