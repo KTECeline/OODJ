@@ -399,7 +399,7 @@ public class PmViewPO extends javax.swing.JFrame {
                         .addComponent(jButton9)
                         .addGap(118, 118, 118)
                         .addComponent(jButton10)))
-                .addGap(299, 299, 299))
+                .addGap(57, 57, 57))
         );
 
         pack();

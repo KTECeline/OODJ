@@ -278,6 +278,11 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
         lblPendingPOs.setText("jLabel10");
 
         jTextField1.setText("Search PR");
+        jTextField1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextField1ActionPerformed(evt);
+            }
+        });
 
         jButton6.setText("Search");
         jButton6.addActionListener(new java.awt.event.ActionListener() {
@@ -535,6 +540,10 @@ if (searchQuery.isEmpty() || searchQuery.equalsIgnoreCase("Enter PR ID")) {
 }
 
     }//GEN-LAST:event_jButton6ActionPerformed
+
+    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField1ActionPerformed
 
     /**
      * @param args the command line arguments
