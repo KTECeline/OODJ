@@ -17,6 +17,7 @@ import javax.swing.table.DefaultTableModel;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.swing.JComboBox;
 
 /**
  * Represents a Purchase Manager user with functionalities to view items, suppliers,
@@ -448,6 +449,59 @@ public class PurchaseManager extends Manager implements ManageItemInterface {
     return stats;
 }
 
+    public List<PurchaseRequisition> getFilteredRequisitions(String statusFilter) {
+    List<PurchaseRequisition> allPRs = getAllRequisitions(); // Load all PRs
+    List<PurchaseRequisitionItem> allItems = PurchaseRequisitionItem.loadPurchaseRequisitionItems();
+
+    // Attach items to PRs
+    for (PurchaseRequisition pr : allPRs) {
+        List<PurchaseRequisitionItem> itemsForPR = allItems.stream()
+            .filter(item -> item.getPrID().equalsIgnoreCase(pr.getPrID()))
+            .collect(Collectors.toList());
+        pr.setPRItems(itemsForPR); // Make sure this method exists in PR class
+    }
+
+    // Filter by status
+    if (statusFilter.equalsIgnoreCase("ALL")) {
+        return allPRs;
+    }
+
+    return allPRs.stream()
+        .filter(pr -> pr.getStatus().equalsIgnoreCase(statusFilter))
+        .collect(Collectors.toList());
+}
+
+    
+    public void performSearchOrFilter(JTextField searchField, JComboBox<String> Filter, JTable PrTable) {
+        String searchQuery = searchField.getText().trim();
+
+        if (searchQuery.isEmpty() || searchQuery.equalsIgnoreCase("Enter PR ID")) {
+            String selectedStatus = Filter.getSelectedItem().toString();
+            loadViewPR(selectedStatus, PrTable);  // You need to adapt this method to accept PrTable
+        } else {
+            List<PurchaseRequisition> allPRs = getAllRequisitions();
+            List<PurchaseRequisitionItem> prItems = PurchaseRequisitionItem.loadPurchaseRequisitionItems();
+            List<Item> items = getAllItems();
+
+            for (PurchaseRequisition pr : allPRs) {
+                List<PurchaseRequisitionItem> itemsForPR = prItems.stream()
+                    .filter(item -> item.getPrID().equalsIgnoreCase(pr.getPrID()))
+                    .collect(Collectors.toList());
+                pr.setPRItems(itemsForPR);
+            }
+
+            PurchaseRequisition.searchAndDisplayPRInTable(searchField, PrTable, allPRs, items, prItems);
+        }
+    }
+    
+    public void loadViewPR(String statusFilter, JTable targetTable) {
+    List<PurchaseRequisition> filteredPRs = getFilteredRequisitions(statusFilter);
+    List<PurchaseRequisitionItem> prItems = PurchaseRequisitionItem.loadPurchaseRequisitionItems();
+    List<Item> items = getAllItems();
+
+    PurchaseRequisition.updatePRTableInUI(filteredPRs, prItems, items, targetTable);
+}
+    
     
 }
 

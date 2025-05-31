@@ -395,10 +395,9 @@ public class PmViewItem extends javax.swing.JFrame {
 
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
         // TODO add your handling code here:
-        PmViewSupplier supplierWindow = new PmViewSupplier(parentWindow, purchaseManager);
-        supplierWindow.setVisible(true);
-        this.setVisible(false); // or this.setVisible(false);
-
+         PmViewItem approveWindow = new PmViewItem(parentWindow, purchaseManager);
+approveWindow.setVisible(true);
+this.setVisible(false);
     }//GEN-LAST:event_jButton7ActionPerformed
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed

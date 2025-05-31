@@ -18,11 +18,14 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Filter;
+import java.util.stream.Collectors;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 
 /**
  *
@@ -31,11 +34,12 @@ import javax.swing.table.DefaultTableModel;
 public class PmViewPR extends javax.swing.JFrame {
      private final PurchaseManagerWindow parentWindow;
     private final PurchaseManager purchaseManager;
-    private User loggedInUser;
+    //private User loggedInUser;
     
     private List<PurchaseRequisition> purchaseRequisitionList;
     private List<PurchaseRequisitionItem> prItemList;
     private List<Item> itemList;
+    
     /**
      * Creates new form SmManageDailySalesWindow
      * @param parentWindow
@@ -43,10 +47,13 @@ public class PmViewPR extends javax.swing.JFrame {
     public PmViewPR(PurchaseManagerWindow parentWindow, PurchaseManager purchaseManager) {
         this.parentWindow = parentWindow;
         this.purchaseManager = purchaseManager;
-        this.loggedInUser = loggedInUser;
-        initComponents();
+       //this.loggedInUser = loggedInUser;
+        initComponents(); 
         setupWindowListener();
-        loadViewItems();
+        String statusFilter = Filter.getSelectedItem().toString();
+        
+        //loadViewPR(statusFilter);
+        purchaseManager.loadViewPR(statusFilter, PrTable);
         loadSummaryLabels();
     }
     
@@ -60,28 +67,7 @@ public class PmViewPR extends javax.swing.JFrame {
         });
     }
 
-     private void loadViewItems() {
-    purchaseRequisitionList = PurchaseRequisition.loadPurchaseRequisition();
-    prItemList = PurchaseRequisitionItem.loadPurchaseRequisitionItems();
-    itemList = Item.loadItems();
 
-    System.out.println("Loaded " + purchaseRequisitionList.size() + " PRs");
-
-    if (purchaseRequisitionList.isEmpty()) {
-        JOptionPane.showMessageDialog(this, "No purchase requisitions found in the database.", "Warning", JOptionPane.WARNING_MESSAGE);
-        return;
-    }
-
-    // Set up table column structure
-    String[] columnNames = {"PR ID", "Item ID", "Supplier ID", "Quantity", "Required Date", "Raised By", "Unit Cost (RM)", "Total Cost (RM)", "Status"};
-    DefaultTableModel model = new DefaultTableModel(columnNames, 0);
-    PrTable.setModel(model);
-
-    // Load and display PRs
-    PurchaseRequisition.updatePRTableInUI(purchaseRequisitionList, prItemList, itemList, PrTable);
-}
-
-     
      private void loadSummaryLabels() {
     Map<String, Object> stats = purchaseManager.getSummaryStats();
 
@@ -91,6 +77,8 @@ public class PmViewPR extends javax.swing.JFrame {
     lblPendingPOs.setText(stats.get("pendingPOs").toString());
     Usernamelbl.setText(stats.get("username").toString());
 }
+
+
      
     /**
      * This method is called from within the constructor to initialize the form.
@@ -113,7 +101,6 @@ public class PmViewPR extends javax.swing.JFrame {
         jLabel9 = new javax.swing.JLabel();
         lblPendingPOs = new javax.swing.JLabel();
         searchField = new javax.swing.JTextField();
-        searchBtn = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         jScrollPane6 = new javax.swing.JScrollPane();
         PrTable = new javax.swing.JTable();
@@ -123,7 +110,8 @@ public class PmViewPR extends javax.swing.JFrame {
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
-        statusFilterCombo = new javax.swing.JComboBox<>();
+        Filter = new javax.swing.JComboBox<>();
+        SearchBtn = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -158,13 +146,6 @@ public class PmViewPR extends javax.swing.JFrame {
         searchField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 searchFieldActionPerformed(evt);
-            }
-        });
-
-        searchBtn.setText("Search");
-        searchBtn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                searchBtnActionPerformed(evt);
             }
         });
 
@@ -240,10 +221,17 @@ public class PmViewPR extends javax.swing.JFrame {
             }
         });
 
-        statusFilterCombo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ALL", "PENDING", "APPROVED", "REJECTED" }));
-        statusFilterCombo.addActionListener(new java.awt.event.ActionListener() {
+        Filter.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ALL", "PENDING", "APPROVED", "REJECTED" }));
+        Filter.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                statusFilterComboActionPerformed(evt);
+                FilterActionPerformed(evt);
+            }
+        });
+
+        SearchBtn.setText("Search");
+        SearchBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                SearchBtnActionPerformed(evt);
             }
         });
 
@@ -251,74 +239,79 @@ public class PmViewPR extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(42, 42, 42)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(searchField, javax.swing.GroupLayout.PREFERRED_SIZE, 397, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(statusFilterCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(22, 22, 22)
-                        .addComponent(searchBtn))
-                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(245, Short.MAX_VALUE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jLabel1)
                 .addGap(219, 219, 219))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(34, 34, 34)
-                .addComponent(jLabel2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(Usernamelbl, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jToggleButton1)
-                .addGap(36, 36, 36))
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(100, 100, 100)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel6)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(14, 14, 14)
-                                .addComponent(lblTotalItems, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                    .addGroup(layout.createSequentialGroup()
                         .addGap(51, 51, 51)
-                        .addComponent(jButton6)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(searchField, javax.swing.GroupLayout.PREFERRED_SIZE, 377, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(Filter, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(SearchBtn))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(42, 42, 42)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(0, 39, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(24, 24, 24)
-                                .addComponent(jLabel4))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(48, 48, 48)
-                                .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(58, 58, 58)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addComponent(lblPendingPRs, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(87, 87, 87)
-                                .addComponent(lblPendingPOs, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(29, 29, 29))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(54, 54, 54)
-                                .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jButton7)
-                        .addGap(37, 37, 37)
-                        .addComponent(jButton1)
                         .addGap(34, 34, 34)
-                        .addComponent(jButton2)
-                        .addGap(40, 40, 40)
-                        .addComponent(jButton3))))
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(Usernamelbl, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(100, 100, 100)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel6)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(14, 14, 14)
+                                        .addComponent(lblTotalItems, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(51, 51, 51)
+                                .addComponent(jButton6)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(24, 24, 24)
+                                        .addComponent(jLabel4))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(48, 48, 48)
+                                        .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addGap(58, 58, 58)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                        .addComponent(lblPendingPRs, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(87, 87, 87)
+                                        .addComponent(lblPendingPOs, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(29, 29, 29))
+                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                        .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(54, 54, 54)
+                                        .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jButton7)
+                                .addGap(37, 37, 37)
+                                .addComponent(jButton1)
+                                .addGap(34, 34, 34)
+                                .addComponent(jButton2)
+                                .addGap(40, 40, 40)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jToggleButton1)
+                                    .addComponent(jButton3))))))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(7, Short.MAX_VALUE)
+                .addContainerGap(8, Short.MAX_VALUE)
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -352,15 +345,15 @@ public class PmViewPR extends javax.swing.JFrame {
                                             .addComponent(jLabel5))
                                         .addGap(18, 18, 18)))
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(Filter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(searchField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(searchBtn)
-                                    .addComponent(statusFilterCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(6, 6, 6)
+                                    .addComponent(SearchBtn))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(jLabel6)
                         .addComponent(jLabel4)))
-                .addContainerGap(68, Short.MAX_VALUE))
+                .addContainerGap(67, Short.MAX_VALUE))
         );
 
         pack();
@@ -378,28 +371,18 @@ public class PmViewPR extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_searchFieldActionPerformed
 
-    private void searchBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchBtnActionPerformed
-       System.out.println("Search button clicked, search text: " + searchField.getText());
-
-PurchaseRequisition.searchAndDisplayPRInTable(searchField, PrTable, purchaseRequisitionList, itemList, prItemList);
-PrTable.revalidate();
-PrTable.repaint();
-
-    
-    }//GEN-LAST:event_searchBtnActionPerformed
-
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        PmViewPR supplierWindow = new PmViewPR(parentWindow, purchaseManager);
+        PmViewSupplier supplierWindow = new PmViewSupplier(parentWindow, purchaseManager);
         supplierWindow.setVisible(true);
         this.setVisible(false);
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
         // TODO add your handling code here:
-        PmViewPR supplierWindow = new PmViewPR(parentWindow, purchaseManager);
-        supplierWindow.setVisible(true);
-        this.setVisible(false); // or this.setVisible(false);
+        PmViewItem approveWindow = new PmViewItem(parentWindow, purchaseManager);
+approveWindow.setVisible(true);
+this.setVisible(false);
 
     }//GEN-LAST:event_jButton7ActionPerformed
 
@@ -410,7 +393,9 @@ PrTable.repaint();
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:
-        
+        PmViewPR nextWindow = new PmViewPR(parentWindow, purchaseManager);
+       nextWindow.setVisible(true);
+        this.setVisible(false);
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
@@ -420,16 +405,33 @@ PrTable.repaint();
         this.setVisible(false);
     }//GEN-LAST:event_jButton3ActionPerformed
 
-    private void statusFilterComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_statusFilterComboActionPerformed
+    private void FilterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_FilterActionPerformed
         // TODO add your handling code here:
-       String selectedStatus = (String) statusFilterCombo.getSelectedItem();
-    
-    // Get filtered list from model class
-    List<PurchaseRequisition> filteredPRList = PurchaseRequisition.filterByStatus(purchaseRequisitionList, selectedStatus);
-    
-    // Update the table view with filtered data
-    PurchaseRequisition.updatePRTableInUI(filteredPRList, prItemList, itemList, PrTable);
-    }//GEN-LAST:event_statusFilterComboActionPerformed
+        //performSearchOrFilter();
+      // Inside your filter button actionPerformed method:
+
+String selectedStatus = Filter.getSelectedItem().toString();
+purchaseManager.loadViewPR(selectedStatus, PrTable);
+
+    }//GEN-LAST:event_FilterActionPerformed
+
+    private void SearchBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SearchBtnActionPerformed
+        // TODO add your handling code here:
+        // Inside your search button actionPerformed method:
+
+String searchQuery = searchField.getText().trim();
+String selectedStatus = Filter.getSelectedItem().toString();
+
+if (searchQuery.isEmpty() || searchQuery.equalsIgnoreCase("Enter PR ID")) {
+    // No search text, just filter by status
+    purchaseManager.loadViewPR(selectedStatus, PrTable);
+} else {
+    // Perform search
+    purchaseManager.performSearchOrFilter(searchField, Filter, PrTable);
+}
+
+//performSearchOrFilter();
+    }//GEN-LAST:event_SearchBtnActionPerformed
 
     /**
      * @param args the command line arguments
@@ -482,7 +484,9 @@ PrTable.repaint();
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JComboBox<String> Filter;
     private javax.swing.JTable PrTable;
+    private javax.swing.JButton SearchBtn;
     private javax.swing.JLabel Usernamelbl;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
@@ -502,8 +506,6 @@ PrTable.repaint();
     private javax.swing.JLabel lblPendingPOs;
     private javax.swing.JLabel lblPendingPRs;
     private javax.swing.JLabel lblTotalItems;
-    private javax.swing.JButton searchBtn;
     private javax.swing.JTextField searchField;
-    private javax.swing.JComboBox<String> statusFilterCombo;
     // End of variables declaration//GEN-END:variables
 }
