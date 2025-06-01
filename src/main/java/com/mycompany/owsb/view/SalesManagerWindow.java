@@ -221,7 +221,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
 
         searchField.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
         searchField.setForeground(new java.awt.Color(51, 51, 51));
-        searchField.setText("Enter Purchase Order ID");
+        searchField.setText("Enter PO ID");
         searchField.setToolTipText("");
         searchField.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -435,6 +435,9 @@ public class SalesManagerWindow extends javax.swing.JFrame {
     private void backButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backButtonActionPerformed
         // Update JTable to the latest
         PurchaseOrder.updatePOTableInUI(purchaseOrderList, allPRs, poTable);
+        
+        // Reset combo box selection to "All"
+        FilterPO.setSelectedItem("ALL");
     }//GEN-LAST:event_backButtonActionPerformed
 
     /**

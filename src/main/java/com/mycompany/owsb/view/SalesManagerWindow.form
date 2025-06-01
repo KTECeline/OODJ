@@ -168,7 +168,7 @@
         <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
           <Color blue="33" green="33" red="33" type="rgb"/>
         </Property>
-        <Property name="text" type="java.lang.String" value="Enter Purchase Order ID"/>
+        <Property name="text" type="java.lang.String" value="Enter PO ID"/>
         <Property name="toolTipText" type="java.lang.String" value=""/>
       </Properties>
       <Events>

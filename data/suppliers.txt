@@ -2,3 +2,7 @@ SP0001,Tupperware Brands,business@tupperware.com
 SP0002,Sanrio,sanrio_official@gmail.com
 SP0003,Mr DIY,diy_official@gmail.com
 SP0004,Gadget Store,gadget@gmail.com
+SP0005,Tara Wholesale,tara_ws@gmail.com
+SP0006,Sweety Home,sweety_home22@hotmail.com
+SP0007,Eco Sales,ecosales@gmail.com
+SP0008,Big Mart,big_mart@gmail.com
