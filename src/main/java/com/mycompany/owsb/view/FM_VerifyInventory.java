@@ -28,7 +28,6 @@ public class FM_VerifyInventory extends javax.swing.JFrame {
     private JButton refreshBtn;
     private JButton backBtn;
     private JButton proceedToPaymentBtn;
-    private JLabel statusLabel;
 
     /**
      * Creates new FM_VerifyInventory window
@@ -47,33 +46,79 @@ public class FM_VerifyInventory extends javax.swing.JFrame {
     private void initComponents() {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Verify Inventory Updates - Finance Manager");
-        setSize(1000, 700);
+        setSize(1000, 650); // Match FM_ViewPO window size
         
-        // Create main panel
+        // Create main panel with BorderLayout (matching FM_ViewPO)
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(new Color(245, 245, 245));
         
-        // Title panel
-        JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        titlePanel.setBackground(new Color(70, 130, 180));
-        titlePanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
+        // Header panel (matching FM_ViewPO style)
+        JPanel headerPanel = createHeaderPanel();
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
         
-        JLabel titleLabel = new JLabel("Inventory Update Verification");
+        // Content panel
+        JPanel contentPanel = createContentPanel();
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
+        
+        // Footer panel (matching FM_ViewPO style)
+        JPanel footerPanel = createFooterPanel();
+        mainPanel.add(footerPanel, BorderLayout.SOUTH);
+        
+        add(mainPanel);
+    }
+    
+    /**
+     * Create the header panel with title and back button (matching FM_ViewPO style)
+     */
+    private JPanel createHeaderPanel() {
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(new Color(51, 51, 51));
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        
+        // Title label
+        JLabel titleLabel = new JLabel("Verify Inventory Updates");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
         titleLabel.setForeground(Color.WHITE);
-        titlePanel.add(titleLabel);
         
-        mainPanel.add(titlePanel, BorderLayout.NORTH);
+        // Button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.setBackground(new Color(51, 51, 51));
         
-        // Create status panel - FIXED: Use BorderLayout.SOUTH instead of AFTER_LAST_LINE
-        JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        statusPanel.setBackground(new Color(245, 245, 245));
-        statusPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 5, 20));
+        backBtn = new JButton("Back to Dashboard");
+        backBtn.setBackground(new Color(105, 105, 105));
+        backBtn.setForeground(Color.WHITE);
+        backBtn.setFont(new Font("Arial", Font.BOLD, 12));
+        backBtn.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        backBtn.setFocusPainted(false);
+        backBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                goBackToMainMenu();
+            }
+        });
         
-        statusLabel = new JLabel("Loading received orders...");
-        statusLabel.setFont(new Font("Arial", Font.ITALIC, 12));
-        statusLabel.setForeground(new Color(100, 100, 100));
-        statusPanel.add(statusLabel);
+        buttonPanel.add(backBtn);
+        
+        headerPanel.add(titleLabel, BorderLayout.WEST);
+        headerPanel.add(buttonPanel, BorderLayout.EAST);
+        
+        return headerPanel;
+    }
+    
+    /**
+     * Create the main content panel with table and action buttons
+     */
+    private JPanel createContentPanel() {
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(new Color(245, 245, 245));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+        
+        // Subtitle
+        JLabel subtitleLabel = new JLabel("Received Orders Ready for Verification");
+        subtitleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        subtitleLabel.setForeground(new Color(51, 51, 51));
+        subtitleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
+        contentPanel.add(subtitleLabel, BorderLayout.NORTH);
         
         // Create table
         String[] columnNames = {"Order ID", "Item ID", "Supplier", "Quantity", 
@@ -87,84 +132,139 @@ public class FM_VerifyInventory extends javax.swing.JFrame {
         
         inventoryTable = new JTable(tableModel);
         inventoryTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        inventoryTable.setRowHeight(28);
+        inventoryTable.setRowHeight(30); // Match FM_ViewPO row height
         inventoryTable.getTableHeader().setReorderingAllowed(false);
-        inventoryTable.getTableHeader().setBackground(new Color(60, 120, 160));
-        inventoryTable.getTableHeader().setForeground(Color.WHITE);
-        inventoryTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+        inventoryTable.setFont(new Font("Arial", Font.PLAIN, 12)); // Match FM_ViewPO font
+        inventoryTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12)); // Match FM_ViewPO header font
+        inventoryTable.setSelectionBackground(new Color(184, 207, 229)); // Match FM_ViewPO selection color
+        inventoryTable.setGridColor(new Color(220, 220, 220)); // Match FM_ViewPO grid color
         
-        // Set column widths
+        // Set column widths (adjusted for additional columns)
         inventoryTable.getColumnModel().getColumn(0).setPreferredWidth(80);  // Order ID
         inventoryTable.getColumnModel().getColumn(1).setPreferredWidth(80);  // Item ID
-        inventoryTable.getColumnModel().getColumn(2).setPreferredWidth(120); // Supplier
+        inventoryTable.getColumnModel().getColumn(2).setPreferredWidth(100); // Supplier
         inventoryTable.getColumnModel().getColumn(3).setPreferredWidth(70);  // Quantity
         inventoryTable.getColumnModel().getColumn(4).setPreferredWidth(100); // Total Price
-        inventoryTable.getColumnModel().getColumn(5).setPreferredWidth(100); // Order Date
-        inventoryTable.getColumnModel().getColumn(6).setPreferredWidth(100); // Received Date
+        inventoryTable.getColumnModel().getColumn(5).setPreferredWidth(120); // Order Date
+        inventoryTable.getColumnModel().getColumn(6).setPreferredWidth(120); // Received Date
         inventoryTable.getColumnModel().getColumn(7).setPreferredWidth(80);  // Status
         inventoryTable.getColumnModel().getColumn(8).setPreferredWidth(80);  // PR ID
         
-        // Add alternating row colors
-        inventoryTable.setRowSelectionAllowed(true);
-        inventoryTable.setSelectionBackground(new Color(184, 207, 229));
-        
         JScrollPane scrollPane = new JScrollPane(inventoryTable);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        mainPanel.add(scrollPane, BorderLayout.CENTER);
+        scrollPane.setBorder(BorderFactory.createLoweredBevelBorder()); // Match FM_ViewPO border
+        contentPanel.add(scrollPane, BorderLayout.CENTER);
         
-        // Create button panel - IMPROVED: Better layout and spacing
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 15));
-        buttonPanel.setBackground(new Color(245, 245, 245));
-        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 20, 20));
+        // Create action button panel (matching FM_ViewPO button style)
+        JPanel actionPanel = createActionPanel();
+        contentPanel.add(actionPanel, BorderLayout.SOUTH);
         
-        // Initialize buttons with proper sizing
-        verifyBtn = createStyledButton("Verify Selected Items", new Color(34, 139, 34));
-        verifyBtn.addActionListener(e -> verifySelectedItems());
-        
-        proceedToPaymentBtn = createStyledButton("Proceed to Payment", new Color(255, 140, 0));
-        proceedToPaymentBtn.addActionListener(e -> proceedToPayment());
-        
-        refreshBtn = createStyledButton("Refresh", new Color(70, 130, 180));
-        refreshBtn.addActionListener(e -> loadReceivedOrders());
-        
-        backBtn = createStyledButton("Back to Dashboard", new Color(105, 105, 105));
-        backBtn.addActionListener(e -> goBackToMainMenu());
-        
-        // Add buttons to panel
-        buttonPanel.add(verifyBtn);
-        buttonPanel.add(proceedToPaymentBtn);
-        buttonPanel.add(refreshBtn);
-        buttonPanel.add(backBtn);
-        
-        // Create bottom panel that contains both status and buttons
-        JPanel bottomPanel = new JPanel(new BorderLayout());
-        bottomPanel.setBackground(new Color(245, 245, 245));
-        bottomPanel.add(statusPanel, BorderLayout.NORTH);
-        bottomPanel.add(buttonPanel, BorderLayout.SOUTH);
-        
-        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
-        
-        add(mainPanel);
-        
-        // ADDED: Force layout and repaint
-        pack();
-        setSize(1000, 700); // Reset size after pack
-        validate();
-        repaint();
+        return contentPanel;
     }
     
     /**
-     * Helper method to create styled buttons consistently
+     * Create action buttons panel with styled buttons matching FM_ViewPO
      */
-    private JButton createStyledButton(String text, Color backgroundColor) {
-        JButton button = new JButton(text);
-        button.setBackground(backgroundColor);
+    private JPanel createActionPanel() {
+        JPanel actionPanel = new JPanel(new GridBagLayout());
+        actionPanel.setBackground(new Color(245, 245, 245));
+        actionPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        
+        // Create styled buttons matching FM_ViewPO style
+        verifyBtn = createStyledActionButton("Verify Selected", 
+            "Review and verify selected inventory items", new Color(34, 139, 34));
+        verifyBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                verifySelectedItems();
+            }
+        });
+        
+        proceedToPaymentBtn = createStyledActionButton("Proceed to Payment", 
+            "Continue to payment processing for verified items", new Color(255, 140, 0));
+        proceedToPaymentBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                proceedToPayment();
+            }
+        });
+        
+        refreshBtn = createStyledActionButton("Refresh List", 
+            "Reload received orders from database", new Color(70, 130, 180));
+        refreshBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                loadReceivedOrders();
+            }
+        });
+        
+        // Add buttons to panel in a row (matching FM_ViewPO layout)
+        gbc.gridx = 0; gbc.gridy = 0;
+        actionPanel.add(verifyBtn, gbc);
+        
+        gbc.gridx = 1; gbc.gridy = 0;
+        actionPanel.add(proceedToPaymentBtn, gbc);
+        
+        gbc.gridx = 2; gbc.gridy = 0;
+        actionPanel.add(refreshBtn, gbc);
+        
+        return actionPanel;
+    }
+    
+    /**
+     * Create a styled action button matching FM_ViewPO style
+     */
+    private JButton createStyledActionButton(String title, String description, Color bgColor) {
+        JButton button = new JButton();
+        button.setLayout(new BorderLayout());
+        button.setBackground(bgColor);
         button.setForeground(Color.WHITE);
-        button.setFont(new Font("Arial", Font.BOLD, 12));
-        button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        button.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
         button.setFocusPainted(false);
-        button.setPreferredSize(new Dimension(160, 40)); // Fixed size for consistency
+        button.setPreferredSize(new Dimension(200, 80)); // Match FM_ViewPO button size
+        
+        JLabel titleLabel = new JLabel(title, JLabel.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 13)); // Match FM_ViewPO font size
+        titleLabel.setForeground(Color.WHITE);
+        
+        JLabel descLabel = new JLabel("<html><center>" + description + "</center></html>", JLabel.CENTER);
+        descLabel.setFont(new Font("Arial", Font.PLAIN, 10)); // Match FM_ViewPO font size
+        descLabel.setForeground(new Color(230, 230, 230));
+        
+        button.add(titleLabel, BorderLayout.CENTER);
+        button.add(descLabel, BorderLayout.SOUTH);
+        
+        // Add hover effect (matching FM_ViewPO)
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(bgColor.brighter());
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(bgColor);
+            }
+        });
+        
         return button;
+    }
+    
+    /**
+     * Create footer panel with system info (matching FM_ViewPO style)
+     */
+    private JPanel createFooterPanel() {
+        JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        footerPanel.setBackground(new Color(245, 245, 245));
+        footerPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 15, 0));
+        
+        JLabel footerLabel = new JLabel("OWSB - AUTOMATED PURCHASE ORDER MANAGEMENT SYSTEM");
+        footerLabel.setFont(new Font("Arial", Font.ITALIC, 10));
+        footerLabel.setForeground(Color.GRAY);
+        
+        footerPanel.add(footerLabel);
+        return footerPanel;
     }
     
     /**
@@ -178,8 +278,10 @@ public class FM_VerifyInventory extends javax.swing.JFrame {
             List<Finance_VerifyInventory> receivedOrders = getReceivedOrders();
             
             if (receivedOrders.isEmpty()) {
-                statusLabel.setText("No received orders found for verification.");
-                statusLabel.setForeground(new Color(255, 140, 0));
+                JOptionPane.showMessageDialog(this, 
+                    "No received orders found for verification.", 
+                    "Information", 
+                    JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
             
@@ -199,12 +301,7 @@ public class FM_VerifyInventory extends javax.swing.JFrame {
                 tableModel.addRow(row);
             }
             
-            statusLabel.setText(String.format("Found %d orders ready for verification.", receivedOrders.size()));
-            statusLabel.setForeground(new Color(34, 139, 34));
-            
         } catch (IOException e) {
-            statusLabel.setText("Error loading orders: " + e.getMessage());
-            statusLabel.setForeground(Color.RED);
             JOptionPane.showMessageDialog(this, 
                 "Error loading received orders: " + e.getMessage(), 
                 "Error", 
@@ -252,52 +349,68 @@ public class FM_VerifyInventory extends javax.swing.JFrame {
         int[] selectedRows = inventoryTable.getSelectedRows();
         if (selectedRows.length == 0) {
             JOptionPane.showMessageDialog(this, 
-                "Please select at least one item to verify.", 
+                "Please select one or more items to verify.", 
                 "No Selection", 
                 JOptionPane.WARNING_MESSAGE);
             return;
         }
         
-        StringBuilder confirmMessage = new StringBuilder("Are you sure you want to verify the following items?\n\n");
+        // Get selected order IDs
+        List<String> orderIDs = new ArrayList<>();
         for (int row : selectedRows) {
-            String orderID = (String) tableModel.getValueAt(row, 0);
-            String itemID = (String) tableModel.getValueAt(row, 1);
-            confirmMessage.append("• Order ").append(orderID).append(" - Item ").append(itemID).append("\n");
+            orderIDs.add((String) tableModel.getValueAt(row, 0));
         }
         
+        String message = selectedRows.length == 1 ? 
+            "Are you sure you want to verify Order: " + orderIDs.get(0) + "?" :
+            "Are you sure you want to verify " + selectedRows.length + " orders?\n" +
+            "Order IDs: " + String.join(", ", orderIDs);
+        
         int confirm = JOptionPane.showConfirmDialog(this, 
-            confirmMessage.toString(), 
+            message, 
             "Confirm Verification", 
             JOptionPane.YES_NO_OPTION);
         
         if (confirm == JOptionPane.YES_OPTION) {
-            try {
-                int successCount = 0;
-                for (int row : selectedRows) {
-                    String orderID = (String) tableModel.getValueAt(row, 0);
-                    if (updateOrderStatus(orderID, "VERIFIED")) {
+            int successCount = 0;
+            List<String> failedOrders = new ArrayList<>();
+            
+            for (String orderID : orderIDs) {
+                try {
+                    boolean success = updateOrderStatus(orderID, "VERIFIED");
+                    if (success) {
                         successCount++;
+                    } else {
+                        failedOrders.add(orderID);
                     }
+                } catch (IOException e) {
+                    failedOrders.add(orderID);
                 }
-                
-                if (successCount > 0) {
-                    JOptionPane.showMessageDialog(this, 
-                        String.format("Successfully verified %d item(s)!\nThese items are now ready for payment processing.", successCount), 
-                        "Verification Complete", 
-                        JOptionPane.INFORMATION_MESSAGE);
-                    loadReceivedOrders(); // Refresh the table
-                } else {
-                    JOptionPane.showMessageDialog(this, 
-                        "Failed to verify any items. Please try again.", 
-                        "Verification Failed", 
-                        JOptionPane.ERROR_MESSAGE);
-                }
-            } catch (IOException e) {
+            }
+            
+            // Show results
+            if (successCount == orderIDs.size()) {
+                String successMessage = successCount == 1 ? 
+                    "Order has been verified successfully!" :
+                    successCount + " orders have been verified successfully!";
                 JOptionPane.showMessageDialog(this, 
-                    "Error during verification: " + e.getMessage(), 
+                    successMessage, 
+                    "Success", 
+                    JOptionPane.INFORMATION_MESSAGE);
+            } else if (successCount > 0) {
+                JOptionPane.showMessageDialog(this, 
+                    successCount + " orders verified successfully.\n" +
+                    "Failed to verify: " + String.join(", ", failedOrders), 
+                    "Partial Success", 
+                    JOptionPane.WARNING_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, 
+                    "Failed to verify any orders: " + String.join(", ", failedOrders), 
                     "Error", 
                     JOptionPane.ERROR_MESSAGE);
             }
+            
+            loadReceivedOrders(); // Refresh the table
         }
     }
     
@@ -318,7 +431,7 @@ public class FM_VerifyInventory extends javax.swing.JFrame {
                 parts[6] = newStatus; // Update status
                 lines.set(i, String.join(",", parts));
                 found = true;
-                // REMOVED the break statement - continue processing all matching lines
+                // Continue processing all matching lines
             }
         }
         
