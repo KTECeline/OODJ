@@ -1,10 +1,5 @@
 IT0001,Medium Size Tupperware,117,22.5,30.0,true
-<<<<<<< HEAD
-IT0002,Kuromi T-shirt,3,2.0,5.0,true
-IT0004,Rabbit Pink Bag,36,15.0,25.0,true
-=======
 IT0002,Kuromi T-shirt,4,2.0,5.0,true
 IT0004,Rabbit Pink Bag,19,15.0,25.0,true
->>>>>>> 1565892ed49b4b65bc06ee38e23b5149eb212368
 IT0005,Bottle,14,20.0,50.0,false
 IT0006,Phone,10,1000.0,1200.0,true
