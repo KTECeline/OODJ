@@ -10,11 +10,8 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -117,6 +114,7 @@ public class PurchaseOrder {
                 status.equals("REJECTED") || 
                 status.equals("UNFULFILLED") ||
                 status.equals("RECEIVED") ||
+                status.equals("VERIFIED") ||
                 status.equals("COMPLETED"));
     }
     
@@ -403,9 +401,6 @@ private static PurchaseRequisition getRequisitionById(String prID, List<Purchase
 }
 
     
-    
-   
-
    public static void applyStatusColorRenderer(JTable table) {
     table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
         @Override
@@ -433,6 +428,9 @@ private static PurchaseRequisition getRequisitionById(String prID, List<Purchase
                         break;
                     case "UNFULFILLED":
                         c.setBackground(new Color(255, 255, 204)); // Light Yellow
+                        break;
+                    case "VERIFIED":
+                        c.setBackground(new Color(144, 231, 136)); // Light GREEN
                         break;
                     default:
                         c.setBackground(Color.WHITE); // Default

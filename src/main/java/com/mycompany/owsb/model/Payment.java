@@ -38,7 +38,7 @@ public class Payment {
     private String status;
     
     // String representing the file path for finance payment data
-    private static final String FINANCE_FILE = "data/payment.txt";
+    private static final String FINANCE_FILE = "data/finance_payment.txt";
     
     // Payment status constants
     public static final String STATUS_PENDING = "PENDING";

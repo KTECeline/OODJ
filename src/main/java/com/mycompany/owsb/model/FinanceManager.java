@@ -9,9 +9,11 @@ import java.util.List;
 public class FinanceManager extends Manager {
     private static final String PURCHASE_ORDER_FILE = "data/purchase_order.txt";
     private static final String PAYMENT_DETAILS_FILE = "data/payment_details.txt";
-    
+    private User loggedInUser;
+
     public FinanceManager(User loggedInUser) {
         super(loggedInUser);
+           this.loggedInUser = loggedInUser;
     }
 
     @Override
@@ -145,8 +147,13 @@ public class FinanceManager extends Manager {
         
         if (found) {
             Files.write(Paths.get(PURCHASE_ORDER_FILE), lines);
+             AuditLog auditLog = new AuditLog();
+        String action = "PO Status Update by Finance Manager";
+        String details = String.format("PO ID: %s, New Status: %s", poId, newStatus);
+        auditLog.logAction(loggedInUser.getUsername(), loggedInUser.getRole(), action, details);
             return true;
         }
+        
         return false;
     }
 
@@ -180,6 +187,11 @@ public class FinanceManager extends Manager {
         
         if (found) {
             Files.write(Paths.get(PURCHASE_ORDER_FILE), lines);
+             AuditLog auditLog = new AuditLog();
+            String action = "PO Status Update by Finance Manager";
+            String details = String.format("PO ID: %s, New Status: VERIFIED", poId);
+            auditLog.logAction(loggedInUser.getUsername(), loggedInUser.getRole(), action, details);
+
             return true;
         }
         return false;
@@ -283,6 +295,11 @@ public class FinanceManager extends Manager {
         
         if (found) {
             Files.write(Paths.get(PURCHASE_ORDER_FILE), lines);
+             AuditLog auditLog = new AuditLog();
+            String action = "Inventory Verified by Finance Manager";
+            String details = String.format("PO ID: %s, Status changed to VERIFIED", poId);
+            auditLog.logAction(loggedInUser.getUsername(), loggedInUser.getRole(), action, details);
+
             return true;
         }
         return false;

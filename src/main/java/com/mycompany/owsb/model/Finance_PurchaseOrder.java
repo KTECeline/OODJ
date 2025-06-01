@@ -9,7 +9,7 @@ public class Finance_PurchaseOrder {
     private int quantity;
     private double totalPrice;
     private LocalDate orderDate;
-    private String status;  // PENDING, APPROVED, REJECTED, PAID
+    private String status;  // PENDING, APPROVED, REJECTED
     private String prID;    // Purchase Requisition ID
     private String userID;  // User who created the PO
 
@@ -41,7 +41,7 @@ public class Finance_PurchaseOrder {
     // Setters
     public void setStatus(String status) { 
         if (status.equals("PENDING") || status.equals("APPROVED") || 
-            status.equals("REJECTED") || status.equals("COMPLETED")) {
+            status.equals("REJECTED")) {
             this.status = status; 
         }
     }
