@@ -74,3 +74,18 @@
 2025-06-01 22:55:00,celine,Purchase Manager,PO Created by Purchase Manager,PO:PO0008,PR:PR0010,Supplier:SP0007,Items:IT0010:Qty=20;
 2025-06-01 22:55:00,celine,Purchase Manager,PO Created by Purchase Manager,PO:PO0009,PR:PR0012,Supplier:SP0006,Items:IT0012:Qty=20;IT0008:Qty=30;
 2025-06-01 22:55:00,celine,Purchase Manager,PO Created by Purchase Manager,PO:PO0010,PR:PR0013,Supplier:SP0001,Items:IT0001:Qty=20;
+2025-06-01 22:58:17,zhixian,Finance Manager,PO Status Update by Finance Manager,PO ID: PO0001, New Status: APPROVED
+2025-06-01 22:58:26,zhixian,Finance Manager,PO Status Update by Finance Manager,PO ID: PO0002, New Status: REJECTED
+2025-06-01 22:58:29,zhixian,Finance Manager,PO Status Update by Finance Manager,PO ID: PO0003, New Status: REJECTED
+2025-06-01 22:58:34,zhixian,Finance Manager,PO Status Update by Finance Manager,PO ID: PO0004, New Status: APPROVED
+2025-06-01 22:58:39,zhixian,Finance Manager,PO Status Update by Finance Manager,PO ID: PO0006, New Status: APPROVED
+2025-06-01 22:58:45,zhixian,Finance Manager,PO Status Update by Finance Manager,PO ID: PO0007, New Status: APPROVED
+2025-06-01 22:58:48,zhixian,Finance Manager,PO Status Update by Finance Manager,PO ID: PO0009, New Status: REJECTED
+2025-06-01 22:58:51,zhixian,Finance Manager,PO Status Update by Finance Manager,PO ID: PO0005, New Status: APPROVED
+2025-06-01 22:59:46,US0005,Inventory Manager,Purchase Order Status Updated by Inventory Manager,PO ID: PO0006, New Status: UNFULFILLED
+2025-06-01 22:59:46,US0005,Inventory Manager,Purchase Order Status Updated by Inventory Manager,PO ID: PO0006, New Status: UNFULFILLED
+2025-06-01 22:59:46,US0005,Inventory Manager,Purchase Order Status Updated by Inventory Manager,PO ID: PO0006, New Status: UNFULFILLED
+2025-06-01 23:00:30,US0005,Inventory Manager,Purchase Order Status Updated by Inventory Manager,PO ID: PO0005, New Status: RECEIVED
+2025-06-01 23:01:55,US0005,Inventory Manager,Purchase Order Status Updated by Inventory Manager,PO ID: PO0006, New Status: RECEIVED
+2025-06-01 23:01:55,US0005,Inventory Manager,Purchase Order Status Updated by Inventory Manager,PO ID: PO0006, New Status: RECEIVED
+2025-06-01 23:01:55,US0005,Inventory Manager,Purchase Order Status Updated by Inventory Manager,PO ID: PO0006, New Status: RECEIVED
