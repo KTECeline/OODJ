@@ -54,7 +54,7 @@ public class SmManageSuppliersWindow extends javax.swing.JFrame {
         });
     }
     
-    // Method to load Items from file and display them in the UI list
+    // Method to load Suppliers from file and display them in the UI list
     private void loadDataIntoList() {
         // Load the list of Purchase Orders from the purchase order file
         supplierDataList = Supplier.loadSuppliers();
@@ -82,7 +82,8 @@ public class SmManageSuppliersWindow extends javax.swing.JFrame {
             // Search for the item based on input ID
             for (Supplier supplier : supplierDataList) {
                 if (supplier.getSupplierID().equalsIgnoreCase(inputID)) {
-                    salesManager.editSupplier(supplier, supplierDataList, supplierItemDataList, itemDataList, supplierTable); // Call editItem method in Sales Manager Class if item found
+                    // Call editItem method in Sales Manager Class if item found
+                    salesManager.editSupplier(supplier, supplierDataList, supplierItemDataList, itemDataList, supplierTable);
                     Supplier.updateSupplierTableInUI(supplierDataList, supplierItemDataList, supplierTable);
                     found = true;
                     break;

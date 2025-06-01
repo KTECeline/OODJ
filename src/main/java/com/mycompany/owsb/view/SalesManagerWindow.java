@@ -137,25 +137,25 @@ public class SalesManagerWindow extends javax.swing.JFrame {
     }
     
      
-     public void filterPOTableByStatus() {
-    String selectedStatus = FilterPO.getSelectedItem().toString();
-    List<PurchaseOrder> allPOs = PurchaseOrder.loadPurchaseOrders();
-    List<PurchaseRequisition> allPRs = PurchaseRequisition.loadPurchaseRequisition();
+    public void filterPOTableByStatus() {
+        String selectedStatus = FilterPO.getSelectedItem().toString();
+        List<PurchaseOrder> allPOs = PurchaseOrder.loadPurchaseOrders();
+        List<PurchaseRequisition> allPRs = PurchaseRequisition.loadPurchaseRequisition();
 
-    List<PurchaseOrder> filteredPOs = new ArrayList<>();
+        List<PurchaseOrder> filteredPOs = new ArrayList<>();
 
-    if (selectedStatus.equalsIgnoreCase("ALL")) {
-        filteredPOs.addAll(allPOs);
-    } else {
-        for (PurchaseOrder po : allPOs) {
-            if (po.getStatus().equalsIgnoreCase(selectedStatus)) {
-                filteredPOs.add(po);
+        if (selectedStatus.equalsIgnoreCase("ALL")) {
+            filteredPOs.addAll(allPOs);
+        } else {
+            for (PurchaseOrder po : allPOs) {
+                if (po.getStatus().equalsIgnoreCase(selectedStatus)) {
+                    filteredPOs.add(po);
+                }
             }
         }
-    }
 
-    PurchaseOrder.updatePOTableInUI(filteredPOs, allPRs, poTable);
-}
+        PurchaseOrder.updatePOTableInUI(filteredPOs, allPRs, poTable);
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

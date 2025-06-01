@@ -135,7 +135,8 @@ public class Supplier {
 
 
 
-    public static void searchAndDisplaySupplierInTable(JTextField searchField, JTable table, List<Supplier> supplierList, List<SupplierItem> supplierItemList) {
+    public static void searchAndDisplaySupplierInTable(JTextField searchField, JTable table, List<Supplier> supplierList, 
+                                                    List<SupplierItem> supplierItemList) {
         String searchID = searchField.getText().trim().toUpperCase();
         boolean found = false;
 
