@@ -6,13 +6,13 @@ package com.mycompany.owsb.view;
 
 import com.mycompany.owsb.model.Item;
 import com.mycompany.owsb.model.PurchaseManager;
-import com.mycompany.owsb.model.Stats;
+
 import com.mycompany.owsb.model.User;
 import com.mycompany.owsb.model.WindowUtil;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.List;
-import javax.swing.JOptionPane;
+import com.mycompany.owsb.model.AuditLog;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -23,6 +23,8 @@ public class PmViewLog extends javax.swing.JFrame {
      private final PurchaseManagerWindow parentWindow;
     private final PurchaseManager purchaseManager;
     private User loggedInUser;
+    private AuditLog auditLog;
+
     
     private List<Item> itemList;
     /**
@@ -35,7 +37,11 @@ public class PmViewLog extends javax.swing.JFrame {
         
         initComponents();
         setupWindowListener();
+        this.auditLog = new AuditLog();
         loadViewItem();
+        
+        String username = purchaseManager.getLoggedInUser().getUsername();
+        Usernamelbl.setText(username);
       
     }
     
@@ -49,22 +55,26 @@ public class PmViewLog extends javax.swing.JFrame {
         });
     }
 
-     private void loadViewItem() {
-    itemList = Item.loadItems();
-   
-    System.out.println("Loaded " + itemList.size() + " items");
-    for (Item item : itemList) {
-        System.out.println("Item: " + item.getItemID() + ", " + item.getItemName());
+   private void loadViewItem() {
+    List<String[]> logs = auditLog.getAllLogs(); // Load all logs
+
+    DefaultTableModel model = (DefaultTableModel) auditTable.getModel();
+    model.setRowCount(0); // Clear table
+
+    for (String[] log : logs) {
+        model.addRow(log); 
     }
-    if (itemList.isEmpty()) {
-        JOptionPane.showMessageDialog(this, "No items found in the database.", "Warning", JOptionPane.WARNING_MESSAGE);
-        return;
-    }
-    String[] columnNames = {"Item ID", "Name", "Stock", "Cost (RM)", "Price (RM)", "Stock Level"};
-    DefaultTableModel model = new DefaultTableModel(columnNames, 0);
-    itemTable.setModel(model);
-    Item.updateItemTableInUI(itemList, itemTable);
 }
+
+private void searchLogs(String keyword) {
+    List<String[]> results = auditLog.searchLogs(keyword.toLowerCase());
+    DefaultTableModel model = (DefaultTableModel) auditTable.getModel();
+    model.setRowCount(0);
+    for (String[] log : results) {
+        model.addRow(log);
+    }
+}
+
      
 
     /**
@@ -82,10 +92,9 @@ public class PmViewLog extends javax.swing.JFrame {
         jToggleButton1 = new javax.swing.JToggleButton();
         searchField = new javax.swing.JTextField();
         searchBtn = new javax.swing.JButton();
-        FilterStockLevel = new javax.swing.JComboBox<>();
         jPanel1 = new javax.swing.JPanel();
         jScrollPane6 = new javax.swing.JScrollPane();
-        itemTable = new javax.swing.JTable();
+        auditTable = new javax.swing.JTable();
         jButton6 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -117,33 +126,26 @@ public class PmViewLog extends javax.swing.JFrame {
             }
         });
 
-        FilterStockLevel.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "All", "Low", "Normal" }));
-        FilterStockLevel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                FilterStockLevelActionPerformed(evt);
-            }
-        });
-
-        itemTable.setModel(new javax.swing.table.DefaultTableModel(
+        auditTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null}
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null}
             },
             new String [] {
-                "Item ID", "Item Name", "Stock", "Cost", "Price", "Stock Level"
+                "Timestamp", "User ID", "Role", "Action", "Details"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.Double.class, java.lang.Double.class, java.lang.Boolean.class
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
 
             public Class getColumnClass(int columnIndex) {
                 return types [columnIndex];
             }
         });
-        jScrollPane6.setViewportView(itemTable);
+        jScrollPane6.setViewportView(auditTable);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -177,9 +179,7 @@ public class PmViewLog extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(searchField, javax.swing.GroupLayout.PREFERRED_SIZE, 397, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(FilterStockLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(24, 24, 24)
+                                .addGap(110, 110, 110)
                                 .addComponent(searchBtn))
                             .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(0, 45, Short.MAX_VALUE))
@@ -214,7 +214,6 @@ public class PmViewLog extends javax.swing.JFrame {
                 .addGap(30, 30, 30)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(searchField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(FilterStockLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(searchBtn))
                 .addGap(6, 6, 6)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -237,25 +236,15 @@ public class PmViewLog extends javax.swing.JFrame {
     }//GEN-LAST:event_searchFieldActionPerformed
 
     private void searchBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchBtnActionPerformed
-        // TODO add your handling code here:
-      System.out.println("Search button clicked, search text: " + searchField.getText());
-      FilterStockLevel.setSelectedItem("All");
-    Item.searchAndDisplayItemInTable(searchField, itemTable, itemList);
-    itemTable.revalidate();
-    itemTable.repaint();
+  String keyword = searchField.getText().trim();
+    if (keyword.isEmpty()) {
+        loadViewItem(); // show all logs if empty search
+    } else {
+        searchLogs(keyword);
+    }
+
     
     }//GEN-LAST:event_searchBtnActionPerformed
-
-    private void FilterStockLevelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_FilterStockLevelActionPerformed
-        // TODO add your handling code here:
-        String selectedFilter = (String) FilterStockLevel.getSelectedItem();
-        System.out.println("Filter selected: " + selectedFilter);
-        if (selectedFilter != null) {
-            Item.filterStockLevel(selectedFilter, itemTable, itemList);
-            itemTable.revalidate();
-            itemTable.repaint();
-        }
-    }//GEN-LAST:event_FilterStockLevelActionPerformed
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
         // TODO add your handling code here:
@@ -305,9 +294,8 @@ public class PmViewLog extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JComboBox<String> FilterStockLevel;
     private javax.swing.JLabel Usernamelbl;
-    private javax.swing.JTable itemTable;
+    private javax.swing.JTable auditTable;
     private javax.swing.JButton jButton6;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

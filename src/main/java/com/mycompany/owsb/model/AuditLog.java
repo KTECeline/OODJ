@@ -135,5 +135,44 @@ public class AuditLog {
     );
 }
 
+public List<String[]> getAllLogs() {
+    List<String[]> logs = new ArrayList<>();
+    try {
+        File file = new File(AUDITPO_FILE);
+        if (!file.exists()) {
+            return logs;
+        }
+        try (BufferedReader reader = new BufferedReader(new FileReader(AUDITPO_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.trim().isEmpty()) {
+                    String[] parts = line.split(",", 5);
+                    if (parts.length == 5) {
+                        logs.add(parts);
+                    }
+                }
+            }
+        }
+    } catch (IOException e) {
+        javax.swing.JOptionPane.showMessageDialog(null, "Failed to read audit log: " + e.getMessage(),
+                "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+    }
+    return logs;
+}
 
+public List<String[]> searchLogs(String keyword) {
+    List<String[]> allLogs = getAllLogs();
+    List<String[]> results = new ArrayList<>();
+
+    for (String[] log : allLogs) {
+        // Check if any field contains the keyword (case insensitive)
+        for (String field : log) {
+            if (field.toLowerCase().contains(keyword)) {
+                results.add(log);
+                break;
+            }
+        }
+    }
+    return results;
+}
 }

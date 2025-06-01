@@ -154,70 +154,6 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
 
     return itemIds;
 }
-
-   /* private void generatePOsFromSelectedRows() {
-    DefaultTableModel model = (DefaultTableModel) prTable.getModel();
-    if (model.getRowCount() == 0) {
-        JOptionPane.showMessageDialog(this, "Table is empty. No PRs to process.", "Warning", JOptionPane.WARNING_MESSAGE);
-        return;
-    }
-
-    // supplierId → (prId → itemIds)
-    Map<String, Map<String, List<String>>> supplierToPRsMap = new HashMap<>();
-    boolean hasSelections = false;
-
-    for (int row = 0; row < model.getRowCount(); row++) {
-        Boolean isSelected = (Boolean) model.getValueAt(row, 9);
-        if (isSelected != null && isSelected) {
-            hasSelections = true;
-            String prId = model.getValueAt(row, 0).toString();
-            String itemId = model.getValueAt(row, 1).toString().split(" - ")[0];
-            String supplierId = model.getValueAt(row, 2).toString();
-            String status = model.getValueAt(row, 8).toString();
-
-            if (!status.equalsIgnoreCase("PENDING")) {
-                JOptionPane.showMessageDialog(this, "Only PENDING PRs can be selected for PO generation. Invalid PR: " + prId, "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            supplierToPRsMap
-                .computeIfAbsent(supplierId, k -> new HashMap<>()) // supplierId group
-                .computeIfAbsent(prId, k -> new ArrayList<>())     // PR group under supplier
-                .add(itemId);
-        }
-    }
-
-    if (!hasSelections) {
-        JOptionPane.showMessageDialog(this, "No rows selected for PO generation.", "Warning", JOptionPane.WARNING_MESSAGE);
-        return;
-    }
-
-    try {
-        int poCount = 0;
-        String createdBy = purchaseManager.getLoggedInUser().getUserId();
-
-        for (String supplierId : supplierToPRsMap.keySet()) {
-            Map<String, List<String>> approvedItemsByPR = supplierToPRsMap.get(supplierId);
-            purchaseManager.generatePurchaseOrdersFromMultiplePRs(supplierId, createdBy, approvedItemsByPR);
-            poCount++;
-        }
-
-        String statusFilter = Filter.getSelectedItem().toString();
-        loadPRTable(statusFilter);
-
-        JOptionPane.showMessageDialog(this, "Successfully generated " + poCount + " purchase order(s).", "Success", JOptionPane.INFORMATION_MESSAGE);
-
-        for (int row = 0; row < model.getRowCount(); row++) {
-            model.setValueAt(false, row, 9);
-        }
-    } catch (IllegalArgumentException | IllegalStateException e) {
-        String statusFilter = Filter.getSelectedItem().toString();
-        loadPRTable(statusFilter);
-        JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-    } catch (Exception e) {
-        JOptionPane.showMessageDialog(this, "Unexpected error generating POs: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-    }
-}*/
     
     private SupplierPRGroup findOrCreateSupplierGroup(List<SupplierPRGroup> groups, String supplierId) {
     for (SupplierPRGroup group : groups) {
@@ -492,6 +428,11 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
         jScrollPane8.setViewportView(logArea);
 
         jButton1.setText("View Logs");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -692,6 +633,11 @@ if (searchQuery.isEmpty() || searchQuery.equalsIgnoreCase("Enter PR ID")) {
     private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jTextField1ActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+         WindowUtil.switchWindow(this, new PmViewLog(this, purchaseManager));
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
