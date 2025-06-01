@@ -36,7 +36,7 @@ public class PurchaseOrder {
         private int quantity;
         private double totalPrice;
         private String prId; 
-
+        
         public PurchaseOrderItem(String itemID, int quantity, double totalPrice) {
             if (itemID == null || itemID.isEmpty()) {
                 throw new IllegalArgumentException("Item ID cannot be null or empty");
@@ -63,6 +63,8 @@ public class PurchaseOrder {
         public double getTotalPrice() {
             return totalPrice;
         }
+         
+       
 
         public void setQuantity(int quantity) {
             if (quantity <= 0) {
@@ -114,6 +116,7 @@ public class PurchaseOrder {
                 status.equals("REJECTED") || 
                 status.equals("UNFULFILLED") ||
                 status.equals("RECEIVED") ||
+                status.equals("VERIFIED") ||
                 status.equals("COMPLETED"));
     }
     
@@ -427,6 +430,9 @@ private static PurchaseRequisition getRequisitionById(String prID, List<Purchase
                         break;
                     case "UNFULFILLED":
                         c.setBackground(new Color(255, 255, 204)); // Light Yellow
+                        break;
+                    case "VERIFIED":
+                        c.setBackground(new Color(255, 200, 120)); // Light Orange
                         break;
                     default:
                         c.setBackground(Color.WHITE); // Default

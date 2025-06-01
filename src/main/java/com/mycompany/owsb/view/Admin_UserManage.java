@@ -5,6 +5,7 @@
 package com.mycompany.owsb.view;
 
 import com.mycompany.owsb.model.User;
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.GridLayout;
@@ -31,6 +32,11 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import java.awt.Color;
+import java.awt.Frame;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JPasswordField;
 
 /**
  *
@@ -53,6 +59,74 @@ public class Admin_UserManage extends javax.swing.JFrame {
     // Class-level variable to store users
     private List<User> userList = new ArrayList<>(); 
     private Map<String, String[]> profiles;
+    
+    public boolean isAllowedToPerform() {
+        // Check if user is logged in and role matches "Sales"
+        
+    if (loggedInUser == null || 
+        !("Administrator".equals(loggedInUser.getRole()) || 
+          "Root Administrator".equals(loggedInUser.getRole()))) {
+        
+        return false;
+    }
+
+        // Create dialog for password input
+        JDialog dialog = new JDialog((Frame) null, "Password Verification", true);
+        dialog.setLayout(new BorderLayout());
+        dialog.setBackground(Color.white);
+
+        JPanel panel = new JPanel(new GridLayout(2, 2, 5, 5));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        panel.setBackground(Color.white);
+
+        JLabel passwordLabel = new JLabel("Enter Password:");
+        JPasswordField passwordField = new JPasswordField(20);
+        JLabel errorLabel = new JLabel();
+        errorLabel.setForeground(Color.RED);
+
+        panel.add(passwordLabel);
+        panel.add(passwordField);
+        panel.add(new JLabel());
+        panel.add(errorLabel);
+
+        JButton submit = new JButton("Submit");
+        JButton cancel = new JButton("Cancel");
+        submit.setBackground(Color.red);
+        submit.setForeground(Color.white);
+        cancel.setBackground(Color.black);
+        cancel.setForeground(Color.white);
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(Color.white);
+        buttonPanel.add(submit);
+        buttonPanel.add(cancel);
+
+        dialog.add(panel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        dialog.pack();
+        dialog.setLocationRelativeTo(null);
+
+        final boolean[] isAuthenticated = {false};
+
+        submit.addActionListener(e -> {
+            errorLabel.setText("");
+            String enteredPassword = new String(passwordField.getPassword()).trim();
+            if (enteredPassword.isEmpty()) {
+                errorLabel.setText("*Password is required.");
+            } else if (loggedInUser.getPassword().equals(enteredPassword)) {
+                isAuthenticated[0] = true;
+                dialog.dispose();
+            } else {
+                errorLabel.setText("*Incorrect password.");
+            }
+        });
+
+        cancel.addActionListener(e -> dialog.dispose());
+
+        dialog.setVisible(true);
+
+        return isAuthenticated[0];
+    }
     
     /**
      * Creates new form AdminWindow
@@ -715,10 +789,17 @@ public class Admin_UserManage extends javax.swing.JFrame {
         // Create a new CreateUserWindow
         CreateUserWindow createUserWindow = new CreateUserWindow(this);
         
+
+        
         // Set restrictions on what roles can be created based on logged in user
         if (!"Root Administrator".equals(loggedInUser.getRole())) {
             // For non-Root admins, disable Administrator role
             createUserWindow.setAdminRoleEnabled(false);
+        }
+        
+        if (!isAllowedToPerform()) {
+            JOptionPane.showMessageDialog(this, "Not authorized to create user.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
+            return;
         }
         
         createUserWindow.setVisible(true);
@@ -752,6 +833,11 @@ public class Admin_UserManage extends javax.swing.JFrame {
                             JOptionPane.WARNING_MESSAGE);
                         canEdit = false;
                     }
+                }
+                
+                if (!isAllowedToPerform()) {
+                    JOptionPane.showMessageDialog(this, "Not authorized to create user.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
+                    return;
                 }
                 
                 if (canEdit) {
@@ -794,6 +880,11 @@ public class Admin_UserManage extends javax.swing.JFrame {
                             JOptionPane.WARNING_MESSAGE);
                         canDelete = false;
                     }
+                }
+                
+                if (!isAllowedToPerform()) {
+                    JOptionPane.showMessageDialog(this, "Not authorized to create user.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
+                    return;
                 }
                 
                 if (canDelete) {
@@ -920,6 +1011,11 @@ public class Admin_UserManage extends javax.swing.JFrame {
                         JOptionPane.WARNING_MESSAGE);
                     canManageProfile = false;
                 }
+            }
+            
+            if (!isAllowedToPerform()) {
+                JOptionPane.showMessageDialog(this, "Not authorized to create user.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
+                return;
             }
             
             if (canManageProfile) {

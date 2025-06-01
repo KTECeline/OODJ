@@ -274,7 +274,7 @@ public class SalesManagerWindow extends javax.swing.JFrame {
         jScrollPane1.setViewportView(poTable);
 
         FilterPO.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
-        FilterPO.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ALL", "PENDING", "APPROVED", "REJECTED", "RECEIVED", "UNFULFILLED", "COMPLETED" }));
+        FilterPO.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ALL", "PENDING", "APPROVED", "REJECTED", "RECEIVED", "VERIFIED", "UNFULFILLED", "COMPLETED" }));
         FilterPO.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 FilterPOActionPerformed(evt);
