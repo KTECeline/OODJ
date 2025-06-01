@@ -238,6 +238,60 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
         return;
     }
 
+<<<<<<< HEAD
+    // Verify authentication once
+    if (!purchaseManager.isAllowedToPerform("generatePurchaseOrdersFromMultiplePRs")) {
+        JOptionPane.showMessageDialog(this, "Authentication failed.", "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+
+    List<SupplierPRGroup> supplierGroups = new ArrayList<>();
+    boolean hasSelections = false;
+
+    for (int row = 0; row < model.getRowCount(); row++) {
+        Boolean isSelected = (Boolean) model.getValueAt(row, 9);
+        if (isSelected != null && isSelected) {
+            hasSelections = true;
+
+            String prId = model.getValueAt(row, 0).toString();
+            String itemId = model.getValueAt(row, 1).toString().split(" - ")[0];
+            String supplierId = model.getValueAt(row, 2).toString();
+            String status = model.getValueAt(row, 8).toString();
+
+            if (!status.equalsIgnoreCase("PENDING")) {
+                JOptionPane.showMessageDialog(this, "Only PENDING PRs can be selected for PO generation. Invalid PR: " + prId, "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            SupplierPRGroup supplierGroup = findOrCreateSupplierGroup(supplierGroups, supplierId);
+            PurchaseRequestItemGroup prGroup = supplierGroup.getOrCreatePRGroup(prId);
+            prGroup.addItem(itemId);
+        }
+    }
+
+    if (!hasSelections) {
+        JOptionPane.showMessageDialog(this, "No rows selected for PO generation.", "Warning", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
+    try {
+        int totalPoCount = 0;
+        String createdBy = purchaseManager.getLoggedInUser().getUserId();
+
+        for (SupplierPRGroup supplierGroup : supplierGroups) {
+            List<PurchaseOrder> generatedPOs = purchaseManager.generatePurchaseOrdersFromMultiplePRs(
+                supplierGroup.getSupplierId(),
+                createdBy,
+                supplierGroup.getPrGroups()
+            );
+            totalPoCount += generatedPOs.size();
+        }
+
+        String statusFilter = Filter.getSelectedItem().toString();
+        loadPRTable(statusFilter);
+
+        JOptionPane.showMessageDialog(this, "Successfully generated " + totalPoCount + " purchase order(s).", "Success", JOptionPane.INFORMATION_MESSAGE);
+=======
     List<SupplierPRGroup> supplierGroups = new ArrayList<>();
     boolean hasSelections = false;
 
@@ -284,6 +338,7 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
         loadPRTable(statusFilter);
 
         JOptionPane.showMessageDialog(this, "Successfully generated " + poCount + " purchase order(s).", "Success", JOptionPane.INFORMATION_MESSAGE);
+>>>>>>> origin/main
 
         for (int row = 0; row < model.getRowCount(); row++) {
             model.setValueAt(false, row, 9);
@@ -345,6 +400,10 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
         jTextArea5 = new javax.swing.JTextArea();
         jScrollPane8 = new javax.swing.JScrollPane();
         logArea = new javax.swing.JTextArea();
+<<<<<<< HEAD
+        jButton1 = new javax.swing.JButton();
+=======
+>>>>>>> origin/main
 
         jTextArea1.setColumns(20);
         jTextArea1.setRows(5);
@@ -484,6 +543,11 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
         logArea.setRows(5);
         jScrollPane8.setViewportView(logArea);
 
+<<<<<<< HEAD
+        jButton1.setText("View Logs");
+
+=======
+>>>>>>> origin/main
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -506,18 +570,69 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
                 .addComponent(jButton7)
                 .addGap(306, 306, 306))
             .addGroup(layout.createSequentialGroup()
+<<<<<<< HEAD
+                .addGap(49, 49, 49)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+=======
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(49, 49, 49)
+>>>>>>> origin/main
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
+<<<<<<< HEAD
+                                .addGap(34, 34, 34)
+                                .addComponent(jLabel3)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(lblTotalItems, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(29, 29, 29)
+                                .addComponent(jLabel4)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(lblTotalSuppliers, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(27, 27, 27)
+                                .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jButton8)
+                                .addGap(43, 43, 43)
+                                .addComponent(Itembtn)
+=======
                                 .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 397, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(82, 82, 82)
                                 .addComponent(Filter, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)
+>>>>>>> origin/main
                                 .addGap(18, 18, 18)
+<<<<<<< HEAD
+                                .addComponent(Supplierbtn)
+                                .addGap(27, 27, 27)
+                                .addComponent(PRbtn)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(25, 25, 25)
+                                .addComponent(pendingbtn)
+                                .addGap(36, 36, 36)
+                                .addComponent(jButton1))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lblPendingPRs, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(22, 22, 22)
+                                .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(lblPendingPOs, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))))
+=======
                                 .addComponent(jButton6))
                             .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 656, javax.swing.GroupLayout.PREFERRED_SIZE)))
+>>>>>>> origin/main
                     .addGroup(layout.createSequentialGroup()
+<<<<<<< HEAD
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 397, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(82, 82, 82)
+                        .addComponent(Filter, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton6))
+                    .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 656, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(46, Short.MAX_VALUE))
+=======
                         .addGap(83, 83, 83)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
@@ -549,6 +664,7 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(lblPendingPOs, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+>>>>>>> origin/main
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -571,12 +687,23 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addComponent(jScrollPane8, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(18, 18, 18)))))
+<<<<<<< HEAD
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jButton8)
+                        .addComponent(Itembtn)
+                        .addComponent(Supplierbtn)
+                        .addComponent(PRbtn)
+                        .addComponent(pendingbtn))
+                    .addComponent(jButton1))
+=======
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton8)
                     .addComponent(Itembtn)
                     .addComponent(Supplierbtn)
                     .addComponent(PRbtn)
                     .addComponent(pendingbtn))
+>>>>>>> origin/main
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel3)
@@ -718,6 +845,7 @@ if (searchQuery.isEmpty() || searchQuery.equalsIgnoreCase("Enter PR ID")) {
     private javax.swing.JButton PRbtn;
     private javax.swing.JButton Supplierbtn;
     private javax.swing.JLabel Usernamelbl;
+    private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton6;
     private javax.swing.JButton jButton7;
     private javax.swing.JButton jButton8;
