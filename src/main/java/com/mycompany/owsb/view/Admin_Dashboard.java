@@ -4,6 +4,7 @@
  */
 package com.mycompany.owsb.view;
 
+import com.mycompany.owsb.model.FinanceManager;
 import com.mycompany.owsb.model.PurchaseManager;
 import com.mycompany.owsb.model.SalesManager;
 import com.mycompany.owsb.model.User;
@@ -20,6 +21,7 @@ public class Admin_Dashboard extends javax.swing.JFrame {
     // Declare without initializing
     private final SalesManager salesManager;
     private final PurchaseManager purchaseManager;
+    private final FinanceManager financeManager;
 
     /**
      * Creates new form Admin_Dashboard
@@ -28,7 +30,7 @@ public class Admin_Dashboard extends javax.swing.JFrame {
         this.loggedInUser = loggedInUser;
         this.salesManager = new SalesManager(loggedInUser);
         this.purchaseManager = new PurchaseManager(loggedInUser);
-        initComponents();
+        this.financeManager = new FinanceManager(loggedInUser);        initComponents();
         setLocationRelativeTo(null);
 
     }
@@ -58,6 +60,8 @@ public class Admin_Dashboard extends javax.swing.JFrame {
         updateStockBtn = new javax.swing.JButton();
         stockReportBtn = new javax.swing.JButton();
         ViewPOButton = new javax.swing.JButton();
+        FinanialReportButton = new javax.swing.JButton();
+        ProcesssPaymentButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -131,33 +135,47 @@ public class Admin_Dashboard extends javax.swing.JFrame {
             }
         });
 
+        FinanialReportButton.setText("Financial Report");
+        FinanialReportButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                FinanialReportButtonActionPerformed(evt);
+            }
+        });
+
+        ProcesssPaymentButton.setText("Process Payments");
+        ProcesssPaymentButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ProcesssPaymentButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(LogoutButton)
-                .addGap(196, 196, 196))
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(124, 124, 124)
+                        .addComponent(AdminDashboardText))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(74, 74, 74)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(UserManagement, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(ManageSupplierButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(ManageSalesButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(PurchaseRequisitionButton))
+                            .addComponent(PurchaseRequisitionButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(FinanialReportButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addGap(18, 18, 18)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                .addComponent(itemListBtn1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(updateStockBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(stockReportBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 153, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(ViewPOButton, javax.swing.GroupLayout.PREFERRED_SIZE, 153, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(itemListBtn1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(updateStockBtn, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(stockReportBtn, javax.swing.GroupLayout.DEFAULT_SIZE, 153, Short.MAX_VALUE)
+                            .addComponent(ViewPOButton, javax.swing.GroupLayout.DEFAULT_SIZE, 153, Short.MAX_VALUE)
+                            .addComponent(ProcesssPaymentButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(124, 124, 124)
-                        .addComponent(AdminDashboardText)))
+                        .addGap(195, 195, 195)
+                        .addComponent(LogoutButton)))
                 .addContainerGap(70, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
@@ -181,20 +199,30 @@ public class Admin_Dashboard extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(PurchaseRequisitionButton, javax.swing.GroupLayout.DEFAULT_SIZE, 29, Short.MAX_VALUE)
                     .addComponent(ViewPOButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(FinanialReportButton, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE)
+                    .addComponent(ProcesssPaymentButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(18, 18, 18)
                 .addComponent(LogoutButton, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(32, Short.MAX_VALUE))
+                .addContainerGap(15, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         pack();
@@ -273,6 +301,18 @@ public class Admin_Dashboard extends javax.swing.JFrame {
         purchaseRequisitionWindow.setVisible(true);
     }//GEN-LAST:event_PurchaseRequisitionButtonActionPerformed
 
+    private void FinanialReportButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_FinanialReportButtonActionPerformed
+        // TODO add your handling code here:
+        Admin_FinancialReport financialReportWindow = new Admin_FinancialReport(financeManager);
+        financialReportWindow.setVisible(true);
+    }//GEN-LAST:event_FinanialReportButtonActionPerformed
+
+    private void ProcesssPaymentButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ProcesssPaymentButtonActionPerformed
+        // TODO add your handling code here:
+        Admin_ProcessPayment processPaymentWindow = new Admin_ProcessPayment(financeManager);
+        processPaymentWindow.setVisible(true);
+    }//GEN-LAST:event_ProcesssPaymentButtonActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -313,9 +353,11 @@ public class Admin_Dashboard extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel AdminDashboardText;
+    private javax.swing.JButton FinanialReportButton;
     private javax.swing.JButton LogoutButton;
     private javax.swing.JButton ManageSalesButton;
     private javax.swing.JButton ManageSupplierButton;
+    private javax.swing.JButton ProcesssPaymentButton;
     private javax.swing.JButton PurchaseRequisitionButton;
     private javax.swing.JButton UserManagement;
     private javax.swing.JButton ViewPOButton;

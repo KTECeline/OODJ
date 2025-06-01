@@ -18,7 +18,10 @@ public class FinanceManager extends Manager {
 
     @Override
     public boolean isAllowedToPerform(String action) {
-        if (getDepartment().equalsIgnoreCase("Finance Manager")) {
+        if (getDepartment().equalsIgnoreCase("Finance Manager") ||
+            getDepartment().equalsIgnoreCase("Administrator") ||
+            getDepartment().equalsIgnoreCase("Root Administrator")
+            ) {
             return action.equalsIgnoreCase("ApprovePO") ||
                    action.equalsIgnoreCase("VerifyInventory") ||
                    action.equalsIgnoreCase("ProcessPayment") ||
