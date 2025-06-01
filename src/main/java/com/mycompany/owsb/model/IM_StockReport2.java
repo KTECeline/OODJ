@@ -6,29 +6,13 @@ import javax.swing.table.DefaultTableModel;
 
 public class IM_StockReport2 {
 
-    // Store all purchase orders as List of String arrays
-    private List<String[]> purchaseOrders = new ArrayList<>();
-
-    public IM_StockReport2() {
-        loadPurchaseOrders();
-    }
-
-    private void loadPurchaseOrders() {
-        try (BufferedReader br = new BufferedReader(new FileReader("data/purchase_order.txt"))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length >= 9) {
-                    purchaseOrders.add(parts);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
+    /**
+     * Retrieves all item IDs from the items.txt file to display the item selection list
+     * @return Array of item IDs
+     */
     public String[] getItemIDs() {
         List<String> allItemIDs = new ArrayList<>();
+        //Get all Item ID from txt file for the filter
         try (BufferedReader br = new BufferedReader(new FileReader("data/items.txt"))) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -40,44 +24,38 @@ public class IM_StockReport2 {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        //Convert the list to array when return
         return allItemIDs.toArray(new String[0]);
     }
 
+    /**
+     * Generates a table model containing stock movement records for a specific item
+     * @param itemID The ID of the item to filter stock movements
+     * @return DefaultTableModel with stock movement data for JTable display
+     */
     public DefaultTableModel getStockMovementsForItem(String itemID) {
-        String[] columns = { "Stock Received ID", "Purchase Order ID", "Item ID", "Amount Received", "Date Received", "User ID" };
+
+        // Set up column headers for the JTable
+        String[] columns = {"Stock Received ID", "Purchase Order ID", "Item ID", "Amount Received", "Date Received", "User ID"};
         DefaultTableModel model = new DefaultTableModel(columns, 0);
 
-        // Find all purchase order IDs for the given itemID
-        List<String[]> filteredPOs = new ArrayList<>();
-        for (String[] po : purchaseOrders) {
-            if (po[1].equals(itemID)) {
-                filteredPOs.add(po);
-            }
-        }
-
+        //Read stock_received.txt file to match the correct row of data with the item ID
         try (BufferedReader br = new BufferedReader(new FileReader("data/stock_received.txt"))) {
             String line;
             while ((line = br.readLine()) != null) {
+                //Separate the column data
                 String[] parts = line.split(",");
-                if (parts.length >= 5) {
+                if (parts.length >= 6) {
+                    String srID = parts[0];
                     String poID = parts[1];
+                    String itemIdFromFile = parts[2];
+                    String amountReceived = parts[3];
+                    String dateReceived = parts[4];
+                    String userID = parts[5];
 
-                    // Check if poID exists in filteredPOs
-                    String[] matchingPO = null;
-                    for (String[] po : filteredPOs) {
-                        if (po[0].equals(poID)) {
-                            matchingPO = po;
-                            break;
-                        }
-                    }
-
-                    if (matchingPO != null) {
-                        String srID = parts[0];
-                        int amountReceived = Integer.parseInt(parts[2]);
-                        String dateReceived = parts[3];
-                        String userID = parts[4];
-
-                        model.addRow(new Object[] { srID, poID, itemID, amountReceived, dateReceived, userID });
+                    //Return the row if the item ID matched
+                    if (itemID.equals(itemIdFromFile)) {
+                        model.addRow(new Object[] { srID, poID, itemIdFromFile, amountReceived, dateReceived, userID });
                     }
                 }
             }

@@ -93,15 +93,22 @@ public class Admin_ManagePurchaseOrder extends javax.swing.JFrame {
 
     List<PurchaseOrder> filteredPOs = new ArrayList<>();
 
-    if (selectedStatus.equalsIgnoreCase("ALL")) {
-        filteredPOs.addAll(allPOs);
-    } else {
-        for (PurchaseOrder po : allPOs) {
-            if (po.getStatus().equalsIgnoreCase(selectedStatus)) {
-                filteredPOs.add(po);
-            }
-        }
-    }
+        if (selectedStatus.equalsIgnoreCase("ALL")) {
+            filteredPOs.addAll(allPOs);
+        } else {
+            for (PurchaseOrder po : allPOs) {
+                // Check if any item in this PO matches the selected status
+                boolean hasMatchingItem = false;
+                for (PurchaseOrder.PurchaseOrderItem item : po.getItems()) {
+                    if (item.getStatus().equalsIgnoreCase(selectedStatus)) {
+                        hasMatchingItem = true;
+                        break;
+                    }
+                }
+                if (hasMatchingItem) {
+                    filteredPOs.add(po);
+                }
+            }}
 
     PurchaseOrder.updatePOTableInUI(filteredPOs, allPRs, poTable);
 }

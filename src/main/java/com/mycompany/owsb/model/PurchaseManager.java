@@ -178,7 +178,7 @@ public class PurchaseManager extends Manager implements ManageItemInterface, Man
                 poId = PurchaseOrder.generateNewOrderId();
             }
 
-            PurchaseOrder po = new PurchaseOrder(poId, supplierId, new SimpleDateFormat("yyyy-MM-dd").format(new Date()), "PENDING", prId, createdBy);
+            PurchaseOrder po = new PurchaseOrder(poId, supplierId, new SimpleDateFormat("yyyy-MM-dd").format(new Date()), prId, createdBy);
             StringBuilder itemDetails = new StringBuilder();
             boolean atLeastOneApproved = false;
 
@@ -239,7 +239,7 @@ public class PurchaseManager extends Manager implements ManageItemInterface, Man
 
                 // Create PO item with PENDING status
                 double totalPrice = prItem.getQuantity() * item.getCost();
-                PurchaseOrder.PurchaseOrderItem poItem = new PurchaseOrder.PurchaseOrderItem(itemId, prItem.getQuantity(), totalPrice);
+                PurchaseOrder.PurchaseOrderItem poItem = new PurchaseOrder.PurchaseOrderItem(itemId, prItem.getQuantity(), totalPrice, "PENDING");
                 poItem.setPrId(prId);
                 po.addItem(poItem);
                 atLeastOneApproved = true;
@@ -459,7 +459,8 @@ public static String findExistingPOId(String prId) {
     // Filter Methods
     public List<PurchaseOrder> getOrdersByStatus(String status) {
         return getAllPurchaseOrders().stream()
-                .filter(po -> po.getStatus().equalsIgnoreCase(status))
+                .filter(po -> po.getItems().stream()
+            .anyMatch(item -> item.getStatus().equalsIgnoreCase(status)))
                 .toList();
     }
 
@@ -482,9 +483,22 @@ public static String findExistingPOId(String prId) {
 
     // Validation Methods
     public boolean canEditOrder(String poId) {
-        PurchaseOrder po = PurchaseOrder.findById(poId);
-        return po != null && po.getStatus().equals("PENDING");
+    PurchaseOrder po = PurchaseOrder.findById(poId);
+    if (po == null) {
+        return false;
     }
+
+    for (PurchaseOrder.PurchaseOrderItem item : po.getItems()) {  // Direct access if `items` is public
+        
+        if (!item.getStatus().equalsIgnoreCase("PENDING")) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
 
     @Override
     public void addItem(JFrame parent, List<Item> itemList, JTable itemTable) {

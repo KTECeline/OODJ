@@ -23,7 +23,7 @@ public class PurchaseOrder {
     private String orderID;
     private String supplierID;
     private String orderDate;
-    private String status;
+    
     private String prId;
     private String createdBy;
     private List<PurchaseOrder.PurchaseOrderItem> items;
@@ -35,9 +35,10 @@ public class PurchaseOrder {
         private String itemID;
         private int quantity;
         private double totalPrice;
+       private String status;
         private String prId; 
         
-        public PurchaseOrderItem(String itemID, int quantity, double totalPrice) {
+        public PurchaseOrderItem(String itemID, int quantity, double totalPrice, String status) {
             if (itemID == null || itemID.isEmpty()) {
                 throw new IllegalArgumentException("Item ID cannot be null or empty");
             }
@@ -50,6 +51,8 @@ public class PurchaseOrder {
             this.itemID = itemID;
             this.quantity = quantity;
             this.totalPrice = totalPrice;
+            this.status=status;
+            
         }
 
         public String getItemID() {
@@ -64,7 +67,17 @@ public class PurchaseOrder {
             return totalPrice;
         }
          
-       
+        
+        public String getStatus(){
+            return status;
+        }
+        
+        public void setStatus(String status) {
+        if (!isValidStatus(status)) {
+            throw new IllegalArgumentException("Invalid status value");
+        }
+        this.status = status;
+    }
 
         public void setQuantity(int quantity) {
             if (quantity <= 0) {
@@ -84,32 +97,7 @@ public class PurchaseOrder {
         this.prId = prId;
     }
    
-    }
-
-    // Constructor
-    public PurchaseOrder(String orderID, String supplierID, String orderDate, String status, String prId, String createdBy) {
-        if (orderID == null || orderID.isEmpty()) {
-            throw new IllegalArgumentException("Order ID cannot be null or empty");
-        }
-        if (supplierID == null || supplierID.isEmpty()) {
-            throw new IllegalArgumentException("Supplier ID cannot be null or empty");
-        }
-        if (orderDate == null || orderDate.isEmpty()) {
-            throw new IllegalArgumentException("Order date cannot be null or empty");
-        }
-        if (!isValidStatus(status)) {
-            throw new IllegalArgumentException("Invalid status value");
-        }
-        this.orderID = orderID;
-        this.supplierID = supplierID;
-        this.orderDate = orderDate;
-        this.status = status;
-        this.prId = prId;
-        this.createdBy = createdBy;
-        this.items = new ArrayList<>();
-    }
-
-    private boolean isValidStatus(String status) {
+        private boolean isValidStatus(String status) {
         return status != null && 
                (status.equals("PENDING") || 
                 status.equals("APPROVED") || 
@@ -119,6 +107,30 @@ public class PurchaseOrder {
                 status.equals("VERIFIED") ||
                 status.equals("COMPLETED"));
     }
+    }
+
+    // Constructor
+    public PurchaseOrder(String orderID, String supplierID, String orderDate, String prId, String createdBy) {
+        if (orderID == null || orderID.isEmpty()) {
+            throw new IllegalArgumentException("Order ID cannot be null or empty");
+        }
+        if (supplierID == null || supplierID.isEmpty()) {
+            throw new IllegalArgumentException("Supplier ID cannot be null or empty");
+        }
+        if (orderDate == null || orderDate.isEmpty()) {
+            throw new IllegalArgumentException("Order date cannot be null or empty");
+        }
+       
+        this.orderID = orderID;
+        this.supplierID = supplierID;
+        this.orderDate = orderDate;
+       
+        this.prId = prId;
+        this.createdBy = createdBy;
+        this.items = new ArrayList<>();
+    }
+
+    
     
     public String getOrderID() {
         return orderID;
@@ -132,9 +144,7 @@ public class PurchaseOrder {
         return orderDate;
     }
 
-    public String getStatus() {
-        return status;
-    }
+    
 
     public String getPrId() {
         return prId;
@@ -152,12 +162,7 @@ public class PurchaseOrder {
     
     
     
-    public void setStatus(String status) {
-        if (!isValidStatus(status)) {
-            throw new IllegalArgumentException("Invalid status value");
-        }
-        this.status = status;
-    }
+    
 
     public void setSupplierID(String supplierID) {
         if (supplierID == null || supplierID.isEmpty()) {
@@ -184,7 +189,7 @@ public class PurchaseOrder {
               .append(item.getQuantity()).append(",")
               .append(item.getTotalPrice()).append(",")
               .append(orderDate).append(",")
-              .append(status).append(",")
+              .append(item.status).append(",")
               .append(prId).append(",")
               .append(createdBy).append("\n");
         }
@@ -208,8 +213,8 @@ public class PurchaseOrder {
     String prId = orderData[7];
     String createdBy = orderData[8];
 
-    PurchaseOrder po = new PurchaseOrder(orderID, supplierID, orderDate, status, prId, createdBy);
-    po.addItem(new PurchaseOrderItem(itemID, quantity, totalPrice));
+    PurchaseOrder po = new PurchaseOrder(orderID, supplierID, orderDate, prId, createdBy);
+    po.addItem(new PurchaseOrderItem(itemID, quantity, totalPrice, status));
     return po;
 }
 
@@ -219,14 +224,15 @@ public class PurchaseOrder {
         sb.append("Purchase Order ID: ").append(orderID).append("\n")
           .append("Supplier ID: ").append(supplierID).append("\n")
           .append("Order Date: ").append(orderDate).append("\n")
-          .append("Status: ").append(status).append("\n")
+          
           .append("PR ID: ").append(prId).append("\n")
           .append("Created By: ").append(createdBy).append("\n")
           .append("Items:\n");
         for (PurchaseOrderItem item : items) {
             sb.append("  - Item ID: ").append(item.getItemID())
               .append(", Quantity: ").append(item.getQuantity())
-              .append(", Total Price: ").append(item.getTotalPrice()).append("\n");
+              .append(", Total Price: ").append(item.getTotalPrice())
+                .append("Status: ").append(item.getStatus()).append("\n");
         }
         sb.append("Total Price: ").append(getTotalPrice());
         return sb.toString();
@@ -305,35 +311,38 @@ public class PurchaseOrder {
         return String.format("PO%04d", maxId + 1);
     }
 
-    public static void updatePOTableInUI(List<PurchaseOrder> poList, List<PurchaseRequisition> prList, JTable targetTable) {
+ public static void updatePOTableInUI(List<PurchaseOrder> poList, List<PurchaseRequisition> prList, JTable targetTable) {
     String[] columnNames = {"PO ID", "Item ID", "Supplier ID", "Quantity", "Total Price (RM)", 
                             "Order Date", "Status", "PR ID", "Required Date", "Created By"};
-    DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
+    DefaultTableModel model = new DefaultTableModel(columnNames, 0);
 
     for (PurchaseOrder po : poList) {
-        PurchaseRequisition pr = getRequisitionById(po.getPrId(), prList);
+        // Get the purchase requisition to fetch required date (can be null)
+        PurchaseRequisition pr = getRequisitionById(po.prId, prList);
         String requiredDate = (pr != null) ? pr.getRequiredDate().toString() : "N/A";
 
-        for (PurchaseOrderItem item : po.getItems()) {
+        for (PurchaseOrder.PurchaseOrderItem item : po.items) {
             Object[] row = {
-                po.getOrderID(),
+                po.orderID,
                 item.getItemID(),
-                po.getSupplierID(),
+                po.supplierID,
                 item.getQuantity(),
-                item.getTotalPrice(),
-                po.getOrderDate(),
-                po.getStatus(),
-                po.getPrId(),
-                requiredDate,  // <-- from PurchaseRequisition
-                po.getCreatedBy()
+                String.format("%.2f", item.getTotalPrice()),
+                po.orderDate,
+                item.getStatus(),  // Ideally, this should be item.getStatus() if you fix the status per item issue
+                po.prId,
+                requiredDate,
+                po.createdBy
             };
-            tableModel.addRow(row);
+
+            model.addRow(row);
         }
     }
-    applyStatusColorRenderer(targetTable);
-    targetTable.setModel(tableModel);
-    Item.autoResizeColumnWidths(targetTable);
-    
+    applyStatusColorRenderer(targetTable);  // Your custom cell renderer
+
+    targetTable.setModel(model);             // Set the model on the table
+
+    Item.autoResizeColumnWidths(targetTable);  // Your helper to resize columns
 }
 
 private static PurchaseRequisition getRequisitionById(String prID, List<PurchaseRequisition> prList) {
@@ -378,7 +387,7 @@ private static PurchaseRequisition getRequisitionById(String prID, List<Purchase
                     item.getQuantity(),
                     item.getTotalPrice(),
                     po.getOrderDate(),
-                    po.getStatus(),
+                    item.getStatus(),
                     po.getPrId(),
                     requiredDate != null ? requiredDate.toString() : "N/A",
                     po.getCreatedBy()

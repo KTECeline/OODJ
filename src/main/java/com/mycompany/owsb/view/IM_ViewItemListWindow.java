@@ -9,16 +9,20 @@ import java.util.List;
 
 public class IM_ViewItemListWindow extends javax.swing.JFrame {
 
+    //Save logged-in user data
     private final User loggedInUser;
 
     public IM_ViewItemListWindow(User loggedInUser) {
         this.loggedInUser = loggedInUser;
         initComponents();
+        //Load the item data into table
         loadItemData();
     }
 
     private void loadItemData() {
+        //Call the loadItems function in Item class to get the list of Item
         List<Item> itemList = Item.loadItems();
+        //Update the table with latest item data
         Item.updateItemTableInUI(itemList, ItemListTable);
     }
     
@@ -37,8 +41,8 @@ public class IM_ViewItemListWindow extends javax.swing.JFrame {
 
         SearchField.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
         SearchField.setForeground(new java.awt.Color(51, 51, 51));
-        SearchField.setText("Enter Item ID");
-        SearchField.setToolTipText("");
+        SearchField.setText("ITXXXX");
+        SearchField.setToolTipText("Enter Item ID");
 
         SearchButton.setBackground(new java.awt.Color(102, 102, 102));
         SearchButton.setFont(new java.awt.Font("Heiti TC", 0, 12)); // NOI18N
@@ -104,10 +108,10 @@ public class IM_ViewItemListWindow extends javax.swing.JFrame {
                         .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 186, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 514, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 530, Short.MAX_VALUE)
                             .addComponent(SearchField))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(SearchButton)
                         .addGap(44, 44, 44))))
         );
@@ -131,18 +135,24 @@ public class IM_ViewItemListWindow extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void SearchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SearchButtonActionPerformed
+        //Fetch the Item ID from user input
         String searchItemId = SearchField.getText().trim();
+        //Retrieve the item list from loadItems function in Item class
         List<Item> itemList = Item.loadItems();
 
+        //Look for the Item data by comparing the Item ID
         if (!searchItemId.isEmpty()) {
+            //Remove the item data if does not match with the searched item ID
             itemList.removeIf(item -> !item.getItemID().equalsIgnoreCase(searchItemId));
-    }
-
-    Item.updateItemTableInUI(itemList, ItemListTable);
+            }
+        //Refresh the table with the search result
+        Item.updateItemTableInUI(itemList, ItemListTable);
     }//GEN-LAST:event_SearchButtonActionPerformed
 
     public void BackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BackActionPerformed
-        this.dispose();  // Close current window
+        //Close current window
+        this.dispose();
+        //Navigate back to the Main Page of Inventory Manager
         new InventoryManagerWindow(loggedInUser).setVisible(true);
     }//GEN-LAST:event_BackActionPerformed
 

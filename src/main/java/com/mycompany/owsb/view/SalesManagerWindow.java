@@ -144,18 +144,27 @@ public class SalesManagerWindow extends javax.swing.JFrame {
 
         List<PurchaseOrder> filteredPOs = new ArrayList<>();
 
-        if (selectedStatus.equalsIgnoreCase("ALL")) {
-            filteredPOs.addAll(allPOs);
-        } else {
-            for (PurchaseOrder po : allPOs) {
-                if (po.getStatus().equalsIgnoreCase(selectedStatus)) {
-                    filteredPOs.add(po);
+            if (selectedStatus.equalsIgnoreCase("ALL")) {
+                filteredPOs.addAll(allPOs);
+            } else {
+                for (PurchaseOrder po : allPOs) {
+                    // Check if any item in this PO matches the selected status
+                    boolean hasMatchingItem = false;
+                    for (PurchaseOrder.PurchaseOrderItem item : po.getItems()) {
+                        if (item.getStatus().equalsIgnoreCase(selectedStatus)) {
+                            hasMatchingItem = true;
+                            break;
+                        }
+                    }
+                    if (hasMatchingItem) {
+                        filteredPOs.add(po);
+                    }
                 }
             }
-        }
-
         PurchaseOrder.updatePOTableInUI(filteredPOs, allPRs, poTable);
     }
+    
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

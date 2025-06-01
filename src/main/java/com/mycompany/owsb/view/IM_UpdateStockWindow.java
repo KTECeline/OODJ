@@ -15,13 +15,16 @@ public class IM_UpdateStockWindow extends javax.swing.JFrame {
         this.loggedInUser = loggedInUser;
         initComponents();
         updater = new IM_UpdateStock();
+        //Load initial data for table
         populateTable();
     }
 
     private void populateTable() {
         DefaultTableModel model = (DefaultTableModel) PurchaseOrderTable.getModel();
+        //Clear existing data before adding new data
         model.setRowCount(0);
         PurchaseOrderTable.clearSelection();
+        //Call backend method to retrieve all approved and unfulfilled purchase orders
         for (String[] po : updater.getUnfulfilledApprovedPOs()) {
             model.addRow(po);
         }
@@ -44,6 +47,8 @@ public class IM_UpdateStockWindow extends javax.swing.JFrame {
         SelectedOrderField = new javax.swing.JTextField();
         jLabel5 = new javax.swing.JLabel();
         ReceivedDateField = new javax.swing.JTextField();
+        jLabel6 = new javax.swing.JLabel();
+        ItemIdField = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -112,6 +117,10 @@ public class IM_UpdateStockWindow extends javax.swing.JFrame {
 
         jLabel5.setText("Received Date:");
 
+        jLabel6.setText("Item ID:");
+
+        ItemIdField.setEditable(false);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -121,12 +130,18 @@ public class IM_UpdateStockWindow extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jLabel2)
-                            .addComponent(jLabel4))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(SelectedOrderField, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(ReceivedAmountField, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(jLabel2)
+                                    .addComponent(jLabel4))
+                                .addGap(18, 18, 18)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(SelectedOrderField, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(ReceivedAmountField, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel6)
+                                .addGap(18, 18, 18)
+                                .addComponent(ItemIdField, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(jLabel3)
@@ -161,12 +176,17 @@ public class IM_UpdateStockWindow extends javax.swing.JFrame {
                     .addComponent(jLabel2))
                 .addGap(7, 7, 7)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(ReceivedAmountField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel4)
                     .addComponent(jLabel5)
-                    .addComponent(ReceivedDateField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(ReceivedDateField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(ItemIdField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel6)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(ConfirmButton)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(ConfirmButton)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(ReceivedAmountField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel4)))
                 .addGap(12, 12, 12))
         );
 
@@ -174,7 +194,9 @@ public class IM_UpdateStockWindow extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void ConfirmButtonActionPerformed(java.awt.event.ActionEvent evt) {                                              
+    //Perform stock update after confirm button clicked
+    private void ConfirmButtonActionPerformed(java.awt.event.ActionEvent evt) {    
+        //Get the selected row purchase order data                                          
         int selectedRow = PurchaseOrderTable.getSelectedRow();
         if (selectedRow < 0) {
             JOptionPane.showMessageDialog(this, "Please select a purchase order.");
@@ -183,29 +205,32 @@ public class IM_UpdateStockWindow extends javax.swing.JFrame {
 
         String orderId = SelectedOrderField.getText();
         String itemId = PurchaseOrderTable.getValueAt(selectedRow, 1).toString();
+        //Get user ID of the Inventory Manager that perform the action
         String userId = loggedInUser.getUserId();
         
+        //Validate the date format entered
         String receivedDate = ReceivedDateField.getText().trim();
         if (!receivedDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
             JOptionPane.showMessageDialog(this, "Invalid date format. Please use YYYY-MM-DD.");
             return;
         }
 
-        
         int quantityOrdered = Integer.parseInt(PurchaseOrderTable.getValueAt(selectedRow, 3).toString());
         
         String inputStr = NewStockReceivedField.getText();
         if (inputStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Enter the new stock received.");
+            JOptionPane.showMessageDialog(this, "Please enter the new stock received.");
             return;
         }
+        //Convert the number from string type to integer
         int newReceived = Integer.parseInt(inputStr);
         if (newReceived <= 0) {
-            JOptionPane.showMessageDialog(this, "Received amount must be positive.");
+            JOptionPane.showMessageDialog(this, "Received amount must be integer and positive.");
             return;
             }
 
         int previouslyReceived = Integer.parseInt(ReceivedAmountField.getText().trim());
+        //Calculate the total amount of stock received
         int combinedTotal = previouslyReceived + newReceived;
 
         // Check if combined received amount exceeds order quantity
@@ -216,17 +241,21 @@ public class IM_UpdateStockWindow extends javax.swing.JFrame {
                     "Confirm Over-Receiving",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.WARNING_MESSAGE);
+            //Not continue to update stock if select NO
             if (option != JOptionPane.YES_OPTION) {
-                return; // Cancel the update
+                return;
             }
         }
         
+        //Confirmation to update stock
         int confirm = JOptionPane.showConfirmDialog(this,
             "Confirm stock update for Order ID " + orderId + "?",
             "Confirmation", JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
+            //Call the update stock method at backend with required variables
             boolean success = updater.updateStock(orderId, itemId, newReceived, quantityOrdered, receivedDate, userId);
+            //Refresh the data display on the table if the stock updated successfully
             if (success) {
                 JOptionPane.showMessageDialog(this, "Stock updated successfully.");
                 populateTable();
@@ -239,25 +268,31 @@ public class IM_UpdateStockWindow extends javax.swing.JFrame {
             }   
     }
 
+    //Detect the purchase order selected by Inventory Manager
     private void TableRowSelected(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_TableRowSelected
         ReceivedDateField.setText(LocalDate.now().toString());
         int row = PurchaseOrderTable.getSelectedRow();
         if (row >= 0) {
             String orderId = PurchaseOrderTable.getValueAt(row, 0).toString();
             SelectedOrderField.setText(orderId);
-            int received = updater.getTotalReceivedAmount(orderId);
+            String itemId = PurchaseOrderTable.getValueAt(row, 1).toString();
+            ItemIdField.setText(itemId);
+            int received = updater.getTotalReceivedAmount(orderId,itemId);
             ReceivedAmountField.setText(String.valueOf(received));
         }
     }//GEN-LAST:event_TableRowSelected
 
     public void BackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BackActionPerformed
-        this.dispose();  // Close current window
+        //Close current window
+        this.dispose();
+        //Navigate back to the Main Page of Inventory Manager
         new InventoryManagerWindow(loggedInUser).setVisible(true);
     }//GEN-LAST:event_BackActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton Back;
     private javax.swing.JButton ConfirmButton;
+    private javax.swing.JTextField ItemIdField;
     private javax.swing.JTextField NewStockReceivedField;
     private javax.swing.JTable PurchaseOrderTable;
     private javax.swing.JTextField ReceivedAmountField;
@@ -268,6 +303,7 @@ public class IM_UpdateStockWindow extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables
 }

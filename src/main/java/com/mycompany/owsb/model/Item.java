@@ -67,7 +67,7 @@ public class Item {
     }
     
     public String getStockLevel() {
-        return stock < 5 ? "Low" : "Normal";
+        return stock < 10 ? "Low" : "Normal";
     }
 
     
@@ -113,7 +113,7 @@ public class Item {
     }
     
     public static boolean isLowStock(int stock) {
-        return stock < 5;
+        return stock < 10;
     }
 
 
