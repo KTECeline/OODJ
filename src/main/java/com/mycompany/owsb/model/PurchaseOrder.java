@@ -432,7 +432,7 @@ private static PurchaseRequisition getRequisitionById(String prID, List<Purchase
                         c.setBackground(new Color(255, 255, 204)); // Light Yellow
                         break;
                     case "VERIFIED":
-                        c.setBackground(new Color(144, 231, 136)); // Light GREEN
+                        c.setBackground(new Color(255, 200, 120)); // Light Orange
                         break;
                     default:
                         c.setBackground(Color.WHITE); // Default

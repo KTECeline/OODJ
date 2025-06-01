@@ -256,14 +256,15 @@
           <Font name="Heiti TC" size="12" style="0"/>
         </Property>
         <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-          <StringArray count="7">
+          <StringArray count="8">
             <StringItem index="0" value="ALL"/>
             <StringItem index="1" value="PENDING"/>
             <StringItem index="2" value="APPROVED"/>
             <StringItem index="3" value="REJECTED"/>
             <StringItem index="4" value="RECEIVED"/>
-            <StringItem index="5" value="UNFULFILLED"/>
-            <StringItem index="6" value="COMPLETED"/>
+            <StringItem index="5" value="VERIFIED"/>
+            <StringItem index="6" value="UNFULFILLED"/>
+            <StringItem index="7" value="COMPLETED"/>
           </StringArray>
         </Property>
       </Properties>
