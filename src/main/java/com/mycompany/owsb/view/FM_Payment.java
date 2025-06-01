@@ -52,26 +52,46 @@ public class FM_Payment extends javax.swing.JFrame {
      */
     private void initComponents() {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Process Payments - Finance Manager");
-        setSize(1200, 750);
+        setTitle("Payment Processing - Finance Manager");
+        setSize(1200, 650);
         
-        // Create main panel
+        // Create main panel with BorderLayout (matching FM_ViewPO)
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(new Color(245, 245, 245));
         
-        // Title panel
-        JPanel titlePanel = new JPanel(new BorderLayout());
-        titlePanel.setBackground(new Color(147, 112, 219));
-        titlePanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        // Header panel (matching FM_ViewPO style)
+        JPanel headerPanel = createHeaderPanel();
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
         
+        // Content panel
+        JPanel contentPanel = createContentPanel();
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
+        
+        // Footer panel (matching FM_ViewPO style)
+        JPanel footerPanel = createFooterPanel();
+        mainPanel.add(footerPanel, BorderLayout.SOUTH);
+        
+        add(mainPanel);
+    }
+    
+    /**
+     * Create the header panel with title and payment method selector (matching FM_ViewPO style)
+     */
+    private JPanel createHeaderPanel() {
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(new Color(51, 51, 51));
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        
+        // Title label
         JLabel titleLabel = new JLabel("Payment Processing");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
         titleLabel.setForeground(Color.WHITE);
         
-        // Payment method selection
-        JPanel methodPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        methodPanel.setBackground(new Color(147, 112, 219));
+        // Button and payment method panel
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        rightPanel.setBackground(new Color(51, 51, 51));
         
+        // Payment method selection
         JLabel methodLabel = new JLabel("Payment Method:");
         methodLabel.setForeground(Color.WHITE);
         methodLabel.setFont(new Font("Arial", Font.BOLD, 12));
@@ -81,16 +101,69 @@ public class FM_Payment extends javax.swing.JFrame {
         });
         paymentMethodCombo.setPreferredSize(new Dimension(150, 25));
         
-        methodPanel.add(methodLabel);
-        methodPanel.add(Box.createHorizontalStrut(10));
-        methodPanel.add(paymentMethodCombo);
+        rightPanel.add(methodLabel);
+        rightPanel.add(Box.createHorizontalStrut(10));
+        rightPanel.add(paymentMethodCombo);
+        rightPanel.add(Box.createHorizontalStrut(20));
         
-        titlePanel.add(titleLabel, BorderLayout.WEST);
-        titlePanel.add(methodPanel, BorderLayout.EAST);
+        // Back button
+        backBtn = new JButton("Back to Dashboard");
+        backBtn.setBackground(new Color(105, 105, 105));
+        backBtn.setForeground(Color.WHITE);
+        backBtn.setFont(new Font("Arial", Font.BOLD, 12));
+        backBtn.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        backBtn.setFocusPainted(false);
+        backBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                goBackToMainMenu();
+            }
+        });
         
-        mainPanel.add(titlePanel, BorderLayout.NORTH);
+        rightPanel.add(backBtn);
         
-        // Create table
+        headerPanel.add(titleLabel, BorderLayout.WEST);
+        headerPanel.add(rightPanel, BorderLayout.EAST);
+        
+        return headerPanel;
+    }
+    
+    /**
+     * Create the main content panel with table and status (matching FM_ViewPO style)
+     */
+    private JPanel createContentPanel() {
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(new Color(245, 245, 245));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+        
+        // Create subtitle and status panel
+        JPanel subtitlePanel = new JPanel(new BorderLayout());
+        subtitlePanel.setBackground(new Color(245, 245, 245));
+        subtitlePanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
+        
+        JLabel subtitleLabel = new JLabel("Verified Orders Ready for Payment");
+        subtitleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        subtitleLabel.setForeground(new Color(51, 51, 51));
+        
+        statusLabel = new JLabel("Loading verified orders ready for payment...");
+        statusLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+        statusLabel.setForeground(new Color(100, 100, 100));
+        
+        totalAmountLabel = new JLabel("Total Selected: $0.00");
+        totalAmountLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        totalAmountLabel.setForeground(new Color(51, 51, 51));
+        
+        JPanel statusInfoPanel = new JPanel(new BorderLayout());
+        statusInfoPanel.setBackground(new Color(245, 245, 245));
+        statusInfoPanel.add(statusLabel, BorderLayout.WEST);
+        statusInfoPanel.add(totalAmountLabel, BorderLayout.EAST);
+        
+        subtitlePanel.add(subtitleLabel, BorderLayout.NORTH);
+        subtitlePanel.add(statusInfoPanel, BorderLayout.SOUTH);
+        
+        contentPanel.add(subtitlePanel, BorderLayout.NORTH);
+        
+        // Create table (matching FM_ViewPO style)
         String[] columnNames = {"Select", "Order ID", "Item ID", "Supplier", "Quantity", 
                                "Unit Price", "Total Amount", "Order Date", "Verified Date", "PR ID"};
         tableModel = new DefaultTableModel(columnNames, 0) {
@@ -109,107 +182,144 @@ public class FM_Payment extends javax.swing.JFrame {
         };
         
         paymentTable = new JTable(tableModel);
-        paymentTable.setRowHeight(28);
+        paymentTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        paymentTable.setRowHeight(30);
         paymentTable.getTableHeader().setReorderingAllowed(false);
-        paymentTable.getTableHeader().setBackground(new Color(120, 90, 180));
-        paymentTable.getTableHeader().setForeground(Color.WHITE);
+        paymentTable.setFont(new Font("Arial", Font.PLAIN, 12));
         paymentTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+        paymentTable.setSelectionBackground(new Color(184, 207, 229));
+        paymentTable.setGridColor(new Color(220, 220, 220));
         
         // Set column widths
-        paymentTable.getColumnModel().getColumn(0).setPreferredWidth(50);   // Select
+        paymentTable.getColumnModel().getColumn(0).setPreferredWidth(60);   // Select
         paymentTable.getColumnModel().getColumn(1).setPreferredWidth(80);   // Order ID
         paymentTable.getColumnModel().getColumn(2).setPreferredWidth(80);   // Item ID
         paymentTable.getColumnModel().getColumn(3).setPreferredWidth(120);  // Supplier
         paymentTable.getColumnModel().getColumn(4).setPreferredWidth(70);   // Quantity
-        paymentTable.getColumnModel().getColumn(5).setPreferredWidth(80);   // Unit Price
+        paymentTable.getColumnModel().getColumn(5).setPreferredWidth(100);  // Unit Price
         paymentTable.getColumnModel().getColumn(6).setPreferredWidth(100);  // Total Amount
-        paymentTable.getColumnModel().getColumn(7).setPreferredWidth(100);  // Order Date
-        paymentTable.getColumnModel().getColumn(8).setPreferredWidth(100);  // Verified Date
+        paymentTable.getColumnModel().getColumn(7).setPreferredWidth(120);  // Order Date
+        paymentTable.getColumnModel().getColumn(8).setPreferredWidth(120);  // Verified Date
         paymentTable.getColumnModel().getColumn(9).setPreferredWidth(80);   // PR ID
         
         // Add selection listener to update total
         tableModel.addTableModelListener(e -> updateTotalAmount());
         
-        // Add alternating row colors
-        paymentTable.setRowSelectionAllowed(true);
-        paymentTable.setSelectionBackground(new Color(200, 190, 230));
-        
         JScrollPane scrollPane = new JScrollPane(paymentTable);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        mainPanel.add(scrollPane, BorderLayout.CENTER);
+        scrollPane.setBorder(BorderFactory.createLoweredBevelBorder());
+        contentPanel.add(scrollPane, BorderLayout.CENTER);
         
-        // FIXED: Create bottom panel that contains both status and buttons (like VerifyInventory)
-        JPanel bottomPanel = new JPanel(new BorderLayout());
-        bottomPanel.setBackground(new Color(245, 245, 245));
+        // Create action button panel (matching FM_ViewPO button style)
+        JPanel actionPanel = createActionPanel();
+        contentPanel.add(actionPanel, BorderLayout.SOUTH);
         
-        // Create status and total panel
-        JPanel infoPanel = new JPanel(new BorderLayout());
-        infoPanel.setBackground(new Color(245, 245, 245));
-        infoPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 5, 20));
-        
-        statusLabel = new JLabel("Loading verified orders ready for payment...");
-        statusLabel.setFont(new Font("Arial", Font.ITALIC, 12));
-        statusLabel.setForeground(new Color(100, 100, 100));
-        
-        totalAmountLabel = new JLabel("Total Selected: $0.00");
-        totalAmountLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        totalAmountLabel.setForeground(new Color(147, 112, 219));
-        
-        infoPanel.add(statusLabel, BorderLayout.WEST);
-        infoPanel.add(totalAmountLabel, BorderLayout.EAST);
-        
-        // Create button panel - IMPROVED: Better layout like VerifyInventory
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 15));
-        buttonPanel.setBackground(new Color(245, 245, 245));
-        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 20, 20));
-        
-        // Initialize buttons with consistent styling
-        processPaymentBtn = createStyledButton("Process Selected Payments", new Color(34, 139, 34));
-        processPaymentBtn.addActionListener(e -> processSelectedPayments());
-        
-        viewPaymentHistoryBtn = createStyledButton("View Payment History", new Color(70, 130, 180));
-        viewPaymentHistoryBtn.addActionListener(e -> viewPaymentHistory());
-        
-        refreshBtn = createStyledButton("Refresh", new Color(255, 140, 0));
-        refreshBtn.addActionListener(e -> loadVerifiedOrders());
-        
-        backBtn = createStyledButton("Back to Dashboard", new Color(105, 105, 105));
-        backBtn.addActionListener(e -> goBackToMainMenu());
-        
-        // Add buttons to panel
-        buttonPanel.add(processPaymentBtn);
-        buttonPanel.add(viewPaymentHistoryBtn);
-        buttonPanel.add(refreshBtn);
-        buttonPanel.add(backBtn);
-        
-        // Add both info panel and button panel to bottom panel
-        bottomPanel.add(infoPanel, BorderLayout.NORTH);
-        bottomPanel.add(buttonPanel, BorderLayout.SOUTH);
-        
-        // FIXED: Add bottom panel to main panel with correct constraint
-        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
-        
-        add(mainPanel);
-        
-        // ADDED: Force layout and repaint like VerifyInventory
-        pack();
-        setSize(1200, 750); // Reset size after pack
-        validate();
-        repaint();
+        return contentPanel;
     }
     
     /**
-     * Helper method to create styled buttons consistently (like VerifyInventory)
+     * Create action buttons panel with styled buttons matching FM_ViewPO
      */
-    private JButton createStyledButton(String text, Color backgroundColor) {
-        JButton button = new JButton(text);
-        button.setBackground(backgroundColor);
+    private JPanel createActionPanel() {
+        JPanel actionPanel = new JPanel(new GridBagLayout());
+        actionPanel.setBackground(new Color(245, 245, 245));
+        actionPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        
+        // Create styled buttons matching FM_ViewPO style
+        processPaymentBtn = createStyledActionButton("Process Selected Payments", 
+            "Process payments for selected orders", new Color(34, 139, 34));
+        processPaymentBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                processSelectedPayments();
+            }
+        });
+        
+        viewPaymentHistoryBtn = createStyledActionButton("View Payment History", 
+            "View all processed payments", new Color(70, 130, 180));
+        viewPaymentHistoryBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                viewPaymentHistory();
+            }
+        });
+        
+        refreshBtn = createStyledActionButton("Refresh List", 
+            "Reload verified orders", new Color(255, 140, 0));
+        refreshBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                loadVerifiedOrders();
+            }
+        });
+        
+        // Add buttons to panel in a row
+        gbc.gridx = 0; gbc.gridy = 0;
+        actionPanel.add(processPaymentBtn, gbc);
+        
+        gbc.gridx = 1; gbc.gridy = 0;
+        actionPanel.add(viewPaymentHistoryBtn, gbc);
+        
+        gbc.gridx = 2; gbc.gridy = 0;
+        actionPanel.add(refreshBtn, gbc);
+        
+        return actionPanel;
+    }
+    
+    /**
+     * Create a styled action button matching FM_ViewPO style
+     */
+    private JButton createStyledActionButton(String title, String description, Color bgColor) {
+        JButton button = new JButton();
+        button.setLayout(new BorderLayout());
+        button.setBackground(bgColor);
         button.setForeground(Color.WHITE);
-        button.setFont(new Font("Arial", Font.BOLD, 12));
-        button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        button.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
         button.setFocusPainted(false);
-        button.setPreferredSize(new Dimension(180, 40)); // Fixed size for consistency
+        button.setPreferredSize(new Dimension(200, 80));
+        
+        JLabel titleLabel = new JLabel(title, JLabel.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 13));
+        titleLabel.setForeground(Color.WHITE);
+        
+        JLabel descLabel = new JLabel("<html><center>" + description + "</center></html>", JLabel.CENTER);
+        descLabel.setFont(new Font("Arial", Font.PLAIN, 10));
+        descLabel.setForeground(new Color(230, 230, 230));
+        
+        button.add(titleLabel, BorderLayout.CENTER);
+        button.add(descLabel, BorderLayout.SOUTH);
+        
+        // Add hover effect (matching FM_ViewPO)
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(bgColor.brighter());
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(bgColor);
+            }
+        });
+        
         return button;
+    }
+    
+    /**
+     * Create footer panel with system info (matching FM_ViewPO style)
+     */
+    private JPanel createFooterPanel() {
+        JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        footerPanel.setBackground(new Color(245, 245, 245));
+        footerPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 15, 0));
+        
+        JLabel footerLabel = new JLabel("OWSB - AUTOMATED PURCHASE ORDER MANAGEMENT SYSTEM");
+        footerLabel.setFont(new Font("Arial", Font.ITALIC, 10));
+        footerLabel.setForeground(Color.GRAY);
+        
+        footerPanel.add(footerLabel);
+        return footerPanel;
     }
     
     /**
@@ -518,33 +628,6 @@ public class FM_Payment extends javax.swing.JFrame {
     }
     
     /**
-     * Update order status in the purchase order file
-     */
-    private boolean updateOrderStatus(String orderID, String newStatus) throws IOException {
-        List<String> lines = Files.readAllLines(Paths.get(PURCHASE_ORDER_FILE));
-        boolean found = false;
-        
-        for (int i = 0; i < lines.size(); i++) {
-            String line = lines.get(i);
-            if (line.trim().isEmpty()) continue;
-            
-            String[] parts = line.split(",");
-            if (parts[0].trim().equals(orderID)) {
-                parts[6] = newStatus; // Update status
-                lines.set(i, String.join(",", parts));
-                found = true;
-                // Remove break to update all occurrences
-            }
-        }
-        
-        if (found) {
-            Files.write(Paths.get(PURCHASE_ORDER_FILE), lines);
-            return true;
-        }
-        return false;
-    }
-    
-    /**
      * View payment history
      */
     private void viewPaymentHistory() {
@@ -559,9 +642,9 @@ public class FM_Payment extends javax.swing.JFrame {
                 return;
             }
             
-            // Create payment history dialog
+            // Create payment history dialog (matching FM_ViewPO dialog style)
             JDialog historyDialog = new JDialog(this, "Payment History", true);
-            historyDialog.setSize(800, 500);
+            historyDialog.setSize(900, 500);
             historyDialog.setLocationRelativeTo(this);
             
             String[] historyColumns = {"Payment ID", "Order ID(s)", "Supplier", "Amount", 
@@ -587,11 +670,14 @@ public class FM_Payment extends javax.swing.JFrame {
             }
             
             JTable historyTable = new JTable(historyModel);
-            historyTable.setRowHeight(25);
-            historyTable.getTableHeader().setBackground(new Color(147, 112, 219));
-            historyTable.getTableHeader().setForeground(Color.WHITE);
+            historyTable.setRowHeight(30);
+            historyTable.setFont(new Font("Arial", Font.PLAIN, 12));
+            historyTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+            historyTable.setSelectionBackground(new Color(184, 207, 229));
+            historyTable.setGridColor(new Color(220, 220, 220));
             
             JScrollPane historyScrollPane = new JScrollPane(historyTable);
+            historyScrollPane.setBorder(BorderFactory.createLoweredBevelBorder());
             historyDialog.add(historyScrollPane);
             
             historyDialog.setVisible(true);

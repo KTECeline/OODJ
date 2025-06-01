@@ -204,7 +204,7 @@ public class FinanceManagerWindow extends javax.swing.JFrame {
         footerPanel.setBackground(new Color(245, 245, 245));
         footerPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 15, 0));
         
-        JLabel footerLabel = new JLabel("Office Workflow System - Finance Management Module");
+        JLabel footerLabel = new JLabel("OWSB - AUTOMATED PURCHASE ORDER MANAGEMENT SYSTEM");
         footerLabel.setFont(new Font("Arial", Font.ITALIC, 10));
         footerLabel.setForeground(Color.GRAY);
         

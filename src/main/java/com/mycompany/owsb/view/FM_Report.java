@@ -58,58 +58,83 @@ public class FM_Report extends javax.swing.JFrame {
     private void initComponents() {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Financial Reports - Finance Manager");
-        setSize(1400, 800);
+        setSize(1200, 700);
         
-        // Create main panel
+        // Create main panel with BorderLayout (matching FM_ViewPO)
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(new Color(245, 245, 245));
         
-        // Title panel
-        JPanel titlePanel = createTitlePanel();
-        mainPanel.add(titlePanel, BorderLayout.NORTH);
+        // Header panel (matching FM_ViewPO style)
+        JPanel headerPanel = createHeaderPanel();
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
         
         // Date filter panel
         JPanel filterPanel = createDateFilterPanel();
-        mainPanel.add(filterPanel, BorderLayout.NORTH);
         
-        // Create tabbed pane for the two reports
-        tabbedPane = new JTabbedPane();
-        tabbedPane.setBackground(new Color(245, 245, 245));
-        tabbedPane.setFont(new Font("Arial", Font.BOLD, 14));
+        // Content panel
+        JPanel contentPanel = createContentPanel();
         
-        // Add the two report tabs
-        tabbedPane.addTab("Summary Report", createSummaryPanel());
-        tabbedPane.addTab("Detailed Report", createDetailedPanel());
+        // Combine filter and content panels
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.add(filterPanel, BorderLayout.NORTH);
+        centerPanel.add(contentPanel, BorderLayout.CENTER);
         
-        mainPanel.add(tabbedPane, BorderLayout.CENTER);
+        mainPanel.add(centerPanel, BorderLayout.CENTER);
         
-        // Bottom panel with controls
-        JPanel bottomPanel = createBottomPanel();
-        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
+        // Footer panel (matching FM_ViewPO style)
+        JPanel footerPanel = createFooterPanel();
+        mainPanel.add(footerPanel, BorderLayout.SOUTH);
         
         add(mainPanel);
     }
     
     /**
-     * Create the title panel
+     * Create the header panel with title and back button (matching FM_ViewPO style)
      */
-    private JPanel createTitlePanel() {
-        JPanel titlePanel = new JPanel(new BorderLayout());
-        titlePanel.setBackground(new Color(255, 140, 0));
-        titlePanel.setBorder(BorderFactory.createEmptyBorder(20, 25, 20, 25));
+    private JPanel createHeaderPanel() {
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(new Color(51, 51, 51));
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
         
+        // Title label
         JLabel titleLabel = new JLabel("Financial Reports");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
         titleLabel.setForeground(Color.WHITE);
         
+        // Date info label
         JLabel dateLabel = new JLabel("Generated: " + LocalDate.now().format(DATE_FORMATTER));
-        dateLabel.setForeground(Color.WHITE);
-        dateLabel.setFont(new Font("Arial", Font.ITALIC, 14));
+        dateLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+        dateLabel.setForeground(new Color(200, 200, 200));
         
+        // Title panel with date
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setBackground(new Color(51, 51, 51));
         titlePanel.add(titleLabel, BorderLayout.WEST);
         titlePanel.add(dateLabel, BorderLayout.EAST);
         
-        return titlePanel;
+        // Button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.setBackground(new Color(51, 51, 51));
+        
+        backBtn = new JButton("Back to Dashboard");
+        backBtn.setBackground(new Color(105, 105, 105));
+        backBtn.setForeground(Color.WHITE);
+        backBtn.setFont(new Font("Arial", Font.BOLD, 12));
+        backBtn.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        backBtn.setFocusPainted(false);
+        backBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                goBack();
+            }
+        });
+        
+        buttonPanel.add(backBtn);
+        
+        headerPanel.add(titlePanel, BorderLayout.WEST);
+        headerPanel.add(buttonPanel, BorderLayout.EAST);
+        
+        return headerPanel;
     }
     
     /**
@@ -117,51 +142,62 @@ public class FM_Report extends javax.swing.JFrame {
      */
     private JPanel createDateFilterPanel() {
         JPanel filterPanel = new JPanel(new BorderLayout());
-        filterPanel.setBackground(new Color(230, 230, 250));
-        filterPanel.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(new Color(70, 130, 180), 2),
-            "Date Filter Options",
-            0, 0,
-            new Font("Arial", Font.BOLD, 14),
-            new Color(70, 130, 180)
+        filterPanel.setBackground(new Color(245, 245, 245));
+        filterPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createEmptyBorder(10, 30, 10, 30),
+            BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(70, 130, 180), 1),
+                "Date Filter Options",
+                0, 0,
+                new Font("Arial", Font.BOLD, 12),
+                new Color(70, 130, 180)
+            )
         ));
         
-        // Top row - Preset filters
-        JPanel presetPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
-        presetPanel.setBackground(new Color(230, 230, 250));
+        // Main filter content panel
+        JPanel filterContent = new JPanel(new GridBagLayout());
+        filterContent.setBackground(new Color(245, 245, 245));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 10, 5, 10);
         
+        // Preset filters row
+        gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.WEST;
         JLabel presetLabel = new JLabel("Quick Filters:");
         presetLabel.setFont(new Font("Arial", Font.BOLD, 12));
+        filterContent.add(presetLabel, gbc);
         
         String[] presetOptions = {
-            "No Filter",
-            "Last 7 Days",
-            "Last 30 Days",
-            "Current Month",
-            "Last Month",
-            "Current Year"
+            "No Filter", "Last 7 Days", "Last 30 Days", 
+            "Current Month", "Last Month", "Current Year"
         };
         
+        gbc.gridx = 1;
         presetFilterCombo = new JComboBox<>(presetOptions);
-        presetFilterCombo.setPreferredSize(new Dimension(150, 30));
+        presetFilterCombo.setPreferredSize(new Dimension(150, 25));
+        presetFilterCombo.setFont(new Font("Arial", Font.PLAIN, 11));
         presetFilterCombo.addActionListener(e -> applyPresetFilter());
+        filterContent.add(presetFilterCombo, gbc);
         
-        presetPanel.add(presetLabel);
-        presetPanel.add(presetFilterCombo);
-        
-        // Middle row - Custom date range
-        JPanel customPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
-        customPanel.setBackground(new Color(230, 230, 250));
-        
+        // Custom range row
+        gbc.gridx = 0; gbc.gridy = 1;
         JLabel customLabel = new JLabel("Custom Range:");
         customLabel.setFont(new Font("Arial", Font.BOLD, 12));
+        filterContent.add(customLabel, gbc);
+        
+        gbc.gridx = 1;
+        JPanel customPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        customPanel.setBackground(new Color(245, 245, 245));
         
         JLabel startLabel = new JLabel("From:");
-        startDateField = new JTextField(10);
+        startLabel.setFont(new Font("Arial", Font.PLAIN, 11));
+        startDateField = new JTextField(8);
+        startDateField.setFont(new Font("Arial", Font.PLAIN, 11));
         startDateField.setToolTipText("Enter date in dd/MM/yyyy format");
         
         JLabel endLabel = new JLabel("To:");
-        endDateField = new JTextField(10);
+        endLabel.setFont(new Font("Arial", Font.PLAIN, 11));
+        endDateField = new JTextField(8);
+        endDateField.setFont(new Font("Arial", Font.PLAIN, 11));
         endDateField.setToolTipText("Enter date in dd/MM/yyyy format");
         
         applyFilterBtn = createSmallButton("Apply Filter", new Color(34, 139, 34));
@@ -170,7 +206,6 @@ public class FM_Report extends javax.swing.JFrame {
         clearFilterBtn = createSmallButton("Clear Filter", new Color(220, 20, 60));
         clearFilterBtn.addActionListener(e -> clearDateFilter());
         
-        customPanel.add(customLabel);
         customPanel.add(startLabel);
         customPanel.add(startDateField);
         customPanel.add(endLabel);
@@ -178,24 +213,16 @@ public class FM_Report extends javax.swing.JFrame {
         customPanel.add(applyFilterBtn);
         customPanel.add(clearFilterBtn);
         
-        // Bottom row - Filter status
-        JPanel statusFilterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
-        statusFilterPanel.setBackground(new Color(230, 230, 250));
+        filterContent.add(customPanel, gbc);
         
+        // Filter status row
+        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
         filterStatusLabel = new JLabel("Filter Status: No filter applied");
-        filterStatusLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+        filterStatusLabel.setFont(new Font("Arial", Font.ITALIC, 11));
         filterStatusLabel.setForeground(new Color(105, 105, 105));
+        filterContent.add(filterStatusLabel, gbc);
         
-        statusFilterPanel.add(filterStatusLabel);
-        
-        // Combine all rows
-        JPanel combinedPanel = new JPanel(new BorderLayout());
-        combinedPanel.setBackground(new Color(230, 230, 250));
-        combinedPanel.add(presetPanel, BorderLayout.NORTH);
-        combinedPanel.add(customPanel, BorderLayout.CENTER);
-        combinedPanel.add(statusFilterPanel, BorderLayout.SOUTH);
-        
-        filterPanel.add(combinedPanel, BorderLayout.CENTER);
+        filterPanel.add(filterContent, BorderLayout.CENTER);
         
         return filterPanel;
     }
@@ -207,11 +234,259 @@ public class FM_Report extends javax.swing.JFrame {
         JButton button = new JButton(text);
         button.setBackground(backgroundColor);
         button.setForeground(Color.WHITE);
-        button.setFont(new Font("Arial", Font.BOLD, 11));
-        button.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        button.setFont(new Font("Arial", Font.BOLD, 10));
+        button.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
         button.setFocusPainted(false);
-        button.setPreferredSize(new Dimension(100, 25));
+        button.setPreferredSize(new Dimension(85, 22));
         return button;
+    }
+    
+    /**
+     * Create the main content panel
+     */
+    private JPanel createContentPanel() {
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(new Color(245, 245, 245));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 30, 20, 30));
+        
+        // Subtitle
+        JLabel subtitleLabel = new JLabel("Financial Report Analysis");
+        subtitleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        subtitleLabel.setForeground(new Color(51, 51, 51));
+        subtitleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
+        contentPanel.add(subtitleLabel, BorderLayout.NORTH);
+        
+        // Create tabbed pane for the two reports
+        tabbedPane = new JTabbedPane();
+        tabbedPane.setBackground(new Color(245, 245, 245));
+        tabbedPane.setFont(new Font("Arial", Font.BOLD, 12));
+        
+        // Add the two report tabs
+        tabbedPane.addTab("Summary Report", createSummaryPanel());
+        tabbedPane.addTab("Detailed Report", createDetailedPanel());
+        
+        contentPanel.add(tabbedPane, BorderLayout.CENTER);
+        
+        // Action buttons panel (matching FM_ViewPO style)
+        JPanel actionPanel = createActionPanel();
+        contentPanel.add(actionPanel, BorderLayout.SOUTH);
+        
+        return contentPanel;
+    }
+    
+    /**
+     * Create action buttons panel with styled buttons matching FM_ViewPO
+     */
+    private JPanel createActionPanel() {
+        JPanel actionPanel = new JPanel(new GridBagLayout());
+        actionPanel.setBackground(new Color(245, 245, 245));
+        actionPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        
+        // Create styled buttons matching FM_ViewPO style
+        exportReportBtn = createStyledActionButton("Export Reports", 
+            "Export financial reports to file", new Color(70, 130, 180));
+        exportReportBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                exportReports();
+            }
+        });
+        
+        refreshBtn = createStyledActionButton("Refresh Data", 
+            "Reload all financial data", new Color(34, 139, 34));
+        refreshBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                refreshData();
+            }
+        });
+        
+        // Add buttons to panel in a row
+        gbc.gridx = 0; gbc.gridy = 0;
+        actionPanel.add(exportReportBtn, gbc);
+        
+        gbc.gridx = 1; gbc.gridy = 0;
+        actionPanel.add(refreshBtn, gbc);
+        
+        return actionPanel;
+    }
+    
+    /**
+     * Create a styled action button matching FM_ViewPO style
+     */
+    private JButton createStyledActionButton(String title, String description, Color bgColor) {
+        JButton button = new JButton();
+        button.setLayout(new BorderLayout());
+        button.setBackground(bgColor);
+        button.setForeground(Color.WHITE);
+        button.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        button.setFocusPainted(false);
+        button.setPreferredSize(new Dimension(200, 80));
+        
+        JLabel titleLabel = new JLabel(title, JLabel.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 13));
+        titleLabel.setForeground(Color.WHITE);
+        
+        JLabel descLabel = new JLabel("<html><center>" + description + "</center></html>", JLabel.CENTER);
+        descLabel.setFont(new Font("Arial", Font.PLAIN, 10));
+        descLabel.setForeground(new Color(230, 230, 230));
+        
+        button.add(titleLabel, BorderLayout.CENTER);
+        button.add(descLabel, BorderLayout.SOUTH);
+        
+        // Add hover effect (matching FM_ViewPO)
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(bgColor.brighter());
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(bgColor);
+            }
+        });
+        
+        return button;
+    }
+    
+    /**
+     * Create footer panel with system info and status (matching FM_ViewPO style)
+     */
+    private JPanel createFooterPanel() {
+        JPanel footerPanel = new JPanel(new BorderLayout());
+        footerPanel.setBackground(new Color(245, 245, 245));
+        footerPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 15, 0));
+        
+        // Status panel
+        JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        statusPanel.setBackground(new Color(245, 245, 245));
+        statusPanel.setBorder(BorderFactory.createEmptyBorder(0, 25, 0, 25));
+        
+        statusLabel = new JLabel("Reports loaded successfully.");
+        statusLabel.setFont(new Font("Arial", Font.ITALIC, 11));
+        statusLabel.setForeground(new Color(34, 139, 34));
+        
+        statusPanel.add(statusLabel);
+        
+        // System info panel
+        JPanel infoPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        infoPanel.setBackground(new Color(245, 245, 245));
+        
+        JLabel footerLabel = new JLabel("OWSB - AUTOMATED PURCHASE ORDER MANAGEMENT SYSTEM");
+        footerLabel.setFont(new Font("Arial", Font.ITALIC, 10));
+        footerLabel.setForeground(Color.GRAY);
+        
+        infoPanel.add(footerLabel);
+        
+        footerPanel.add(statusPanel, BorderLayout.WEST);
+        footerPanel.add(infoPanel, BorderLayout.CENTER);
+        
+        return footerPanel;
+    }
+    
+    /**
+     * Create the summary report panel
+     */
+    private JPanel createSummaryPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(new Color(245, 245, 245));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        
+        // Summary description
+        JLabel descLabel = new JLabel("<html><b>Summary Report</b><br>" +
+            "Overview of total payments, amounts, and completion statistics<br>" +
+            "<i>Use date filters above to focus on specific time periods</i></html>");
+        descLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        descLabel.setForeground(new Color(51, 51, 51));
+        descLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
+        
+        // Summary table
+        String[] columns = {"Metric", "Value"};
+        DefaultTableModel summaryModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        
+        summaryTable = new JTable(summaryModel);
+        summaryTable.setRowHeight(30);
+        summaryTable.setFont(new Font("Arial", Font.PLAIN, 12));
+        summaryTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+        summaryTable.setSelectionBackground(new Color(184, 207, 229));
+        summaryTable.setGridColor(new Color(220, 220, 220));
+        
+        // Set column widths
+        summaryTable.getColumnModel().getColumn(0).setPreferredWidth(250);
+        summaryTable.getColumnModel().getColumn(1).setPreferredWidth(200);
+        
+        JScrollPane summaryScrollPane = new JScrollPane(summaryTable);
+        summaryScrollPane.setBorder(BorderFactory.createLoweredBevelBorder());
+        summaryScrollPane.setPreferredSize(new Dimension(500, 300));
+        
+        // Center the table
+        JPanel tablePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        tablePanel.setBackground(new Color(245, 245, 245));
+        tablePanel.add(summaryScrollPane);
+        
+        panel.add(descLabel, BorderLayout.NORTH);
+        panel.add(tablePanel, BorderLayout.CENTER);
+        
+        return panel;
+    }
+    
+    /**
+     * Create the detailed report panel
+     */
+    private JPanel createDetailedPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(new Color(245, 245, 245));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        
+        // Detailed description
+        JLabel descLabel = new JLabel("<html><b>Detailed Report</b><br>" +
+            "Complete list of all payments with full details<br>" +
+            "<i>Filtered results based on current date filter settings</i></html>");
+        descLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        descLabel.setForeground(new Color(51, 51, 51));
+        descLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
+        
+        // Detailed table
+        String[] columns = {"Payment ID", "Supplier", "Amount (RM)", "Status", "Date", "Payment Method"};
+        DefaultTableModel detailedModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        
+        detailedTable = new JTable(detailedModel);
+        detailedTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        detailedTable.setRowHeight(30);
+        detailedTable.getTableHeader().setReorderingAllowed(false);
+        detailedTable.setFont(new Font("Arial", Font.PLAIN, 12));
+        detailedTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+        detailedTable.setSelectionBackground(new Color(184, 207, 229));
+        detailedTable.setGridColor(new Color(220, 220, 220));
+        
+        // Set column widths
+        detailedTable.getColumnModel().getColumn(0).setPreferredWidth(100);
+        detailedTable.getColumnModel().getColumn(1).setPreferredWidth(120);
+        detailedTable.getColumnModel().getColumn(2).setPreferredWidth(100);
+        detailedTable.getColumnModel().getColumn(3).setPreferredWidth(100);
+        detailedTable.getColumnModel().getColumn(4).setPreferredWidth(100);
+        detailedTable.getColumnModel().getColumn(5).setPreferredWidth(120);
+        
+        JScrollPane detailedScrollPane = new JScrollPane(detailedTable);
+        detailedScrollPane.setBorder(BorderFactory.createLoweredBevelBorder());
+        
+        panel.add(descLabel, BorderLayout.NORTH);
+        panel.add(detailedScrollPane, BorderLayout.CENTER);
+        
+        return panel;
     }
     
     /**
@@ -329,155 +604,6 @@ public class FM_Report extends javax.swing.JFrame {
             filterStatusLabel.setText("Filter Status: No filter applied");
             filterStatusLabel.setForeground(new Color(105, 105, 105));
         }
-    }
-    
-    /**
-     * Create the summary report panel
-     */
-    private JPanel createSummaryPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(new Color(245, 245, 245));
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        
-        // Summary description
-        JLabel descLabel = new JLabel("<html><h3>Summary Report</h3>" +
-            "Overview of total payments, amounts, and completion statistics<br>" +
-            "<i>Use date filters above to focus on specific time periods</i></html>");
-        descLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
-        
-        // Summary table
-        String[] columns = {"Metric", "Value"};
-        DefaultTableModel summaryModel = new DefaultTableModel(columns, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        
-        summaryTable = new JTable(summaryModel);
-        summaryTable.setRowHeight(35);
-        summaryTable.setFont(new Font("Arial", Font.PLAIN, 14));
-        summaryTable.getTableHeader().setBackground(new Color(70, 130, 180));
-        summaryTable.getTableHeader().setForeground(Color.WHITE);
-        summaryTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
-        
-        // Set column widths
-        summaryTable.getColumnModel().getColumn(0).setPreferredWidth(250);
-        summaryTable.getColumnModel().getColumn(1).setPreferredWidth(200);
-        
-        JScrollPane summaryScrollPane = new JScrollPane(summaryTable);
-        summaryScrollPane.setPreferredSize(new Dimension(500, 400));
-        
-        // Center the table
-        JPanel tablePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        tablePanel.setBackground(new Color(245, 245, 245));
-        tablePanel.add(summaryScrollPane);
-        
-        panel.add(descLabel, BorderLayout.NORTH);
-        panel.add(tablePanel, BorderLayout.CENTER);
-        
-        return panel;
-    }
-    
-    /**
-     * Create the detailed report panel
-     */
-    private JPanel createDetailedPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(new Color(245, 245, 245));
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        
-        // Detailed description
-        JLabel descLabel = new JLabel("<html><h3>Detailed Report</h3>" +
-            "Complete list of all payments with full details<br>" +
-            "<i>Filtered results based on current date filter settings</i></html>");
-        descLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
-        
-        // Detailed table
-        String[] columns = {"Payment ID", "Supplier", "Amount (RM)", "Status", "Date", "Payment Method"};
-        DefaultTableModel detailedModel = new DefaultTableModel(columns, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        
-        detailedTable = new JTable(detailedModel);
-        detailedTable.setRowHeight(30);
-        detailedTable.setFont(new Font("Arial", Font.PLAIN, 12));
-        detailedTable.getTableHeader().setBackground(new Color(34, 139, 34));
-        detailedTable.getTableHeader().setForeground(Color.WHITE);
-        detailedTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
-        
-        // Set column widths
-        detailedTable.getColumnModel().getColumn(0).setPreferredWidth(100);
-        detailedTable.getColumnModel().getColumn(1).setPreferredWidth(120);
-        detailedTable.getColumnModel().getColumn(2).setPreferredWidth(100);
-        detailedTable.getColumnModel().getColumn(3).setPreferredWidth(100);
-        detailedTable.getColumnModel().getColumn(4).setPreferredWidth(100);
-        detailedTable.getColumnModel().getColumn(5).setPreferredWidth(120);
-        
-        JScrollPane detailedScrollPane = new JScrollPane(detailedTable);
-        
-        panel.add(descLabel, BorderLayout.NORTH);
-        panel.add(detailedScrollPane, BorderLayout.CENTER);
-        
-        return panel;
-    }
-    
-    /**
-     * Create the bottom control panel
-     */
-    private JPanel createBottomPanel() {
-        JPanel bottomPanel = new JPanel(new BorderLayout());
-        bottomPanel.setBackground(new Color(245, 245, 245));
-        
-        // Status panel
-        JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        statusPanel.setBackground(new Color(245, 245, 245));
-        statusPanel.setBorder(BorderFactory.createEmptyBorder(10, 25, 5, 25));
-        
-        statusLabel = new JLabel("Reports loaded successfully.");
-        statusLabel.setFont(new Font("Arial", Font.ITALIC, 12));
-        statusLabel.setForeground(new Color(34, 139, 34));
-        
-        statusPanel.add(statusLabel);
-        
-        // Button panel
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
-        buttonPanel.setBackground(new Color(245, 245, 245));
-        
-        exportReportBtn = createStyledButton("Export Reports", new Color(70, 130, 180));
-        exportReportBtn.addActionListener(e -> exportReports());
-        
-        refreshBtn = createStyledButton("Refresh Data", new Color(255, 140, 0));
-        refreshBtn.addActionListener(e -> refreshData());
-        
-        backBtn = createStyledButton("Back to Dashboard", new Color(105, 105, 105));
-        backBtn.addActionListener(e -> goBack());
-        
-        buttonPanel.add(exportReportBtn);
-        buttonPanel.add(refreshBtn);
-        buttonPanel.add(backBtn);
-        
-        bottomPanel.add(statusPanel, BorderLayout.NORTH);
-        bottomPanel.add(buttonPanel, BorderLayout.SOUTH);
-        
-        return bottomPanel;
-    }
-    
-    /**
-     * Helper method to create styled buttons
-     */
-    private JButton createStyledButton(String text, Color backgroundColor) {
-        JButton button = new JButton(text);
-        button.setBackground(backgroundColor);
-        button.setForeground(Color.WHITE);
-        button.setFont(new Font("Arial", Font.BOLD, 14));
-        button.setBorder(BorderFactory.createEmptyBorder(12, 25, 12, 25));
-        button.setFocusPainted(false);
-        button.setPreferredSize(new Dimension(180, 45));
-        return button;
     }
     
     /**
