@@ -5,5 +5,3 @@ US0004,zhixian,zhixian1234,Finance Manager
 US0005,wenkang,wenkang1234,Inventory Manager
 US0006,tutu,tutu1234,Administrator
 US0009,huaji,Huaji1234@,Administrator
-US0001,alex,Alex1234@,Administrator
-US0001,new,New1234@,Administrator

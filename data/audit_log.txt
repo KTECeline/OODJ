@@ -63,3 +63,4 @@
 2025-06-01 12:00:47,celine,Purchase Manager,PO Created by Purchase Manager,PO:PO0002,PR:PR0007,Supplier:SP0003,Items:IT0001:Qty=20;
 2025-06-01 12:06:01,celine,Purchase Manager,PO Created by Purchase Manager,PO:PO0001,PR:PR0007,Supplier:SP0003,Items:IT0001:Qty=20;
 2025-06-01 12:06:16,celine,Purchase Manager,PO Created by Purchase Manager,PO:PO0001,PR:PR0007,Supplier:SP0003,Items:IT0004:Qty=20;IT0005:Qty=30;
+2025-06-01 15:40:25,yunghao,Root Administrator,PO Item Update/Edit changed by Purchase Manager,PO0002,IT0004,REJECTED->PENDING

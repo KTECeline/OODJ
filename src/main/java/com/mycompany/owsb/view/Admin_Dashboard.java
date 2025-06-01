@@ -4,6 +4,7 @@
  */
 package com.mycompany.owsb.view;
 
+import com.mycompany.owsb.model.PurchaseManager;
 import com.mycompany.owsb.model.SalesManager;
 import com.mycompany.owsb.model.User;
 import javax.swing.JOptionPane;
@@ -18,13 +19,15 @@ public class Admin_Dashboard extends javax.swing.JFrame {
     
     // Declare without initializing
     private final SalesManager salesManager;
+    private final PurchaseManager purchaseManager;
 
     /**
      * Creates new form Admin_Dashboard
      */
     public Admin_Dashboard(User loggedInUser) {
         this.loggedInUser = loggedInUser;
-        this.salesManager = new SalesManager(loggedInUser); // Initialize here
+        this.salesManager = new SalesManager(loggedInUser);
+        this.purchaseManager = new PurchaseManager(loggedInUser);
         initComponents();
         setLocationRelativeTo(null);
 
@@ -74,7 +77,7 @@ public class Admin_Dashboard extends javax.swing.JFrame {
             }
         });
 
-        itemListBtn1.setText("Item List");
+        itemListBtn1.setText("Manage Item");
         itemListBtn1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 itemListBtn1ActionPerformed(evt);
@@ -127,30 +130,29 @@ public class Admin_Dashboard extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(30, 30, 30)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(UserManagement, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(ManageSupplierButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(ManageSalesButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(PurchaseRequisitionButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(67, 67, 67)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(itemListBtn1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(updateStockBtn, javax.swing.GroupLayout.DEFAULT_SIZE, 153, Short.MAX_VALUE)
+                        .addComponent(stockReportBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(ViewPOButton, javax.swing.GroupLayout.PREFERRED_SIZE, 153, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 40, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(AdminDashboardText)
                 .addGap(91, 91, 91))
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(24, 24, 24)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(UserManagement)
-                            .addComponent(ManageSupplierButton)
-                            .addComponent(ManageSalesButton)
-                            .addComponent(PurchaseRequisitionButton))
-                        .addGap(67, 67, 67)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(stockReportBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(updateStockBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(itemListBtn1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(ViewPOButton, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(0, 24, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(LogoutButton)
-                        .addGap(57, 57, 57))))
+                .addGap(176, 176, 176)
+                .addComponent(LogoutButton)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -161,21 +163,24 @@ public class Admin_Dashboard extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(UserManagement)
                     .addComponent(itemListBtn1))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(updateStockBtn)
-                    .addComponent(ManageSupplierButton))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(ManageSupplierButton)
+                    .addComponent(updateStockBtn))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(stockReportBtn)
                     .addComponent(ManageSalesButton))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(ViewPOButton)
-                    .addComponent(PurchaseRequisitionButton))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 92, Short.MAX_VALUE)
-                .addComponent(LogoutButton, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(ViewPOButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(124, 124, 124))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(PurchaseRequisitionButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(LogoutButton, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap())))
         );
 
         pack();
@@ -196,7 +201,9 @@ public class Admin_Dashboard extends javax.swing.JFrame {
 
     private void itemListBtn1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemListBtn1ActionPerformed
         // TODO add your handling code here:
-        new Admin_ViewItemListWindow(loggedInUser).setVisible(true);
+        Admin_ManageItem manageItemWindow = new Admin_ManageItem(salesManager);
+        manageItemWindow.setVisible(true);
+                
     }//GEN-LAST:event_itemListBtn1ActionPerformed
 
     private void updateStockBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateStockBtnActionPerformed
@@ -230,6 +237,8 @@ public class Admin_Dashboard extends javax.swing.JFrame {
 
     private void ViewPOButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ViewPOButtonActionPerformed
         // TODO add your handling code here:
+        Admin_ManagePurchaseOrder managePurchaseOrder = new Admin_ManagePurchaseOrder(purchaseManager);
+        managePurchaseOrder.setVisible(true);
     }//GEN-LAST:event_ViewPOButtonActionPerformed
 
     private void ManageSupplierButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ManageSupplierButtonActionPerformed
