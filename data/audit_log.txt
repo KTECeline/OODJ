@@ -57,3 +57,5 @@
 2025-06-01 11:24:44,celine,Purchase Manager,PO Created by Purchase Manager,PO:PO0001,PR:PR0007,Supplier:SP0003,Items:IT0001:Qty=20;
 2025-06-01 11:26:06,celine,Purchase Manager,PO Item Deleted by Purchase Manager,PO:PO0001,Item:IT0001
 2025-06-01 11:26:49,celine,Purchase Manager,PO Created by Purchase Manager,PO:PO0001,PR:PR0007,Supplier:SP0003,Items:IT0001:Qty=20;
+2025-06-01 09:55:39,zhixian,Finance Manager,PO Status Update by Finance Manager,PO ID: PO0002, New Status: REJECTED
+

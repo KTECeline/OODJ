@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Panel for Finance Manager to view and approve Purchase Orders
@@ -62,7 +63,8 @@ public class FM_ViewPO extends javax.swing.JFrame {
         };
         
         poTable = new JTable(tableModel);
-        poTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        // Changed from SINGLE_SELECTION to MULTIPLE_INTERVAL_SELECTION for multi-row selection
+        poTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         poTable.setRowHeight(25);
         poTable.getTableHeader().setReorderingAllowed(false);
         
@@ -90,7 +92,7 @@ public class FM_ViewPO extends javax.swing.JFrame {
         approveBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                approveSelectedPO();
+                approveSelectedPOs();
             }
         });
         
@@ -101,7 +103,7 @@ public class FM_ViewPO extends javax.swing.JFrame {
         rejectBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                rejectSelectedPO();
+                rejectSelectedPOs();
             }
         });
         
@@ -116,7 +118,7 @@ public class FM_ViewPO extends javax.swing.JFrame {
             }
         });
         
-        backBtn = new JButton("Back to Main Menu");
+        backBtn = new JButton("Back to Dashboard");
         backBtn.setBackground(new Color(105, 105, 105));
         backBtn.setForeground(Color.WHITE);
         backBtn.setFont(new Font("Arial", Font.BOLD, 12));
@@ -180,103 +182,146 @@ public class FM_ViewPO extends javax.swing.JFrame {
     }
     
     /**
-     * Approve the selected purchase order
+     * Approve the selected purchase orders
      */
-    private void approveSelectedPO() {
-        int selectedRow = poTable.getSelectedRow();
-        if (selectedRow == -1) {
+    private void approveSelectedPOs() {
+        int[] selectedRows = poTable.getSelectedRows();
+        if (selectedRows.length == 0) {
             JOptionPane.showMessageDialog(this, 
-                "Please select a purchase order to approve.", 
+                "Please select one or more purchase orders to approve.", 
                 "No Selection", 
                 JOptionPane.WARNING_MESSAGE);
             return;
         }
         
-        String orderID = (String) tableModel.getValueAt(selectedRow, 0);
+        // Get selected order IDs
+        List<String> orderIDs = new ArrayList<>();
+        for (int row : selectedRows) {
+            orderIDs.add((String) tableModel.getValueAt(row, 0));
+        }
+        
+        String message = selectedRows.length == 1 ? 
+            "Are you sure you want to approve Purchase Order: " + orderIDs.get(0) + "?" :
+            "Are you sure you want to approve " + selectedRows.length + " Purchase Orders?\n" +
+            "Order IDs: " + String.join(", ", orderIDs);
         
         int confirm = JOptionPane.showConfirmDialog(this, 
-            "Are you sure you want to approve Purchase Order: " + orderID + "?", 
+            message, 
             "Confirm Approval", 
             JOptionPane.YES_NO_OPTION);
         
         if (confirm == JOptionPane.YES_OPTION) {
-            try {
-                boolean success = financeManager.updatePOStatus(orderID, "APPROVED");
-                if (success) {
-                    JOptionPane.showMessageDialog(this, 
-                        "Purchase Order " + orderID + " has been approved successfully!", 
-                        "Success", 
-                        JOptionPane.INFORMATION_MESSAGE);
-                    loadPendingPOs(); // Refresh the table
-                } else {
-                    JOptionPane.showMessageDialog(this, 
-                        "Failed to approve Purchase Order. Please try again.", 
-                        "Error", 
-                        JOptionPane.ERROR_MESSAGE);
+            int successCount = 0;
+            List<String> failedOrders = new ArrayList<>();
+            
+            for (String orderID : orderIDs) {
+                try {
+                    boolean success = financeManager.updatePOStatus(orderID, "APPROVED");
+                    if (success) {
+                        successCount++;
+                    } else {
+                        failedOrders.add(orderID);
+                    }
+                } catch (IOException e) {
+                    failedOrders.add(orderID);
                 }
-            } catch (IOException e) {
+            }
+            
+            // Show results
+            if (successCount == orderIDs.size()) {
+                String successMessage = successCount == 1 ? 
+                    "Purchase Order has been approved successfully!" :
+                    successCount + " Purchase Orders have been approved successfully!";
                 JOptionPane.showMessageDialog(this, 
-                    "Error updating purchase order: " + e.getMessage(), 
+                    successMessage, 
+                    "Success", 
+                    JOptionPane.INFORMATION_MESSAGE);
+            } else if (successCount > 0) {
+                JOptionPane.showMessageDialog(this, 
+                    successCount + " Purchase Orders approved successfully.\n" +
+                    "Failed to approve: " + String.join(", ", failedOrders), 
+                    "Partial Success", 
+                    JOptionPane.WARNING_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, 
+                    "Failed to approve any Purchase Orders: " + String.join(", ", failedOrders), 
                     "Error", 
                     JOptionPane.ERROR_MESSAGE);
             }
+            
+            loadPendingPOs(); // Refresh the table
         }
     }
     
     /**
-     * Reject the selected purchase order
+     * Reject the selected purchase orders
      */
-    private void rejectSelectedPO() {
-        int selectedRow = poTable.getSelectedRow();
-        if (selectedRow == -1) {
+    private void rejectSelectedPOs() {
+        int[] selectedRows = poTable.getSelectedRows();
+        if (selectedRows.length == 0) {
             JOptionPane.showMessageDialog(this, 
-                "Please select a purchase order to reject.", 
+                "Please select one or more purchase orders to reject.", 
                 "No Selection", 
                 JOptionPane.WARNING_MESSAGE);
             return;
         }
         
-        String orderID = (String) tableModel.getValueAt(selectedRow, 0);
+        // Get selected order IDs
+        List<String> orderIDs = new ArrayList<>();
+        for (int row : selectedRows) {
+            orderIDs.add((String) tableModel.getValueAt(row, 0));
+        }
         
-        // Ask for rejection reason
-        String reason = JOptionPane.showInputDialog(this, 
-            "Please provide a reason for rejecting Purchase Order " + orderID + ":", 
-            "Rejection Reason", 
-            JOptionPane.QUESTION_MESSAGE);
+        String message = selectedRows.length == 1 ? 
+            "Are you sure you want to reject Purchase Order: " + orderIDs.get(0) + "?" :
+            "Are you sure you want to reject " + selectedRows.length + " Purchase Orders?\n" +
+            "Order IDs: " + String.join(", ", orderIDs);
         
-        if (reason != null && !reason.trim().isEmpty()) {
-            int confirm = JOptionPane.showConfirmDialog(this, 
-                "Are you sure you want to reject Purchase Order: " + orderID + "?\nReason: " + reason, 
-                "Confirm Rejection", 
-                JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(this, 
+            message, 
+            "Confirm Rejection", 
+            JOptionPane.YES_NO_OPTION);
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            int successCount = 0;
+            List<String> failedOrders = new ArrayList<>();
             
-            if (confirm == JOptionPane.YES_OPTION) {
+            for (String orderID : orderIDs) {
                 try {
                     boolean success = financeManager.updatePOStatus(orderID, "REJECTED");
                     if (success) {
-                        JOptionPane.showMessageDialog(this, 
-                            "Purchase Order " + orderID + " has been rejected.\nReason: " + reason, 
-                            "Success", 
-                            JOptionPane.INFORMATION_MESSAGE);
-                        loadPendingPOs(); // Refresh the table
+                        successCount++;
                     } else {
-                        JOptionPane.showMessageDialog(this, 
-                            "Failed to reject Purchase Order. Please try again.", 
-                            "Error", 
-                            JOptionPane.ERROR_MESSAGE);
+                        failedOrders.add(orderID);
                     }
                 } catch (IOException e) {
-                    JOptionPane.showMessageDialog(this, 
-                        "Error updating purchase order: " + e.getMessage(), 
-                        "Error", 
-                        JOptionPane.ERROR_MESSAGE);
+                    failedOrders.add(orderID);
                 }
             }
-        } else if (reason != null) {
-            JOptionPane.showMessageDialog(this, 
-                "Rejection reason cannot be empty.", 
-                "Invalid Input", 
-                JOptionPane.WARNING_MESSAGE);
+            
+            // Show results
+            if (successCount == orderIDs.size()) {
+                String successMessage = successCount == 1 ? 
+                    "Purchase Order has been rejected successfully!" :
+                    successCount + " Purchase Orders have been rejected successfully!";
+                JOptionPane.showMessageDialog(this, 
+                    successMessage, 
+                    "Success", 
+                    JOptionPane.INFORMATION_MESSAGE);
+            } else if (successCount > 0) {
+                JOptionPane.showMessageDialog(this, 
+                    successCount + " Purchase Orders rejected successfully.\n" +
+                    "Failed to reject: " + String.join(", ", failedOrders), 
+                    "Partial Success", 
+                    JOptionPane.WARNING_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, 
+                    "Failed to reject any Purchase Orders: " + String.join(", ", failedOrders), 
+                    "Error", 
+                    JOptionPane.ERROR_MESSAGE);
+            }
+            
+            loadPendingPOs(); // Refresh the table
         }
     }
     

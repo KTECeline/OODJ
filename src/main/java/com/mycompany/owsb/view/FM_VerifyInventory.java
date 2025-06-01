@@ -65,7 +65,7 @@ public class FM_VerifyInventory extends javax.swing.JFrame {
         
         mainPanel.add(titlePanel, BorderLayout.NORTH);
         
-        // Create status panel
+        // Create status panel - FIXED: Use BorderLayout.SOUTH instead of AFTER_LAST_LINE
         JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         statusPanel.setBackground(new Color(245, 245, 245));
         statusPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 5, 20));
@@ -74,8 +74,6 @@ public class FM_VerifyInventory extends javax.swing.JFrame {
         statusLabel.setFont(new Font("Arial", Font.ITALIC, 12));
         statusLabel.setForeground(new Color(100, 100, 100));
         statusPanel.add(statusLabel);
-        
-        mainPanel.add(statusPanel, BorderLayout.AFTER_LAST_LINE);
         
         // Create table
         String[] columnNames = {"Order ID", "Item ID", "Supplier", "Quantity", 
@@ -114,71 +112,59 @@ public class FM_VerifyInventory extends javax.swing.JFrame {
         scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
         mainPanel.add(scrollPane, BorderLayout.CENTER);
         
-        // Create button panel
-        JPanel buttonPanel = new JPanel(new FlowLayout());
+        // Create button panel - IMPROVED: Better layout and spacing
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 15));
         buttonPanel.setBackground(new Color(245, 245, 245));
-        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 20, 0));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 20, 20));
         
-        verifyBtn = new JButton("Verify Selected Items");
-        verifyBtn.setBackground(new Color(34, 139, 34));
-        verifyBtn.setForeground(Color.WHITE);
-        verifyBtn.setFont(new Font("Arial", Font.BOLD, 12));
-        verifyBtn.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        verifyBtn.setFocusPainted(false);
-        verifyBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                verifySelectedItems();
-            }
-        });
+        // Initialize buttons with proper sizing
+        verifyBtn = createStyledButton("Verify Selected Items", new Color(34, 139, 34));
+        verifyBtn.addActionListener(e -> verifySelectedItems());
         
-        proceedToPaymentBtn = new JButton("Proceed to Payment");
-        proceedToPaymentBtn.setBackground(new Color(255, 140, 0));
-        proceedToPaymentBtn.setForeground(Color.WHITE);
-        proceedToPaymentBtn.setFont(new Font("Arial", Font.BOLD, 12));
-        proceedToPaymentBtn.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        proceedToPaymentBtn.setFocusPainted(false);
-        proceedToPaymentBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                proceedToPayment();
-            }
-        });
+        proceedToPaymentBtn = createStyledButton("Proceed to Payment", new Color(255, 140, 0));
+        proceedToPaymentBtn.addActionListener(e -> proceedToPayment());
         
-        refreshBtn = new JButton("Refresh");
-        refreshBtn.setBackground(new Color(70, 130, 180));
-        refreshBtn.setForeground(Color.WHITE);
-        refreshBtn.setFont(new Font("Arial", Font.BOLD, 12));
-        refreshBtn.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        refreshBtn.setFocusPainted(false);
-        refreshBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                loadReceivedOrders();
-            }
-        });
+        refreshBtn = createStyledButton("Refresh", new Color(70, 130, 180));
+        refreshBtn.addActionListener(e -> loadReceivedOrders());
         
-        backBtn = new JButton("Back to Dashboard");
-        backBtn.setBackground(new Color(105, 105, 105));
-        backBtn.setForeground(Color.WHITE);
-        backBtn.setFont(new Font("Arial", Font.BOLD, 12));
-        backBtn.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        backBtn.setFocusPainted(false);
-        backBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                goBackToMainMenu();
-            }
-        });
+        backBtn = createStyledButton("Back to Dashboard", new Color(105, 105, 105));
+        backBtn.addActionListener(e -> goBackToMainMenu());
         
+        // Add buttons to panel
         buttonPanel.add(verifyBtn);
         buttonPanel.add(proceedToPaymentBtn);
         buttonPanel.add(refreshBtn);
         buttonPanel.add(backBtn);
         
-        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+        // Create bottom panel that contains both status and buttons
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.setBackground(new Color(245, 245, 245));
+        bottomPanel.add(statusPanel, BorderLayout.NORTH);
+        bottomPanel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
         
         add(mainPanel);
+        
+        // ADDED: Force layout and repaint
+        pack();
+        setSize(1000, 700); // Reset size after pack
+        validate();
+        repaint();
+    }
+    
+    /**
+     * Helper method to create styled buttons consistently
+     */
+    private JButton createStyledButton(String text, Color backgroundColor) {
+        JButton button = new JButton(text);
+        button.setBackground(backgroundColor);
+        button.setForeground(Color.WHITE);
+        button.setFont(new Font("Arial", Font.BOLD, 12));
+        button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        button.setFocusPainted(false);
+        button.setPreferredSize(new Dimension(160, 40)); // Fixed size for consistency
+        return button;
     }
     
     /**
@@ -322,6 +308,7 @@ public class FM_VerifyInventory extends javax.swing.JFrame {
         List<String> lines = Files.readAllLines(Paths.get(PURCHASE_ORDER_FILE));
         boolean found = false;
         
+        // Process ALL lines with matching PO ID, not just the first one
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
             if (line.trim().isEmpty()) continue;
@@ -331,7 +318,7 @@ public class FM_VerifyInventory extends javax.swing.JFrame {
                 parts[6] = newStatus; // Update status
                 lines.set(i, String.join(",", parts));
                 found = true;
-                break;
+                // REMOVED the break statement - continue processing all matching lines
             }
         }
         
@@ -346,11 +333,63 @@ public class FM_VerifyInventory extends javax.swing.JFrame {
      * Proceed to payment for verified items
      */
     private void proceedToPayment() {
-        JOptionPane.showMessageDialog(this, 
-            "Proceed to Payment functionality will be implemented next.\n" +
-            "This will show all VERIFIED orders ready for payment processing.", 
-            "Coming Soon", 
-            JOptionPane.INFORMATION_MESSAGE);
+        try {
+            // Check if there are any verified orders ready for payment
+            List<Finance_VerifyInventory> verifiedOrders = getVerifiedOrders();
+            
+            if (verifiedOrders.isEmpty()) {
+                JOptionPane.showMessageDialog(this, 
+                    "No verified orders found ready for payment processing.\n" +
+                    "Please verify some orders first before proceeding to payment.", 
+                    "No Verified Orders", 
+                    JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+            
+            // Navigate to payment processing window
+            FM_Payment paymentWindow = new FM_Payment(parentWindow, financeManager);
+            paymentWindow.setVisible(true);
+            this.dispose(); // Close current window
+            
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Error checking verified orders: " + e.getMessage(), 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    /**
+     * Get all orders with "VERIFIED" status ready for payment
+     */
+    private List<Finance_VerifyInventory> getVerifiedOrders() throws IOException {
+        List<Finance_VerifyInventory> verifiedOrders = new ArrayList<>();
+        
+        if (!Files.exists(Paths.get(PURCHASE_ORDER_FILE))) {
+            return verifiedOrders;
+        }
+        
+        List<String> lines = Files.readAllLines(Paths.get(PURCHASE_ORDER_FILE));
+        
+        for (String line : lines) {
+            if (line.trim().isEmpty()) continue;
+            
+            String[] parts = line.split(",");
+            if (parts.length >= 9 && parts[6].equalsIgnoreCase("VERIFIED")) {
+                verifiedOrders.add(new Finance_VerifyInventory(
+                    parts[0].trim(), 
+                    parts[1].trim(), 
+                    parts[2].trim(),
+                    Integer.parseInt(parts[3].trim()),
+                    Double.parseDouble(parts[4].trim()),
+                    LocalDate.parse(parts[5].trim()),
+                    parts[6].trim(), 
+                    parts[7].trim(), 
+                    parts[8].trim()
+                ));
+            }
+        }
+        return verifiedOrders;
     }
     
     /**

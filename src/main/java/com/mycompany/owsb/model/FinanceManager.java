@@ -110,7 +110,7 @@ public class FinanceManager extends Manager {
         return verifiedOrders;
     }
 
-    // Approve/Reject a PO
+    // Approve/Reject a PO - FIXED to handle multiple line items with same PO ID
     public boolean updatePOStatus(String poId, String newStatus) throws IOException {
         if (!isAllowedToPerform("ApprovePO") || 
             (!newStatus.equals("APPROVED") && !newStatus.equals("REJECTED"))) {
@@ -124,6 +124,7 @@ public class FinanceManager extends Manager {
         List<String> lines = Files.readAllLines(Paths.get(PURCHASE_ORDER_FILE));
         boolean found = false;
         
+        // Process ALL lines with matching PO ID, not just the first one
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
             if (line.trim().isEmpty()) continue;
@@ -140,7 +141,7 @@ public class FinanceManager extends Manager {
                 po.setStatus(newStatus);
                 lines.set(i, po.toString());
                 found = true;
-                break;
+                // REMOVED the break statement - continue processing all matching lines
             }
         }
         
@@ -169,6 +170,7 @@ public class FinanceManager extends Manager {
         List<String> lines = Files.readAllLines(Paths.get(PURCHASE_ORDER_FILE));
         boolean found = false;
         
+        // Process ALL lines with matching PO ID, not just the first one
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
             if (line.trim().isEmpty()) continue;
@@ -179,7 +181,7 @@ public class FinanceManager extends Manager {
                 parts[6] = "VERIFIED";
                 lines.set(i, String.join(",", parts));
                 found = true;
-                break;
+                // REMOVED break statement - continue processing all matching lines
             }
         }
         
@@ -277,6 +279,7 @@ public class FinanceManager extends Manager {
         List<String> lines = Files.readAllLines(Paths.get(PURCHASE_ORDER_FILE));
         boolean found = false;
         
+        // Process ALL lines with matching PO ID, not just the first one
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
             if (line.trim().isEmpty()) continue;
@@ -286,7 +289,7 @@ public class FinanceManager extends Manager {
                 parts[6] = "COMPLETED";
                 lines.set(i, String.join(",", parts));
                 found = true;
-                break;
+                // REMOVED break statement - continue processing all matching lines
             }
         }
         

@@ -131,11 +131,7 @@ public class FinanceManagerWindow extends javax.swing.JFrame {
         generateReportButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent evt) {
-                // TODO: Implement generate report functionality
-                JOptionPane.showMessageDialog(FinanceManagerWindow.this, 
-                    "Generate Financial Report feature coming soon!", 
-                    "Feature Not Implemented", 
-                    JOptionPane.INFORMATION_MESSAGE);
+                generateReportButtonActionPerformed(evt);
             }
         });
         
@@ -144,11 +140,7 @@ public class FinanceManagerWindow extends javax.swing.JFrame {
         processPaymentButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent evt) {
-                // TODO: Implement process payment functionality
-                JOptionPane.showMessageDialog(FinanceManagerWindow.this, 
-                    "Process Payments feature coming soon!", 
-                    "Feature Not Implemented", 
-                    JOptionPane.INFORMATION_MESSAGE);
+                processPaymentButtonActionPerformed(evt);
             }
         });
         
@@ -262,6 +254,31 @@ public class FinanceManagerWindow extends javax.swing.JFrame {
     private void verifyInventoryButtonActionPerformed(ActionEvent evt) {
         FM_VerifyInventory verifyInventoryWindow = new FM_VerifyInventory(this, financeManager);
         verifyInventoryWindow.setVisible(true);
+        this.setVisible(false); // Hide current window
+    }
+
+    /**
+     * Handle generate report button click
+     */
+    private void generateReportButtonActionPerformed(ActionEvent evt) {
+        try {
+            FM_Report reportWindow = new FM_Report(this, financeManager);
+            reportWindow.setVisible(true);
+            this.setVisible(false); // Hide current window
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                "Error opening Financial Reports: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /**
+     * Handle process payment button click
+     */
+    private void processPaymentButtonActionPerformed(ActionEvent evt) {
+        FM_Payment paymentWindow = new FM_Payment(this, financeManager);
+        paymentWindow.setVisible(true);
         this.setVisible(false); // Hide current window
     }// </editor-fold> 
 
