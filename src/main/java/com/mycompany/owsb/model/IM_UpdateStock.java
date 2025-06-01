@@ -50,7 +50,8 @@ public class IM_UpdateStock {
         updateItemQuantity(itemID, newReceived);
 
         // 2. Update purchase_order.txt status
-        updatePOStatus(poID, isComplete ? "RECEIVED" : "UNFULFILLED");
+        String status = isComplete ? "RECEIVED" : "UNFULFILLED";
+        updatePOStatus(poID, status, userId);
 
         // 3. Add record to stock_received.txt
         return logStockReceived(poID, newReceived, receivedDate, userId);
@@ -85,10 +86,11 @@ public class IM_UpdateStock {
         }
     }
 
-    private void updatePOStatus(String poID, String newStatus) {
+    private void updatePOStatus(String poID, String newStatus, String userId) {
         File file = new File(poFile);
         List<String> updatedLines = new ArrayList<>();
-
+        boolean updated = false;
+        
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -96,6 +98,12 @@ public class IM_UpdateStock {
                 if (parts[0].equals(poID)) {
                     parts[6] = newStatus;
                     updatedLines.add(String.join(",", parts));
+                    updated = true;
+                    
+                    AuditLog auditLog = new AuditLog();
+                    String action = "Purchase Order Status Updated by Inventory Manager";
+                    String details = String.format("PO ID: %s, New Status: %s", poID, newStatus);
+                    auditLog.logAction(userId, "Inventory Manager", action, details);
                 } else {
                     updatedLines.add(line);
                 }
@@ -105,8 +113,8 @@ public class IM_UpdateStock {
         }
 
         try (PrintWriter pw = new PrintWriter(new FileWriter(file))) {
-            for (String updated : updatedLines) {
-                pw.println(updated);
+            for (String updatedLine : updatedLines) {
+                pw.println(updatedLine);
             }
         } catch (IOException e) {
             e.printStackTrace();

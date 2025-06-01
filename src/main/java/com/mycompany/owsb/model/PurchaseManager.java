@@ -45,8 +45,6 @@ public class PurchaseManager extends Manager implements ManageItemInterface, Man
     
     }
 
-    
-
     public boolean isAllowedToPerform(String action) {
         // Check if user is logged in and role matches "Sales"
         
