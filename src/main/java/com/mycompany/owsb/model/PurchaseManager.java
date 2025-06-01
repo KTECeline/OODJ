@@ -12,7 +12,10 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
@@ -457,14 +460,10 @@ public class PurchaseManager extends Manager implements ManageItemInterface, Man
     return generatedPOs;
 } */
     
-    public List<PurchaseOrder> generatePurchaseOrdersFromMultiplePRs(
+    /* public List<PurchaseOrder> generatePurchaseOrdersFromMultiplePRs(
         String supplierId, 
         String createdBy, 
         List<PurchaseRequestItemGroup> prGroups) {
-
-        if (!isAllowedToPerform("generatePurchaseOrdersFromMultiplePRs")) {
-            throw new IllegalStateException("Authentication failed for generatePurchaseOrdersFromMultiplePRs");
-        }
 
         if (supplierId == null || createdBy == null || prGroups == null || prGroups.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Invalid input: supplier, creator, or PRs missing", "Error", JOptionPane.ERROR_MESSAGE);
@@ -587,12 +586,189 @@ public class PurchaseManager extends Manager implements ManageItemInterface, Man
         if (generatedPOs.isEmpty()) {
             JOptionPane.showMessageDialog(null, "No approved items found in any PR.", "Error", JOptionPane.ERROR_MESSAGE);
             throw new IllegalArgumentException("No approved items");
+          }
+        return generatedPOs;
+    } */
+    
+   public List<PurchaseOrder> generatePurchaseOrdersFromMultiplePRs(
+            String supplierId, 
+            String createdBy, 
+            List<PurchaseRequestItemGroup> prGroups) {
+
+        // Input validation
+        if (supplierId == null || createdBy == null || prGroups == null || prGroups.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Invalid input: supplier, creator, or PRs missing", "Error", JOptionPane.ERROR_MESSAGE);
+            throw new IllegalArgumentException("Invalid input provided");
         }
+
+        Supplier supplier = Supplier.findById(supplierId);
+        if (supplier == null) {
+            JOptionPane.showMessageDialog(null, "Supplier not found: " + supplierId, "Error", JOptionPane.ERROR_MESSAGE);
+            throw new IllegalArgumentException("Supplier not found");
+        }
+
+        List<SupplierItem> supplierItems = SupplierItem.loadSupplierItems();
+        List<PurchaseOrder> generatedPOs = new ArrayList<>();
+        AuditLog auditLog = new AuditLog();
+
+        // Process each PR group
+        for (PurchaseRequestItemGroup prGroup : prGroups) {
+            String prId = prGroup.getPrId();
+            List<String> approvedItemIds = prGroup.getItemIds();
+
+            PurchaseRequisition pr = PurchaseRequisition.findById(prId);
+            if (pr == null) {
+                JOptionPane.showMessageDialog(null, "Purchase Requisition not found: " + prId, "Error", JOptionPane.ERROR_MESSAGE);
+                throw new IllegalArgumentException("Purchase Requisition not found: " + prId);
+            }
+
+            if (!pr.getStatus().equalsIgnoreCase("PENDING")) {
+                JOptionPane.showMessageDialog(null, "Only pending requisitions can be converted to POs: " + prId, "Error", JOptionPane.ERROR_MESSAGE);
+                throw new IllegalStateException("Only pending requisitions can be converted to POs");
+            }
+
+            // Filter PR items for approved items
+            List<PurchaseRequisitionItem> prItems = PurchaseRequisitionItem.loadPurchaseRequisitionItems()
+                    .stream()
+                    .filter(item -> item.getPrID().equalsIgnoreCase(prId) && approvedItemIds.contains(item.getItemID()))
+                    .toList();
+
+            if (prItems.isEmpty()) {
+                continue; // Skip if no approved items for this PR
+            }
+
+            // Check if a PO already exists for this PR
+            String poId = findExistingPOId(prId);
+            if (poId == null) {
+                poId = PurchaseOrder.generateNewOrderId();
+            }
+
+            PurchaseOrder po = new PurchaseOrder(poId, supplierId, new SimpleDateFormat("yyyy-MM-dd").format(new Date()), "PENDING", prId, createdBy);
+            StringBuilder itemDetails = new StringBuilder();
+            boolean atLeastOneApproved = false;
+
+            // Load existing PO entries to check for duplicates
+            Set<String> existingPoItems = new HashSet<>();
+            try (BufferedReader reader = new BufferedReader(new FileReader(PURCHASE_ORDER_FILE))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] parts = line.split(",");
+                    if (parts.length >= 8 && parts[7].equalsIgnoreCase(prId)) {
+                        existingPoItems.add(parts[1]); // Item ID
+                    }
+                }
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(null, "Failed to read purchase orders: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                throw new RuntimeException("Failed to read purchase orders", e);
+            }
+
+            // Get all PR items for this PR to identify unprocessed items
+            List<PurchaseRequisitionItem> allPrItemsForPR = PurchaseRequisitionItem.loadPurchaseRequisitionItems()
+                    .stream()
+                    .filter(item -> item.getPrID().equalsIgnoreCase(prId))
+                    .toList();
+
+            for (PurchaseRequisitionItem prItem : prItems) {
+                String itemId = prItem.getItemID();
+
+                // Check for duplicate PR+Item ID
+                if (existingPoItems.contains(itemId)) {
+                    // Find unprocessed items in the same PR
+                    List<String> unprocessedItems = allPrItemsForPR.stream()
+                            .map(PurchaseRequisitionItem::getItemID)
+                            .filter(id -> !existingPoItems.contains(id))
+                            .collect(Collectors.toList());
+                    
+                    String unprocessedItemsStr = unprocessedItems.isEmpty() ? "None" : String.join(", ", unprocessedItems);
+                    JOptionPane.showMessageDialog(null,
+                            "Item " + itemId + " for PR " + prId + " is already generated but still pending. " +
+                            "Unprocessed items in PR " + prId + ": " + unprocessedItemsStr,
+                            "Duplicate PO Attempt", JOptionPane.WARNING_MESSAGE);
+                    continue; // Skip this item
+                }
+
+                Item item = Item.findById(itemId);
+                if (item == null) {
+                    JOptionPane.showMessageDialog(null, "Item not found: " + itemId, "Error", JOptionPane.ERROR_MESSAGE);
+                    throw new IllegalArgumentException("Item not found: " + itemId);
+                }
+
+                // Verify supplier supplies this item
+                boolean isSupplied = supplierItems.stream()
+                        .anyMatch(si -> si.getSupplierID().equalsIgnoreCase(supplierId) && 
+                                        si.getItemID().equalsIgnoreCase(itemId));
+                if (!isSupplied) {
+                    JOptionPane.showMessageDialog(null, "Supplier " + supplierId + " does not supply item " + itemId, "Error", JOptionPane.ERROR_MESSAGE);
+                    throw new IllegalArgumentException("Supplier does not supply item: " + itemId);
+                }
+
+                // Create PO item with PENDING status
+                double totalPrice = prItem.getQuantity() * item.getCost();
+                PurchaseOrder.PurchaseOrderItem poItem = new PurchaseOrder.PurchaseOrderItem(itemId, prItem.getQuantity(), totalPrice);
+                poItem.setPrId(prId);
+                po.addItem(poItem);
+                atLeastOneApproved = true;
+                itemDetails.append(itemId).append(":Qty=").append(prItem.getQuantity()).append(";");
+            }
+
+            if (atLeastOneApproved) {
+                // Save PO to file with PENDING status for each line
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(PURCHASE_ORDER_FILE, true))) {
+                    for (PurchaseOrder.PurchaseOrderItem poItem : po.getItems()) {
+                        String line = String.format("%s,%s,%s,%d,%.1f,%s,%s,%s,%s",
+                                po.getOrderID(),
+                                poItem.getItemID(),
+                                po.getSupplierID(),
+                                poItem.getQuantity(),
+                                poItem.getTotalPrice(),
+                                po.getOrderDate(),
+                                "PENDING", // PO item status is PENDING
+                                po.getPrId(),
+                                po.getCreatedBy());
+                        writer.write(line);
+                        writer.newLine();
+                    }
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(null, "Failed to save purchase order: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    throw new RuntimeException("Failed to save purchase order", e);
+                }
+
+                generatedPOs.add(po);
+                auditLog.logPOCreation(loggedInUser.getUsername(), loggedInUser.getRole(), poId, prId, supplierId, itemDetails.toString());
+
+                // Check if all PR items have corresponding PO entries
+                Set<String> prItemIds = new HashSet<>();
+                for (PurchaseRequisitionItem item : allPrItemsForPR) {
+                    prItemIds.add(item.getItemID());
+                }
+
+                Set<String> poItemIds = new HashSet<>();
+                try (BufferedReader reader = new BufferedReader(new FileReader(PURCHASE_ORDER_FILE))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        String[] parts = line.split(",");
+                        if (parts.length >= 8 && parts[7].equalsIgnoreCase(prId)) {
+                            poItemIds.add(parts[1]); // Item ID
+                        }
+                    }
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(null, "Failed to read purchase orders: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    throw new RuntimeException("Failed to read purchase orders", e);
+                }
+
+                if (prItemIds.equals(poItemIds)) {
+                    pr.setStatus("APPROVED");
+                    PurchaseRequisition.update(pr);
+                }
+            }
+        }
+
+        
 
         return generatedPOs;
     }
+      
 
-    
 public static String findExistingPOId(String prId) {
     try (BufferedReader reader = new BufferedReader(new FileReader(PURCHASE_ORDER_FILE))) {
         String line;

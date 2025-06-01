@@ -30,7 +30,7 @@ public class PurchaseRequisitionItem {
         this.unitCost = unitCost;
         this.totalCost = quantity * unitCost;
     }
-
+ 
     // Getter
     public String getPrID() {
         return prID;

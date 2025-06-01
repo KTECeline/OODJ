@@ -36,7 +36,7 @@ public class PurchaseOrder {
         private int quantity;
         private double totalPrice;
         private String prId; 
-
+        
         public PurchaseOrderItem(String itemID, int quantity, double totalPrice) {
             if (itemID == null || itemID.isEmpty()) {
                 throw new IllegalArgumentException("Item ID cannot be null or empty");
@@ -63,6 +63,8 @@ public class PurchaseOrder {
         public double getTotalPrice() {
             return totalPrice;
         }
+         
+       
 
         public void setQuantity(int quantity) {
             if (quantity <= 0) {
