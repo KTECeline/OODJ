@@ -104,3 +104,14 @@
 2025-06-02 10:23:41,celine,Purchase Manager,PO Created by Purchase Manager,PO:PO0012,PR:PR0009,Supplier:SP0005,Items:IT0007:Qty=15;
 2025-06-02 10:24:05,celine,Purchase Manager,PO Item Deleted by Purchase Manager,PO:PO0012,Item:IT0009
 2025-06-02 15:02:20,celine,Purchase Manager,PO Created by Purchase Manager,PO:PO0011,PR:PR0011,Supplier:SP0008,Items:IT0011:Qty=10;
+2025-06-02 15:25:11,celine,Purchase Manager,PO Created by Purchase Manager,PO:PO0001,PR:PR0002,Supplier:SP0002,Items:IT0002:Qty=22;
+2025-06-02 15:25:11,celine,Purchase Manager,PO Created by Purchase Manager,PO:PO0002,PR:PR0004,Supplier:SP0004,Items:IT0004:Qty=20;
+2025-06-02 15:25:11,celine,Purchase Manager,PO Created by Purchase Manager,PO:PO0003,PR:PR0005,Supplier:SP0003,Items:IT0004:Qty=20;
+2025-06-02 15:25:40,celine,Purchase Manager,PO Created by Purchase Manager,PO:PO0004,PR:PR0006,Supplier:SP0003,Items:IT0004:Qty=20;
+2025-06-02 15:25:40,celine,Purchase Manager,PO Created by Purchase Manager,PO:PO0005,PR:PR0007,Supplier:SP0003,Items:IT0004:Qty=20;IT0001:Qty=20;IT0005:Qty=30;
+2025-06-02 15:25:40,celine,Purchase Manager,PO Created by Purchase Manager,PO:PO0006,PR:PR0010,Supplier:SP0007,Items:IT0010:Qty=20;
+2025-06-02 15:25:40,celine,Purchase Manager,PO Created by Purchase Manager,PO:PO0007,PR:PR0011,Supplier:SP0008,Items:IT0005:Qty=13;IT0011:Qty=10;
+2025-06-02 15:25:40,celine,Purchase Manager,PO Created by Purchase Manager,PO:PO0008,PR:PR0012,Supplier:SP0006,Items:IT0012:Qty=20;IT0008:Qty=30;
+2025-06-02 15:25:40,celine,Purchase Manager,PO Created by Purchase Manager,PO:PO0009,PR:PR0013,Supplier:SP0001,Items:IT0001:Qty=20;
+2025-06-02 15:26:44,celine,Purchase Manager,PO Item Deleted by Purchase Manager,PO:PO0008,Item:IT0008
+2025-06-02 15:27:29,celine,Purchase Manager,PO Item Deleted by Purchase Manager,PO:PO0001,Item:IT0002
