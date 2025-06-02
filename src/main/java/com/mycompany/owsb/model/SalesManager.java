@@ -1198,9 +1198,9 @@ public class SalesManager extends Manager implements ManageItemInterface, Manage
             return;
         }
         
-        // Check User Permission for edit supplier
-        if (!isAllowedToPerform("edit supplier")) {
-            JOptionPane.showMessageDialog(null, "Not authorized to edit suppliers.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
+        // Check User Permission for edit PR
+        if (!isAllowedToPerform("edit PR")) {
+            JOptionPane.showMessageDialog(null, "Not authorized to edit purchase requisition.", "Permission Denied", JOptionPane.ERROR_MESSAGE);
             return;
         }
 

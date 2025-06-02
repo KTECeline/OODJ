@@ -6,6 +6,7 @@ package com.mycompany.owsb.model;
 
 import com.mycompany.owsb.view.LoginWindow;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -13,10 +14,21 @@ import javax.swing.JFrame;
  */
 public class WindowUtil {
     public static void logoutAndRedirectToLogin(JFrame currentWindow) {
-        currentWindow.dispose(); // Close the current window
-        LoginWindow loginWindow = new LoginWindow(); // Launch login
-        loginWindow.setVisible(true);
+        int confirm = JOptionPane.showConfirmDialog(
+            currentWindow,
+            "Are you sure you want to log out?",
+            "Confirm Logout",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            currentWindow.dispose(); // Close the current window
+            LoginWindow loginWindow = new LoginWindow(); // Launch login
+            loginWindow.setVisible(true);
+        }
     }
+
     
     public static void switchWindow(JFrame currentWindow, JFrame nextWindow) {
         nextWindow.setVisible(true);
