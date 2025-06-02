@@ -108,8 +108,8 @@ public class FinanceManagerWindow extends javax.swing.JFrame {
         gbc.weighty = 1.0;
         
         // Create function buttons
-        approvePOButton = createStyledButton("Approve Purchase Orders", 
-            "Review and approve pending purchase orders", new Color(34, 139, 34));
+        approvePOButton = createStyledButton("Review Purchase Orders", 
+            "Approve or Reject pending purchase orders", new Color(34, 139, 34));
         approvePOButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent evt) {
