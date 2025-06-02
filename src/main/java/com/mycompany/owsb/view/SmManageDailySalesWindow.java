@@ -120,7 +120,7 @@ public class SmManageDailySalesWindow extends javax.swing.JFrame {
         homeButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Daily Sales");
+        setTitle("Sales");
         setBounds(new java.awt.Rectangle(0, 0, 0, 0));
 
         jPanel2.setBackground(new java.awt.Color(255, 255, 255));

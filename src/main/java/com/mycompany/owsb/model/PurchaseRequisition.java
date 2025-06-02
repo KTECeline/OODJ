@@ -215,7 +215,8 @@ public class PurchaseRequisition {
 
 
     // Search and display PR by PR ID
-    public static void searchAndDisplayPRInTable(JTextField searchField, JTable table, List<PurchaseRequisition> prList, List<Item> itemList, List<PurchaseRequisitionItem> prItemList) {
+    public static void searchAndDisplayPRInTable(JTextField searchField, JTable table, List<PurchaseRequisition> prList, List<Item> itemList, 
+                                            List<PurchaseRequisitionItem> prItemList) {
         String searchPRID = searchField.getText().trim().toUpperCase();
         boolean found = false;
 
@@ -307,26 +308,26 @@ public class PurchaseRequisition {
 }
     
     public void setPRItems(List<PurchaseRequisitionItem> items) {
-    this.items = items;
-}
-
-public List<PurchaseRequisitionItem> getPRItems() {
-    return items;
-}
-
-
-public static List<PurchaseRequisition> filterByStatus(List<PurchaseRequisition> prList, String status) {
-    if (status.equalsIgnoreCase("ALL")) {
-        return prList;
+        this.items = items;
     }
-    List<PurchaseRequisition> filtered = new ArrayList<>();
-    for (PurchaseRequisition pr : prList) {
-        if (pr.getStatus().equalsIgnoreCase(status)) {
-            filtered.add(pr);
+
+    public List<PurchaseRequisitionItem> getPRItems() {
+        return items;
+    }
+
+
+    public static List<PurchaseRequisition> filterByStatus(List<PurchaseRequisition> prList, String status) {
+        if (status.equalsIgnoreCase("ALL")) {
+            return prList;
         }
+        List<PurchaseRequisition> filtered = new ArrayList<>();
+        for (PurchaseRequisition pr : prList) {
+            if (pr.getStatus().equalsIgnoreCase(status)) {
+                filtered.add(pr);
+            }
+        }
+        return filtered;
     }
-    return filtered;
-}
 
 
     

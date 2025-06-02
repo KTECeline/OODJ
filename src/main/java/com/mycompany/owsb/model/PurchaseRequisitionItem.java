@@ -69,6 +69,11 @@ public class PurchaseRequisitionItem {
         this.unitCost = unitCost;
         this.totalCost = unitCost * this.quantity; // also update totalCost when unitCost changes
     }
+    
+    public void setTotalCost(double totalCost) {
+        this.totalCost = totalCost;
+    }
+
 
 
     @Override

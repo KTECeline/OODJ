@@ -1359,6 +1359,7 @@ public class SalesManager extends Manager implements ManageItemInterface, Manage
 
             // Update quantity
             itemToEdit.setQuantity(newQuantity);
+            itemToEdit.setTotalCost(newQuantity * itemToEdit.getUnitCost());
 
             // Update PR date
             prToEdit.setRequiredDate(requiredDate);
@@ -1407,19 +1408,23 @@ public class SalesManager extends Manager implements ManageItemInterface, Manage
             // Update the item’s PR ID
             itemToEdit.setPrID(targetPrID);
             
-            // After moving the item, check if the old PR has no more items
-            boolean hasOtherItems = false;
-            for (PurchaseRequisitionItem item : prItemList) {
-                if (!item.equals(itemToEdit) && item.getPrID().equalsIgnoreCase(prID)) {
-                    hasOtherItems = true;
-                    break;
+            if (!selectedSupplierID.equalsIgnoreCase(prToEdit.getSupplierID())) {
+                // Only reassign PR ID if supplier is changed
+                itemToEdit.setPrID(targetPrID);
+
+                // After moving the item, check if old PR has no more items
+                boolean hasOtherItems = false;
+                for (PurchaseRequisitionItem item : prItemList) {
+                    if (!item.equals(itemToEdit) && item.getPrID().equalsIgnoreCase(prID)) {
+                        hasOtherItems = true;
+                        break;
+                    }
+                }
+                if (!hasOtherItems) {
+                    prList.remove(prToEdit);
                 }
             }
 
-            if (!hasOtherItems) {
-                // Remove the old PR completely
-                prList.remove(prToEdit);
-            }
 
             FileUtil.saveListToFile(PURCHASE_REQUISITION_FILE, prList);
             FileUtil.saveListToFile(PURCHASE_REQUISITION_ITEM_FILE, prItemList);
@@ -1764,7 +1769,7 @@ public class SalesManager extends Manager implements ManageItemInterface, Manage
         }
 
         if (saleToRemove != null) {
-            // OPTIONAL: restore stock if needed
+            // Restore stock
             for (SalesItem si : salesItemList) {
                 if (si.getSalesID().equalsIgnoreCase(salesID)) {
                     for (Item item : itemList) {
@@ -1912,6 +1917,10 @@ public class SalesManager extends Manager implements ManageItemInterface, Manage
                 sale.getItems().add(salesItem);
                 salesItemList.add(salesItem);
                 itemAdded[0] = true;
+                
+                // Deduct stock
+                matchedItem.setStock(matchedItem.getStock() - quantity);
+
 
                 dialog.dispose();
             });
@@ -1954,22 +1963,11 @@ public class SalesManager extends Manager implements ManageItemInterface, Manage
 
         if (!sale.getItems().isEmpty()) {
             double totalAmount = 0;
-
             for (SalesItem item : salesItemList) {
                 if (item.getSalesID().equalsIgnoreCase(sale.getSalesID())) {
                     totalAmount += item.getSubtotal();
                 }
-
-
-                // Now actually reduce stock on the matched item
-                for (Item stockItem : itemList) {
-                    if (stockItem.getItemID().equalsIgnoreCase(item.getItemID())) {
-                        stockItem.setStock(stockItem.getStock() - item.getQuantitySold());
-                        break;
-                    }
-                }
             }
-
             sale.setTotalAmount(totalAmount);
 
             // Update the sale inside salesList (not add duplicate)
