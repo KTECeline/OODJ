@@ -246,7 +246,65 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
     }
 }
 
-    
+     private void rejectPRItemsFromSelectedRows() {
+        DefaultTableModel model = (DefaultTableModel) prTable.getModel();
+        if (model.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this, "Table is empty. No PRs to reject.", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Verify authentication once
+        if (!purchaseManager.isAllowedToPerform("rejectPurchaseRequisitionItem")) {
+            JOptionPane.showMessageDialog(this, "Authentication failed.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        boolean hasSelections = false;
+        int rejectedCount = 0;
+
+        for (int row = 0; row < model.getRowCount(); row++) {
+            Boolean isSelected = (Boolean) model.getValueAt(row, 9);
+            if (isSelected != null && isSelected) {
+                hasSelections = true;
+
+                String prId = model.getValueAt(row, 0).toString();
+                String itemId = model.getValueAt(row, 1).toString().split(" - ")[0];
+                String status = model.getValueAt(row, 8).toString();
+
+                if (!status.equalsIgnoreCase("PENDING")) {
+                    JOptionPane.showMessageDialog(this, "Only PENDING PRs can be rejected. Invalid PR: " + prId, "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                try {
+                    purchaseManager.rejectPurchaseRequisitionItem(prId, itemId);
+                    rejectedCount++;
+                } catch (IllegalArgumentException | IllegalStateException e) {
+                    JOptionPane.showMessageDialog(this, "Error rejecting PR " + prId + ", Item " + itemId + ": " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    // Continue to process other selected rows
+                }
+            }
+        }
+
+        if (!hasSelections) {
+            JOptionPane.showMessageDialog(this, "No rows selected for rejection.", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            String statusFilter = Filter.getSelectedItem().toString();
+            loadPRTable(statusFilter);
+
+            for (int row = 0; row < model.getRowCount(); row++) {
+                model.setValueAt(false, row, 9);
+            }
+
+            JOptionPane.showMessageDialog(this, "Successfully rejected " + rejectedCount + " PR item(s).", "Success", JOptionPane.INFORMATION_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Unexpected error updating table: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+        
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -294,6 +352,8 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
         jScrollPane8 = new javax.swing.JScrollPane();
         logArea = new javax.swing.JTextArea();
         jButton1 = new javax.swing.JButton();
+        rejectBtn = new javax.swing.JButton();
+        jLabel5 = new javax.swing.JLabel();
 
         jTextArea1.setColumns(20);
         jTextArea1.setRows(5);
@@ -318,7 +378,7 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
 
         jLabel2.setText("Logged in as: ");
 
-        Usernamelbl.setText("jLabel3");
+        Usernamelbl.setText("Username");
 
         jToggleButton1.setText("Log Out");
         jToggleButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -441,6 +501,15 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
             }
         });
 
+        rejectBtn.setText("Reject");
+        rejectBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rejectBtnActionPerformed(evt);
+            }
+        });
+
+        jLabel5.setText("PO LOGS");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -450,19 +519,31 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGap(40, 40, 40)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jToggleButton1)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel2)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(Usernamelbl, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jLabel1))
-                        .addGap(67, 67, 67)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel2)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(Usernamelbl, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(jLabel1))
+                                .addGap(67, 67, 67))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jToggleButton1)
+                                .addGap(40, 40, 40)))
                         .addComponent(jScrollPane8, javax.swing.GroupLayout.PREFERRED_SIZE, 291, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(49, 49, 49)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jButton8)
+                                        .addGap(43, 43, 43)
+                                        .addComponent(Itembtn)
+                                        .addGap(18, 18, 18)
+                                        .addComponent(Supplierbtn)
+                                        .addGap(27, 27, 27)
+                                        .addComponent(PRbtn))
                                     .addGroup(layout.createSequentialGroup()
                                         .addGap(34, 34, 34)
                                         .addComponent(jLabel3)
@@ -473,50 +554,41 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(lblTotalSuppliers, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addGap(27, 27, 27)
-                                        .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jButton8)
-                                        .addGap(43, 43, 43)
-                                        .addComponent(Itembtn)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(Supplierbtn)
-                                        .addGap(27, 27, 27)
-                                        .addComponent(PRbtn)))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGap(25, 25, 25)
-                                        .addComponent(pendingbtn)
-                                        .addGap(36, 36, 36)
-                                        .addComponent(jButton1))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(lblPendingPRs, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(22, 22, 22)
-                                        .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(lblPendingPOs, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                        .addComponent(lblPendingPRs, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addGap(14, 14, 14)
+                                .addComponent(pendingbtn)
+                                .addGap(36, 36, 36)
+                                .addComponent(jButton1))
                             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                 .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 300, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(rejectBtn)
+                                    .addGap(27, 27, 27)
                                     .addComponent(jButton7)
-                                    .addGap(260, 260, 260))
+                                    .addGap(245, 245, 245))
+                                .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 656, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGroup(layout.createSequentialGroup()
-                                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 397, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGap(82, 82, 82)
-                                    .addComponent(Filter, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGap(18, 18, 18)
-                                    .addComponent(jButton6))
-                                .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 656, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addGroup(layout.createSequentialGroup()
+                                            .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 397, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addGap(82, 82, 82)
+                                            .addComponent(Filter, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addComponent(jLabel9, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(lblPendingPOs, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(jButton6)))))))
                 .addContainerGap(19, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(jLabel5)
+                .addGap(29, 29, 29))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jScrollPane8, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(14, 14, 14)
                         .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -526,7 +598,13 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
                             .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.TRAILING))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jToggleButton1)
-                        .addGap(29, 29, 29)))
+                        .addGap(29, 29, 29))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jScrollPane8, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel5)
+                        .addGap(7, 7, 7)))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(jButton8)
@@ -554,7 +632,9 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
                 .addGap(23, 23, 23)
                 .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 303, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jButton7)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton7)
+                    .addComponent(rejectBtn))
                 .addContainerGap())
         );
 
@@ -571,6 +651,7 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
             generatePOsFromSelectedRows();   
             loadSummaryLabels();
+            showLog();
     }//GEN-LAST:event_jButton7ActionPerformed
 
     private void ItembtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ItembtnActionPerformed
@@ -644,6 +725,12 @@ if (searchQuery.isEmpty() || searchQuery.equalsIgnoreCase("Enter PR ID")) {
          WindowUtil.switchWindow(this, new PmViewLog(this, purchaseManager));
     }//GEN-LAST:event_jButton1ActionPerformed
 
+    private void rejectBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rejectBtnActionPerformed
+        // TODO add your handling code here:
+        rejectPRItemsFromSelectedRows();
+        showLog();
+    }//GEN-LAST:event_rejectBtnActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -689,6 +776,7 @@ if (searchQuery.isEmpty() || searchQuery.equalsIgnoreCase("Enter PR ID")) {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JScrollPane jScrollPane1;
@@ -713,5 +801,6 @@ if (searchQuery.isEmpty() || searchQuery.equalsIgnoreCase("Enter PR ID")) {
     private javax.swing.JTextArea logArea;
     private javax.swing.JButton pendingbtn;
     private javax.swing.JTable prTable;
+    private javax.swing.JButton rejectBtn;
     // End of variables declaration//GEN-END:variables
 }

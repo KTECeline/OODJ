@@ -26,5 +26,6 @@ public interface ManagePOInterface {
 
     // Search POs by ID
     List<PurchaseOrder> searchPOs(String poId);
-    boolean isSupplierValidForItem(String supplierId, String itemId);
+    void rejectPurchaseRequisitionItem(String prId, String itemId);
+    
 }
