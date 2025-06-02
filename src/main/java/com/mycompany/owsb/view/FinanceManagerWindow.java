@@ -38,6 +38,10 @@ public class FinanceManagerWindow extends javax.swing.JFrame {
         JPanel headerPanel = createHeaderPanel();
         mainPanel.add(headerPanel, BorderLayout.NORTH);
         
+        // Quick actions panel (new addition)
+        JPanel quickActionsPanel = createQuickActionsPanel();
+        mainPanel.add(quickActionsPanel, BorderLayout.NORTH);
+        
         // Content panel
         JPanel contentPanel = createContentPanel();
         mainPanel.add(contentPanel, BorderLayout.CENTER);
@@ -45,6 +49,15 @@ public class FinanceManagerWindow extends javax.swing.JFrame {
         // Footer panel
         JPanel footerPanel = createFooterPanel();
         mainPanel.add(footerPanel, BorderLayout.SOUTH);
+        
+        // Create a wrapper panel to hold header and quick actions
+        JPanel topWrapper = new JPanel(new BorderLayout());
+        topWrapper.add(headerPanel, BorderLayout.NORTH);
+        topWrapper.add(quickActionsPanel, BorderLayout.SOUTH);
+        
+        mainPanel.remove(headerPanel);
+        mainPanel.remove(quickActionsPanel);
+        mainPanel.add(topWrapper, BorderLayout.NORTH);
         
         add(mainPanel);
     }
@@ -91,6 +104,78 @@ public class FinanceManagerWindow extends javax.swing.JFrame {
         headerPanel.add(userPanel, BorderLayout.EAST);
         
         return headerPanel;
+    }
+    
+    /**
+     * Create quick actions panel with small utility buttons
+     */
+    private JPanel createQuickActionsPanel() {
+        JPanel quickActionsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        quickActionsPanel.setBackground(new Color(235, 235, 235));
+        quickActionsPanel.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
+        
+        // Quick access label
+        JLabel quickLabel = new JLabel("Quick Access:");
+        quickLabel.setFont(new Font("Arial", Font.PLAIN, 11));
+        quickLabel.setForeground(new Color(80, 80, 80));
+        
+        // View All PRs button
+        viewAllPRButton = new JButton("View All Purchase Requisitions");
+        viewAllPRButton.setBackground(new Color(147, 112, 219));
+        viewAllPRButton.setForeground(Color.WHITE);
+        viewAllPRButton.setFont(new Font("Arial", Font.BOLD, 10));
+        viewAllPRButton.setBorder(BorderFactory.createEmptyBorder(5, 12, 5, 12));
+        viewAllPRButton.setFocusPainted(false);
+        viewAllPRButton.setPreferredSize(new Dimension(180, 25));
+        viewAllPRButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent evt) {
+                viewAllPRButtonActionPerformed(evt);
+            }
+        });
+        
+        // Add hover effect
+        viewAllPRButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                viewAllPRButton.setBackground(new Color(147, 112, 219).brighter());
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                viewAllPRButton.setBackground(new Color(147, 112, 219));
+            }
+        });
+        
+        // View All POs button
+        viewAllPOButton = new JButton("View All Purchase Orders");
+        viewAllPOButton.setBackground(new Color(100, 149, 237));
+        viewAllPOButton.setForeground(Color.WHITE);
+        viewAllPOButton.setFont(new Font("Arial", Font.BOLD, 10));
+        viewAllPOButton.setBorder(BorderFactory.createEmptyBorder(5, 12, 5, 12));
+        viewAllPOButton.setFocusPainted(false);
+        viewAllPOButton.setPreferredSize(new Dimension(160, 25));
+        viewAllPOButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent evt) {
+                viewAllPOButtonActionPerformed(evt);
+            }
+        });
+        
+        // Add hover effect
+        viewAllPOButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                viewAllPOButton.setBackground(new Color(100, 149, 237).brighter());
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                viewAllPOButton.setBackground(new Color(100, 149, 237));
+            }
+        });
+        
+        quickActionsPanel.add(quickLabel);
+        quickActionsPanel.add(Box.createHorizontalStrut(10));
+        quickActionsPanel.add(viewAllPRButton);
+        quickActionsPanel.add(Box.createHorizontalStrut(5));
+        quickActionsPanel.add(viewAllPOButton);
+        
+        return quickActionsPanel;
     }
     
     /**
@@ -280,6 +365,24 @@ public class FinanceManagerWindow extends javax.swing.JFrame {
         FM_Payment paymentWindow = new FM_Payment(this, financeManager);
         paymentWindow.setVisible(true);
         this.setVisible(false); // Hide current window
+    }
+
+    /**
+     * Handle view all PO button click
+     */
+    private void viewAllPOButtonActionPerformed(ActionEvent evt) {
+        FM_ViewFullPO viewFullPOWindow = new FM_ViewFullPO(this, financeManager);
+        viewFullPOWindow.setVisible(true);
+        this.setVisible(false); // Hide current window
+    }
+
+    /**
+     * Handle view all PR button click (new method)
+     */
+    private void viewAllPRButtonActionPerformed(ActionEvent evt) {
+        FM_ViewFullPR viewFullPRWindow = new FM_ViewFullPR(this, financeManager);
+        viewFullPRWindow.setVisible(true);
+        this.setVisible(false); // Hide current window
     }// </editor-fold> 
 
     /**
@@ -312,5 +415,7 @@ public class FinanceManagerWindow extends javax.swing.JFrame {
     private javax.swing.JButton viewPRButton;
     private javax.swing.JButton generateReportButton;
     private javax.swing.JButton processPaymentButton;
+    private javax.swing.JButton viewAllPOButton;
+    private javax.swing.JButton viewAllPRButton; // New button declaration
     // End of variables declaration  
 }
