@@ -13,6 +13,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.List;
 import com.mycompany.owsb.model.AuditLog;
+
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -37,7 +38,7 @@ public class PmViewLog extends javax.swing.JFrame {
         
         initComponents();
         setupWindowListener();
-        this.auditLog = new AuditLog();
+        
         loadViewItem();
         
         String username = purchaseManager.getLoggedInUser().getUsername();
@@ -54,26 +55,26 @@ public class PmViewLog extends javax.swing.JFrame {
             }
         });
     }
+         private void loadViewItem() {
+        List<String[]> logs = auditLog.getAllLogs();
+        DefaultTableModel model = (DefaultTableModel) auditTable.getModel();
+        model.setRowCount(0); // Clear table
 
-   private void loadViewItem() {
-    List<String[]> logs = auditLog.getAllLogs(); // Load all logs
-
-    DefaultTableModel model = (DefaultTableModel) auditTable.getModel();
-    model.setRowCount(0); // Clear table
-
-    for (String[] log : logs) {
-        model.addRow(log); 
+        for (String[] entry : logs) {
+            model.addRow(entry);
+        }
     }
-}
 
-private void searchLogs(String keyword) {
-    List<String[]> results = auditLog.searchLogs(keyword.toLowerCase());
-    DefaultTableModel model = (DefaultTableModel) auditTable.getModel();
-    model.setRowCount(0);
-    for (String[] log : results) {
-        model.addRow(log);
-    }
-}
+        
+        private void searchLogs(String keyword) {
+        List<String[]> results = keyword.isEmpty() ? auditLog.getAllLogs() : auditLog.searchLogs(keyword);
+        DefaultTableModel model = (DefaultTableModel) auditTable.getModel();
+        model.setRowCount(0); // Clear table
+
+        for (String[] entry : results) {
+            model.addRow(entry);
+     
+        }}
 
      
 

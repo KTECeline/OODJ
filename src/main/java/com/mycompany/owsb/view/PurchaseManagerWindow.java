@@ -33,6 +33,7 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
     private List<PurchaseRequisition> prList;
     private List<Item> itemList;
     private List<PurchaseRequisitionItem> prItemList;
+    private AuditLog auditLog;
 
     /**
      * Creates new form PurchaseManagerWindow
@@ -45,17 +46,24 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
         loadPRTable("All");
         loadSummaryLabels();
         showLog();
-        
+        this.auditLog = new AuditLog();
 
     }
     
-    public void showLog(){
-        AuditLog auditLog = new AuditLog();
-        String latestLog = auditLog.getLatestLog();  // get only the latest log
+    public void showLog() {
+   List<String[]> logs = auditLog.getAllLogs();
+        if (!logs.isEmpty()) {
+            String[] latestLog = logs.get(logs.size() - 1); // Get the last (latest) entry
+            String formattedLog = String.format(
+                "Time: %s\nUser: %s\nRole: %s\nAction: %s\nDetails: %s",
+                latestLog[0], latestLog[1], latestLog[2], latestLog[3], latestLog[4]
+            );
+            logArea.setText(formattedLog);
+        } else {
+            logArea.setText("No log entries found.");
+        }
+}
 
-        logArea.setText(latestLog);
-
-    }
     public void showPmWindow() {
         setVisible(true);  // Show the window
     }
