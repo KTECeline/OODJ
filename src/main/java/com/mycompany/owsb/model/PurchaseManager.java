@@ -6,6 +6,7 @@ import java.awt.Frame;
 import java.awt.GridLayout;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -395,6 +396,82 @@ public static String findExistingPOId(String prId) {
             }
         }
     }
+
+/*public void deletePurchaseOrderItem(String poId, String itemId) {
+        if (!isAllowedToPerform("delete PurchaseOrder")) {
+            throw new IllegalStateException("Authentication failed for delete PurchaseOrder");
+        }
+
+        if (poId == null || itemId == null || poId.isEmpty() || itemId.isEmpty()) {
+        JOptionPane.showMessageDialog(null, "Invalid PO ID or Item ID", "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+
+    File inputFile = new File(PURCHASE_ORDER_FILE);
+    File tempFile = new File("temp_purchase_orders.csv");
+
+    String affectedPrId = null;
+
+    try (BufferedReader reader = new BufferedReader(new FileReader(inputFile));
+         BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
+
+        String line;
+        while ((line = reader.readLine()) != null) {
+            String[] parts = line.split(",");
+            if (parts.length < 8) continue;
+
+            String currentPoId = parts[0];
+            String currentItemId = parts[1];  // assuming ITEM_ID is at index 1
+            String prId = parts[7];    // assuming PR_ID is at index 7
+
+            if (currentPoId.equalsIgnoreCase(poId) && currentItemId.equalsIgnoreCase(itemId)) {
+                affectedPrId = prId; // save PR_ID for status update check
+                continue; // skip this line (i.e., delete this PO item)
+            }
+
+            writer.write(line);
+            writer.newLine();
+        }
+
+    } catch (IOException e) {
+        JOptionPane.showMessageDialog(null, "Error while deleting PO item: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+
+    // Replace the original PO file
+    if (!inputFile.delete() || !tempFile.renameTo(inputFile)) {
+        JOptionPane.showMessageDialog(null, "Failed to finalize PO item deletion", "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+
+    // Re-check if the PR still has other items in any PO
+    if (affectedPrId != null) {
+        boolean hasRemainingPOItems = false;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(PURCHASE_ORDER_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length >= 8 && parts[7].equalsIgnoreCase(affectedPrId)) {
+                    hasRemainingPOItems = true;
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Error reading PO file for PR status update: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        if (!hasRemainingPOItems) {
+            PurchaseRequisition pr = PurchaseRequisition.findById(affectedPrId);
+            if (pr != null) {
+                pr.setStatus("PENDING");
+                PurchaseRequisition.update(pr);
+            }
+        }
+    }
+
+    JOptionPane.showMessageDialog(null, "PO item deleted successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
+}*/
 
     // View Operations
     public List<PurchaseOrder> getAllPurchaseOrders() {

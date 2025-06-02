@@ -96,3 +96,10 @@
 2025-06-02 02:11:17,zhixian,Finance Manager,PO Status Update by Finance Manager,PO ID: PO0005, New Status: REJECTED
 2025-06-02 02:12:04,US0005,Inventory Manager,Purchase Order Status Updated by Inventory Manager,PO ID: PO0007, New Status: UNFULFILLED
 2025-06-02 02:12:57,US0005,Inventory Manager,Purchase Order Status Updated by Inventory Manager,PO ID: PO0006, New Status: RECEIVED
+2025-06-02 09:51:26,celine,Purchase Manager,PO Item Update/Edit changed by Purchase Manager,PO0009,IT0012,PENDING->APPROVED
+2025-06-02 09:51:39,celine,Purchase Manager,PO Item Deleted by Purchase Manager,PO:PO0009,Item:IT0008
+2025-06-02 10:12:07,US0003,Inventory Manager,PO Created by Purchase Manager,PO:PO0004,PR:PR0005,Supplier:SP0003,Items:IT0001:Qty=100;
+2025-06-02 10:13:15,celine,Purchase Manager,PO Created by Purchase Manager,PO:PO0011,PR:PR0011,Supplier:SP0008,Items:IT0005:Qty=13;
+2025-06-02 10:19:02,US0003,Inventory Manager,PO Created by Purchase Manager,PO:PO0012,PR:PR0009,Supplier:SP0005,Items:IT0009:Qty=20;
+2025-06-02 10:23:41,celine,Purchase Manager,PO Created by Purchase Manager,PO:PO0012,PR:PR0009,Supplier:SP0005,Items:IT0007:Qty=15;
+2025-06-02 10:24:05,celine,Purchase Manager,PO Item Deleted by Purchase Manager,PO:PO0012,Item:IT0009
