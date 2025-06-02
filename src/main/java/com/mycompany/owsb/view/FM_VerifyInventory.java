@@ -121,7 +121,7 @@ public class FM_VerifyInventory extends javax.swing.JFrame {
         contentPanel.add(subtitleLabel, BorderLayout.NORTH);
         
         // Create table
-        String[] columnNames = {"Order ID", "Item ID", "Supplier", "Quantity", 
+        String[] columnNames = {"Order ID", "Item ID", "Supplier ID", "Quantity", 
                                "Total Price", "Order Date", "Received Date", "Status", "PR ID"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
