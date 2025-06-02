@@ -6,7 +6,6 @@ import java.awt.Frame;
 import java.awt.GridLayout;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -526,12 +525,6 @@ public static String findExistingPOId(String prId) {
         PurchaseOrder.searchAndDisplayPO(searchField, table, getAllPurchaseOrders(), getAllRequisitions());
     }
 
-    @Override
-    public List<PurchaseOrder> searchPOs(String poId) {
-        return PurchaseOrder.loadPurchaseOrders().stream()
-                .filter(po -> po.getOrderID().toLowerCase().contains(poId.toLowerCase()))
-                .toList();
-    }
 
     // Filter Methods
     public List<PurchaseOrder> getOrdersByStatus(String status) {
@@ -770,24 +763,83 @@ public static String findExistingPOId(String prId) {
         }
     }
 }
+@Override
+public List<PurchaseOrder> generatePurchaseOrders(String supplierId, String createdBy, List<PurchaseRequestItemGroup> prGroups) {
+    return generatePurchaseOrdersFromMultiplePRs(supplierId, createdBy, prGroups);
+}
 
-    @Override
-    public List<PurchaseOrder> generatePO(String supplierId, String createdBy, String prId, List<String> itemIds) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+@Override
+public void editPOItem(String poId, String itemId, String newSupplierId, int newQuantity, double newTotalPrice, String newStatus) {
+    updatePurchaseOrderItem(poId, itemId, newSupplierId, newQuantity, newTotalPrice, newStatus);
+}
+
+@Override
+public void deletePOItem(String poId, String itemId) {
+    deletePurchaseOrderItem(poId, itemId);
+}
+@Override
+public List<PurchaseOrder> viewPOs(String status, String supplierId) {
+    List<PurchaseOrder> pos = getAllPurchaseOrders();
+    List<PurchaseOrder> filteredPos = new ArrayList<>();
+
+    for (PurchaseOrder po : pos) {
+        boolean matches = true;
+
+        if (status != null && !status.isEmpty()) {
+            boolean statusMatch = false;
+            List<PurchaseOrder.PurchaseOrderItem> items = po.getItems();
+            for (PurchaseOrder.PurchaseOrderItem item : items) {
+                if (item.getStatus().equalsIgnoreCase(status)) {
+                    statusMatch = true;
+                    break;
+                }
+            }
+            if (!statusMatch) {
+                matches = false;
+            }
+        }
+
+        if (supplierId != null && !supplierId.isEmpty()) {
+            if (!po.getSupplierID().equalsIgnoreCase(supplierId)) {
+                matches = false;
+            }
+        }
+
+        if (matches) {
+            filteredPos.add(po);
+        }
     }
 
-    @Override
-    public void editPOItem(String poId, String itemId, String newSupplierId, int newQuantity, double newTotalPrice, String newStatus) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    return filteredPos;
+}
+
+@Override
+public List<PurchaseOrder> searchPOs(String poId) {
+    List<PurchaseOrder> pos = getAllPurchaseOrders();
+    List<PurchaseOrder> results = new ArrayList<>();
+
+    if (poId == null || poId.trim().isEmpty()) {
+        return pos;
     }
 
-    @Override
-    public void deletePOItem(String poId, String itemId) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    String searchLower = poId.toLowerCase();
+    for (PurchaseOrder po : pos) {
+        if (po.getOrderID().toLowerCase().contains(searchLower)) {
+            results.add(po);
+        }
     }
 
-    @Override
-    public List<PurchaseOrder> viewPOs() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    return results;
+}
+
+@Override
+public boolean isSupplierValidForItem(String supplierId, String itemId) {
+    List<SupplierItem> supplierItems = SupplierItem.loadSupplierItems();
+    for (SupplierItem si : supplierItems) {
+        if (si.getSupplierID().equalsIgnoreCase(supplierId) && si.getItemID().equalsIgnoreCase(itemId)) {
+            return true;
+        }
     }
+    return false;
+}
 }
