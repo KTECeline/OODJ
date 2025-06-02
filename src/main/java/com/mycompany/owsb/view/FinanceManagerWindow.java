@@ -7,6 +7,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+// FinanceManagerWindow class provides the main dashboard for the Finance Manager role
 public class FinanceManagerWindow extends javax.swing.JFrame {
     private final User loggedInUser;
     private final FinanceManager financeManager;

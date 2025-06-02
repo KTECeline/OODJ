@@ -23,10 +23,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
-/**
- *
- * @author timi
- */
+// This class represents viewing of the purchase orders.
 public class Finance_ViewPO {
     private String orderID;
     private String itemID;

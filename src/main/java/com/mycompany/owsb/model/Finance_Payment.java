@@ -3,14 +3,16 @@ package com.mycompany.owsb.model;
 import java.time.LocalDate;
 import java.util.List;
 
+// Finance_Payment class represents a payment made to a supplier for an order
 public class Finance_Payment {
-    private String paymentID;      // pyID - Primary key
-    private String orderID;        // Reference to Purchase Order
-    private String supplierID;     // Supplier being paid
-    private double totalAmount;    // Payment amount
-    private LocalDate paymentDate; // pyDate - When payment was made
-    private String paymentMethod;  // pyMethod - How payment was made
-    private String status;         // Payment status (PENDING, COMPLETED, FAILED)
+    // Payment details fields
+    private String paymentID;      
+    private String orderID;       
+    private String supplierID;     
+    private double totalAmount;    
+    private LocalDate paymentDate; 
+    private String paymentMethod;  
+    private String status;         
 
     // Constructor for new payment
     public Finance_Payment(String paymentID, String orderID, String supplierID, 

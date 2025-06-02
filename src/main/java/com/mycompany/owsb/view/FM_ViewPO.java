@@ -13,6 +13,7 @@ import java.util.ArrayList;
 
 /**
  * Panel for Finance Manager to view and approve Purchase Orders
+ * (Only shows PENDING orders)
  */
 public class FM_ViewPO extends javax.swing.JFrame {
     private final FinanceManagerWindow parentWindow;

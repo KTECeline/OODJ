@@ -24,10 +24,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
-/**
- *
- * @author timi
- */
+// Payment class represents a payment made to a supplier for one or more orders
 public class Payment {
     private final String paymentID;
     private List<String> orderIDs;

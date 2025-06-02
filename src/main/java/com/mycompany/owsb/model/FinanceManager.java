@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+// Finance Manager main class, extends Manager.
 public class FinanceManager extends Manager {
     private static final String PURCHASE_ORDER_FILE = "data/purchase_order.txt";
     private static final String PAYMENT_DETAILS_FILE = "data/payment_details.txt";

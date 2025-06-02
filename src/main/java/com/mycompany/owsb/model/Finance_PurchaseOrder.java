@@ -2,17 +2,20 @@ package com.mycompany.owsb.model;
 
 import java.time.LocalDate;
 
+// Finance_PurchaseOrder class represents the initial reviewing of orders with status "PENDING"
 public class Finance_PurchaseOrder {
+    // PO fields
     private String orderID;
     private String itemID;
     private String supplierID;
     private int quantity;
     private double totalPrice;
     private LocalDate orderDate;
-    private String status;  // PENDING, APPROVED, REJECTED
-    private String prID;    // Purchase Requisition ID
-    private String userID;  // User who created the PO
+    private String status;  
+    private String prID;   
+    private String userID;  
 
+    // Constructor for new purchase order
     public Finance_PurchaseOrder(String orderID, String itemID, String supplierID, 
                           int quantity, double totalPrice, LocalDate orderDate,
                           String status, String prID, String userID) {

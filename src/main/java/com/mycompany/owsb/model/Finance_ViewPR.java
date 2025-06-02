@@ -23,10 +23,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
-/**
- *
- * @author timi
- */
+// This class represents viewing of the purchase requisition.
 public class Finance_ViewPR {
     private final String prID;
     private String supplierID;

@@ -9,15 +9,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.swing.table.DefaultTableModel;
 
-/**
- * Enhanced Finance Report Generator with Date Filtering
- * Generates two types of financial reports: Summary and Detailed
- * Now supports date range filtering for focused reporting
- * 
- * @author Generated
- */
+// Finance_Report class handles financial reporting functionalities based on finance_payment.txt records.
 public class Finance_Report {
-    
+    // Finance report class to generate financial summaries and detailed reports
     private List<Payment> allPayments;
     private LocalDate filterStartDate;
     private LocalDate filterEndDate;

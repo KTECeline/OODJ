@@ -2,7 +2,9 @@ package com.mycompany.owsb.model;
 
 import java.time.LocalDate;
 
+// Finance_PurchaseOrder class represents changing the status of an order from "RECEIVED" to "VERIFIED" in PO table.
 public class Finance_VerifyInventory {
+    // Inventory verification fields
     private String orderID;
     private String itemID;
     private String supplierID;
@@ -10,11 +12,12 @@ public class Finance_VerifyInventory {
     private double totalPrice;
     private LocalDate orderDate;
     private String status;  // Should be "RECEIVED" for verification
-    private String prID;    // Purchase Requisition ID
-    private String userID;  // User who created the PO
-    private LocalDate receivedDate;  // When it was marked as received
-    private boolean verified; // Whether FM has verified the inventory update
+    private String prID;    
+    private String userID;  
+    private LocalDate receivedDate;  
+    private boolean verified; 
 
+    // Constructor for new inventory verification
     public Finance_VerifyInventory(String orderID, String itemID, String supplierID, 
                                  int quantity, double totalPrice, LocalDate orderDate,
                                  String status, String prID, String userID) {
