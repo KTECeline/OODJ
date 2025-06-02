@@ -35,7 +35,7 @@ public class PmViewLog extends javax.swing.JFrame {
     public PmViewLog(PurchaseManagerWindow parentWindow, PurchaseManager purchaseManager) {
         this.parentWindow = parentWindow;
         this.purchaseManager = purchaseManager;
-        
+         auditLog = new AuditLog();
         initComponents();
         setupWindowListener();
         

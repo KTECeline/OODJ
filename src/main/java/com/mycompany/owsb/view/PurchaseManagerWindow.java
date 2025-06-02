@@ -12,10 +12,7 @@ import com.mycompany.owsb.model.SupplierPRGroup;
 import com.mycompany.owsb.model.User;
 import com.mycompany.owsb.model.WindowUtil;
 import java.util.ArrayList;
-
 import java.util.List;
-
-import java.util.stream.Collectors;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.JOptionPane;
 /**
@@ -41,12 +38,13 @@ public class PurchaseManagerWindow extends javax.swing.JFrame {
     public PurchaseManagerWindow(User loggedInUser, PurchaseManager purchaseManager) {
         this.loggedInUser = loggedInUser;
         this.purchaseManager= purchaseManager;
+        auditLog = new AuditLog();
         initComponents();
         jTextField1.setText("Enter PR ID");
         loadPRTable("All");
         loadSummaryLabels();
         showLog();
-        this.auditLog = new AuditLog();
+        
 
     }
     
