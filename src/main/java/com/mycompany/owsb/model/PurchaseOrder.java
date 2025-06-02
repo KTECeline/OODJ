@@ -159,10 +159,7 @@ public class PurchaseOrder {
     }
 
     // Setters
-    
-    
-    
-    
+
 
     public void setSupplierID(String supplierID) {
         if (supplierID == null || supplierID.isEmpty()) {

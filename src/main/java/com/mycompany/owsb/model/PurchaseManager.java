@@ -16,7 +16,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -32,7 +31,7 @@ import javax.swing.JPasswordField;
  * Represents a Purchase Manager user with functionalities to view items, suppliers,
  * purchase requisitions, generate purchase orders, and manage (edit/delete) purchase orders.
  */
-public class PurchaseManager extends Manager implements ManageItemInterface, ManagePOInterface {
+public class PurchaseManager extends Manager implements ManagePOInterface {
 
     private static final String PURCHASE_ORDER_FILE = "data/purchase_order.txt";
     private static final String PURCHASE_REQUISITION_FILE = "data/purchase_requisition.txt";
@@ -447,43 +446,6 @@ public static String findExistingPOId(String prId) {
         return Supplier.loadSuppliers();
     }
 
-    // GUI Update Methods
-    public void updateItemTable(JTable targetTable) {
-        Item.updateItemTableInUI(getAllItems(), targetTable);
-    }
-
-    public void updateSupplierTable(JTable targetTable) {
-        Supplier.updateSupplierTableInUI(getAllSuppliers(), SupplierItem.loadSupplierItems(), targetTable);
-    }
-
-    public void updatePRTable(JTable targetTable) {
-    PurchaseRequisition.updatePRTableInUI(getAllRequisitions(), 
-                                         PurchaseRequisitionItem.loadPurchaseRequisitionItems(), 
-                                         getAllItems(), // Add Item list
-                                         targetTable);
-}
-    public void updatePOTable(JTable targetTable) {
-        PurchaseOrder.updatePOTableInUI(getAllPurchaseOrders(), getAllRequisitions(), targetTable);
-    }
-
-    // Search Methods
-    public void searchItem(JTextField searchField, JTable table) {
-        Item.searchAndDisplayItemInTable(searchField, table, getAllItems());
-    }
-
-    public void searchSupplier(JTextField searchField, JTable table) {
-        Supplier.searchAndDisplaySupplierInTable(searchField, table, getAllSuppliers(), SupplierItem.loadSupplierItems());
-    }
-
-    public void searchPR(JTextField searchField, JTable table) {
-        PurchaseRequisition.searchAndDisplayPRInTable(searchField, table, getAllRequisitions(), getAllItems(),PurchaseRequisitionItem.loadPurchaseRequisitionItems());
-    }
-
-    public void searchPO(JTextField searchField, JTable table) {
-        PurchaseOrder.searchAndDisplayPO(searchField, table, getAllPurchaseOrders(), getAllRequisitions());
-    }
-
-
     // Filter Methods
     public List<PurchaseOrder> getOrdersByStatus(String status) {
     List<PurchaseOrder> result = new ArrayList<>();
@@ -501,22 +463,6 @@ public static String findExistingPOId(String prId) {
 
     return result;
 }
-
-
-    @Override
-    public void addItem(JFrame parent, List<Item> itemList, JTable itemTable) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
-    public void editItem(Item itemToEdit, List<Item> itemList, JTable itemTable) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
-    public void deleteItem(JFrame parent, List<Item> itemList, List<SupplierItem> supplierItemList, List<PurchaseRequisition> prList, List<PurchaseRequisitionItem> prItemList, JTable itemTable) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
 
     public Stats getSummaryStats() {
     int totalItems = getAllItems().size();
