@@ -35,7 +35,7 @@ public class PurchaseOrder {
         private String itemID;
         private int quantity;
         private double totalPrice;
-       private String status;
+        private String status;
         private String prId; 
         
         public PurchaseOrderItem(String itemID, int quantity, double totalPrice, String status) {
@@ -67,17 +67,16 @@ public class PurchaseOrder {
             return totalPrice;
         }
          
-        
         public String getStatus(){
             return status;
         }
         
         public void setStatus(String status) {
-        if (!isValidStatus(status)) {
-            throw new IllegalArgumentException("Invalid status value");
+            if (!isValidStatus(status)) {
+                throw new IllegalArgumentException("Invalid status value");
+            }
+            this.status = status;
         }
-        this.status = status;
-    }
 
         public void setQuantity(int quantity) {
             if (quantity <= 0) {
@@ -94,19 +93,19 @@ public class PurchaseOrder {
         }
 
         public void setPrId(String prId) {
-        this.prId = prId;
-    }
+            this.prId = prId;
+        }
    
         private boolean isValidStatus(String status) {
-        return status != null && 
-               (status.equals("PENDING") || 
-                status.equals("APPROVED") || 
-                status.equals("REJECTED") || 
-                status.equals("UNFULFILLED") ||
-                status.equals("RECEIVED") ||
-                status.equals("VERIFIED") ||
-                status.equals("COMPLETED"));
-    }
+            return status != null && 
+                   (status.equals("PENDING") || 
+                    status.equals("APPROVED") || 
+                    status.equals("REJECTED") || 
+                    status.equals("UNFULFILLED") ||
+                    status.equals("RECEIVED") ||
+                    status.equals("VERIFIED") ||
+                    status.equals("COMPLETED"));
+        }
     }
 
     // Constructor
@@ -194,26 +193,26 @@ public class PurchaseOrder {
     }
 
     public static PurchaseOrder fromString(String orderString) {
-    String[] orderData = orderString.split(",", 9);
+        String[] orderData = orderString.split(",", 9);
 
-    if (orderData.length < 9) {
-        throw new IllegalArgumentException("Malformed line in purchase_order.txt: " + orderString);
+        if (orderData.length < 9) {
+            throw new IllegalArgumentException("Malformed line in purchase_order.txt: " + orderString);
+        }
+
+        String orderID = orderData[0];
+        String itemID = orderData[1];
+        String supplierID = orderData[2];
+        int quantity = Integer.parseInt(orderData[3]);
+        double totalPrice = Double.parseDouble(orderData[4]);
+        String orderDate = orderData[5];
+        String status = orderData[6];
+        String prId = orderData[7];
+        String createdBy = orderData[8];
+
+        PurchaseOrder po = new PurchaseOrder(orderID, supplierID, orderDate, prId, createdBy);
+        po.addItem(new PurchaseOrderItem(itemID, quantity, totalPrice, status));
+        return po;
     }
-
-    String orderID = orderData[0];
-    String itemID = orderData[1];
-    String supplierID = orderData[2];
-    int quantity = Integer.parseInt(orderData[3]);
-    double totalPrice = Double.parseDouble(orderData[4]);
-    String orderDate = orderData[5];
-    String status = orderData[6];
-    String prId = orderData[7];
-    String createdBy = orderData[8];
-
-    PurchaseOrder po = new PurchaseOrder(orderID, supplierID, orderDate, prId, createdBy);
-    po.addItem(new PurchaseOrderItem(itemID, quantity, totalPrice, status));
-    return po;
-}
 
 
     public String getFormattedDetails() {
@@ -308,105 +307,105 @@ public class PurchaseOrder {
         return String.format("PO%04d", maxId + 1);
     }
 
- public static void updatePOTableInUI(List<PurchaseOrder> poList, List<PurchaseRequisition> prList, JTable targetTable) {
-    String[] columnNames = {"PO ID", "Item ID", "Supplier ID", "Quantity", "Total Price (RM)", 
-                            "Order Date", "Status", "PR ID", "Required Date", "Created By"};
-    DefaultTableModel model = new DefaultTableModel(columnNames, 0);
+    public static void updatePOTableInUI(List<PurchaseOrder> poList, List<PurchaseRequisition> prList, JTable targetTable) {
+        String[] columnNames = {"PO ID", "Item ID", "Supplier ID", "Quantity", "Total Price (RM)", 
+                                "Order Date", "Status", "PR ID", "Required Date", "Created By"};
+        DefaultTableModel model = new DefaultTableModel(columnNames, 0);
 
-    for (PurchaseOrder po : poList) {
-        // Get the purchase requisition to fetch required date (can be null)
-        PurchaseRequisition pr = getRequisitionById(po.prId, prList);
-        String requiredDate = (pr != null) ? pr.getRequiredDate().toString() : "N/A";
+        for (PurchaseOrder po : poList) {
+            // Get the purchase requisition to fetch required date (can be null)
+            PurchaseRequisition pr = getRequisitionById(po.prId, prList);
+            String requiredDate = (pr != null) ? pr.getRequiredDate().toString() : "N/A";
 
-        for (PurchaseOrder.PurchaseOrderItem item : po.items) {
-            Object[] row = {
-                po.orderID,
-                item.getItemID(),
-                po.supplierID,
-                item.getQuantity(),
-                String.format("%.2f", item.getTotalPrice()),
-                po.orderDate,
-                item.getStatus(),  // Ideally, this should be item.getStatus() if you fix the status per item issue
-                po.prId,
-                requiredDate,
-                po.createdBy
-            };
+            for (PurchaseOrder.PurchaseOrderItem item : po.items) {
+                Object[] row = {
+                    po.orderID,
+                    item.getItemID(),
+                    po.supplierID,
+                    item.getQuantity(),
+                    String.format("%.2f", item.getTotalPrice()),
+                    po.orderDate,
+                    item.getStatus(),  // Ideally, this should be item.getStatus() if you fix the status per item issue
+                    po.prId,
+                    requiredDate,
+                    po.createdBy
+                };
 
-            model.addRow(row);
+                model.addRow(row);
+            }
         }
+        applyStatusColorRenderer(targetTable);  // Your custom cell renderer
+
+        targetTable.setModel(model);             // Set the model on the table
+
+        Item.autoResizeColumnWidths(targetTable);  // Your helper to resize columns
     }
-    applyStatusColorRenderer(targetTable);  // Your custom cell renderer
 
-    targetTable.setModel(model);             // Set the model on the table
-
-    Item.autoResizeColumnWidths(targetTable);  // Your helper to resize columns
-}
-
-private static PurchaseRequisition getRequisitionById(String prID, List<PurchaseRequisition> prList) {
-    for (PurchaseRequisition pr : prList) {
-        if (pr.getPrID().equalsIgnoreCase(prID)) {
-            return pr;
+    private static PurchaseRequisition getRequisitionById(String prID, List<PurchaseRequisition> prList) {
+        for (PurchaseRequisition pr : prList) {
+            if (pr.getPrID().equalsIgnoreCase(prID)) {
+                return pr;
+            }
         }
+        return null;
     }
-    return null;
-}
 
     
     public static void searchAndDisplayPO(JTextField searchField, JTable targetTable, List<PurchaseOrder> poList, List<PurchaseRequisition> prList) {
-    String searchID = searchField.getText().trim().toUpperCase();
-    boolean found = false;
+        String searchID = searchField.getText().trim().toUpperCase();
+        boolean found = false;
 
-    if (poList.isEmpty()) {
-        JOptionPane.showMessageDialog(null, "No Purchase Orders loaded.", "Warning", JOptionPane.WARNING_MESSAGE);
-        return;
-    }
-
-    DefaultTableModel model = new DefaultTableModel(
-        new String[]{"PO ID", "Item ID", "Supplier ID", "Quantity", "Total Price (RM)", 
-                     "Order Date", "Status", "PR ID", "Required Date", "Created By"}, 0);
-
-    for (PurchaseOrder po : poList) {
-        if (po.getOrderID().equalsIgnoreCase(searchID)) {
-            // Find matching Purchase Requisition
-            LocalDate requiredDate = null;
-            for (PurchaseRequisition pr : prList) {
-                if (pr.getPrID().equals(po.getPrId())) {
-                    requiredDate = pr.getRequiredDate();
-                    break;
-                }
-            }
-
-            for (PurchaseOrderItem item : po.getItems()) {
-                Object[] row = {
-                    po.getOrderID(),
-                    item.getItemID(),
-                    po.getSupplierID(),
-                    item.getQuantity(),
-                    item.getTotalPrice(),
-                    po.getOrderDate(),
-                    item.getStatus(),
-                    po.getPrId(),
-                    requiredDate != null ? requiredDate.toString() : "N/A",
-                    po.getCreatedBy()
-                };
-                model.addRow(row);
-            }
-            found = true;
-            break;
+        if (poList.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "No Purchase Orders loaded.", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
         }
-    }
 
-    targetTable.setModel(model);
-    applyStatusColorRenderer(targetTable);
-    Item.autoResizeColumnWidths(targetTable);
+        DefaultTableModel model = new DefaultTableModel(
+            new String[]{"PO ID", "Item ID", "Supplier ID", "Quantity", "Total Price (RM)", 
+                         "Order Date", "Status", "PR ID", "Required Date", "Created By"}, 0);
 
-    if (!found) {
-        JOptionPane.showMessageDialog(null, "Purchase Order ID not found.", "Not Found", JOptionPane.INFORMATION_MESSAGE);
-        updatePOTableInUI(poList, prList, targetTable); // Refresh with full table
+        for (PurchaseOrder po : poList) {
+            if (po.getOrderID().equalsIgnoreCase(searchID)) {
+                // Find matching Purchase Requisition
+                LocalDate requiredDate = null;
+                for (PurchaseRequisition pr : prList) {
+                    if (pr.getPrID().equals(po.getPrId())) {
+                        requiredDate = pr.getRequiredDate();
+                        break;
+                    }
+                }
+
+                for (PurchaseOrderItem item : po.getItems()) {
+                    Object[] row = {
+                        po.getOrderID(),
+                        item.getItemID(),
+                        po.getSupplierID(),
+                        item.getQuantity(),
+                        item.getTotalPrice(),
+                        po.getOrderDate(),
+                        item.getStatus(),
+                        po.getPrId(),
+                        requiredDate != null ? requiredDate.toString() : "N/A",
+                        po.getCreatedBy()
+                    };
+                    model.addRow(row);
+                }
+                found = true;
+                break;
+            }
+        }
+
+        targetTable.setModel(model);
+        applyStatusColorRenderer(targetTable);
+        Item.autoResizeColumnWidths(targetTable);
+
+        if (!found) {
+            JOptionPane.showMessageDialog(null, "Purchase Order ID not found.", "Not Found", JOptionPane.INFORMATION_MESSAGE);
+            updatePOTableInUI(poList, prList, targetTable); // Refresh with full table
+        }
+
+        searchField.setText("Enter PO ID");
     }
-    
-    searchField.setText("Enter PO ID");
-}
 
     
    public static void applyStatusColorRenderer(JTable table) {

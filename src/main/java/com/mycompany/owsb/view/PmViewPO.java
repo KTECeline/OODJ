@@ -91,33 +91,46 @@ public class PmViewPO extends javax.swing.JFrame {
     PurchaseOrder.updatePOTableInUI(filteredPOs, allPRs, poTable);
 }*/
     public void filterPOTableByStatus() {
-    String selectedStatus = Filter.getSelectedItem().toString();
-    List<PurchaseOrder> allPOs = purchaseManager.getAllPurchaseOrders();
-    List<PurchaseRequisition> allPRs = purchaseManager.getAllRequisitions();
+        String selectedStatus = Filter.getSelectedItem().toString();
+        List<PurchaseOrder> allPOs = PurchaseOrder.loadPurchaseOrders();
+        List<PurchaseRequisition> allPRs = PurchaseRequisition.loadPurchaseRequisition();
 
-    List<PurchaseOrder> filteredPOs = new ArrayList<>();
+        List<PurchaseOrder> filteredPOs = new ArrayList<>();
 
-if (selectedStatus.equalsIgnoreCase("ALL")) {
-    filteredPOs.addAll(allPOs);
-} else {
-    for (PurchaseOrder po : allPOs) {
-        // Check if any item in this PO matches the selected status
-        boolean hasMatchingItem = false;
-        for (PurchaseOrder.PurchaseOrderItem item : po.getItems()) {
-            if (item.getStatus().equalsIgnoreCase(selectedStatus)) {
-                hasMatchingItem = true;
-                break;
+        for (PurchaseOrder po : allPOs) {
+            List<PurchaseOrder.PurchaseOrderItem> filteredItems = new ArrayList<>();
+
+            if (selectedStatus.equalsIgnoreCase("ALL")) {
+                filteredItems.addAll(po.getItems());
+            } else {
+                for (PurchaseOrder.PurchaseOrderItem item : po.getItems()) {
+                    if (item.getStatus().equalsIgnoreCase(selectedStatus)) {
+                        filteredItems.add(item);
+                    }
+                }
+            }
+
+            if (!filteredItems.isEmpty()) {
+                PurchaseOrder filteredPO = new PurchaseOrder(
+                    po.getOrderID(),
+                    po.getSupplierID(),
+                    po.getOrderDate(),
+                    po.getPrId(),
+                    po.getCreatedBy()
+                );
+
+                // Add only the matching items
+                for (PurchaseOrder.PurchaseOrderItem item : filteredItems) {
+                    filteredPO.addItem(item);
+                }
+
+                filteredPOs.add(filteredPO);
             }
         }
-        if (hasMatchingItem) {
-            filteredPOs.add(po);
-        }
+
+
+        PurchaseOrder.updatePOTableInUI(filteredPOs, allPRs, poTable);
     }
-}
-
-
-    PurchaseOrder.updatePOTableInUI(filteredPOs, allPRs, poTable);
-}
 
 
     /*private void setupTableSelectionListener() {

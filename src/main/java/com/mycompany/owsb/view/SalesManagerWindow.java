@@ -144,23 +144,38 @@ public class SalesManagerWindow extends javax.swing.JFrame {
 
         List<PurchaseOrder> filteredPOs = new ArrayList<>();
 
+        for (PurchaseOrder po : allPOs) {
+            List<PurchaseOrder.PurchaseOrderItem> filteredItems = new ArrayList<>();
+
             if (selectedStatus.equalsIgnoreCase("ALL")) {
-                filteredPOs.addAll(allPOs);
+                filteredItems.addAll(po.getItems());
             } else {
-                for (PurchaseOrder po : allPOs) {
-                    // Check if any item in this PO matches the selected status
-                    boolean hasMatchingItem = false;
-                    for (PurchaseOrder.PurchaseOrderItem item : po.getItems()) {
-                        if (item.getStatus().equalsIgnoreCase(selectedStatus)) {
-                            hasMatchingItem = true;
-                            break;
-                        }
-                    }
-                    if (hasMatchingItem) {
-                        filteredPOs.add(po);
+                for (PurchaseOrder.PurchaseOrderItem item : po.getItems()) {
+                    if (item.getStatus().equalsIgnoreCase(selectedStatus)) {
+                        filteredItems.add(item);
                     }
                 }
             }
+
+            if (!filteredItems.isEmpty()) {
+                PurchaseOrder filteredPO = new PurchaseOrder(
+                    po.getOrderID(),
+                    po.getSupplierID(),
+                    po.getOrderDate(),
+                    po.getPrId(),
+                    po.getCreatedBy()
+                );
+
+                // Add only the matching items
+                for (PurchaseOrder.PurchaseOrderItem item : filteredItems) {
+                    filteredPO.addItem(item);
+                }
+
+                filteredPOs.add(filteredPO);
+            }
+        }
+
+
         PurchaseOrder.updatePOTableInUI(filteredPOs, allPRs, poTable);
     }
     
