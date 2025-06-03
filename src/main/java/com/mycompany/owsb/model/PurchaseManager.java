@@ -52,7 +52,7 @@ public class PurchaseManager extends Manager implements ManagePOInterface {
               getLoggedInUser().getRole().equalsIgnoreCase("Root Administrator"))) {
             return false;
         }
-
+        
         JDialog dialog = new JDialog((Frame) null, "Password Verification", true);
         dialog.setLayout(new BorderLayout());
         dialog.setBackground(Color.white);
@@ -149,7 +149,8 @@ public class PurchaseManager extends Manager implements ManagePOInterface {
         return supplier;
     }
 
-    private PurchaseOrder processSinglePRGroup(PurchaseRequestItemGroup prGroup, String supplierId, String createdBy, List<SupplierItem> supplierItems, AuditLog auditLog) {
+    private PurchaseOrder processSinglePRGroup(PurchaseRequestItemGroup prGroup, String supplierId, 
+            String createdBy, List<SupplierItem> supplierItems, AuditLog auditLog) {
         String prId = prGroup.getPrId();
         List<String> approvedItemIds = prGroup.getItemIds();
         PurchaseRequisition pr = validatePR(prId);
@@ -220,6 +221,21 @@ public class PurchaseManager extends Manager implements ManagePOInterface {
         }
         return existingItems;
     }
+    
+     private void showDuplicateWarning(String itemId, String prId, List<PurchaseRequisitionItem> allItems, Set<String> existingPoItems) {
+        List<String> unprocessed = new ArrayList<>();
+        for (PurchaseRequisitionItem item : allItems) {
+            String id = item.getItemID();
+            if (!existingPoItems.contains(id)) {
+                unprocessed.add(id);
+            }
+        }
+        String msg = "Item " + itemId + " for PR " + prId + " is already generated but still pending. " +
+                     "Unprocessed items: " + (unprocessed.isEmpty() ? "None" : String.join(", ", unprocessed));
+        JOptionPane.showMessageDialog(null, msg, "Duplicate PO Attempt", JOptionPane.WARNING_MESSAGE);
+    }
+     
+     
 
     private boolean addValidItemsToPO(PurchaseOrder po, List<PurchaseRequisitionItem> selectedItems, List<PurchaseRequisitionItem> allItems,
                                      Set<String> existingPoItems, List<SupplierItem> supplierItems, StringBuilder itemDetails, String supplierId, String prId) {
@@ -249,18 +265,6 @@ public class PurchaseManager extends Manager implements ManagePOInterface {
         return added;
     }
 
-    private void showDuplicateWarning(String itemId, String prId, List<PurchaseRequisitionItem> allItems, Set<String> existingPoItems) {
-        List<String> unprocessed = new ArrayList<>();
-        for (PurchaseRequisitionItem item : allItems) {
-            String id = item.getItemID();
-            if (!existingPoItems.contains(id)) {
-                unprocessed.add(id);
-            }
-        }
-        String msg = "Item " + itemId + " for PR " + prId + " is already generated but still pending. " +
-                     "Unprocessed items: " + (unprocessed.isEmpty() ? "None" : String.join(", ", unprocessed));
-        JOptionPane.showMessageDialog(null, msg, "Duplicate PO Attempt", JOptionPane.WARNING_MESSAGE);
-    }
 
     private boolean isSuppliedBySupplier(String itemId, String supplierId, List<SupplierItem> supplierItems) {
         for (SupplierItem si : supplierItems) {
@@ -284,8 +288,10 @@ public class PurchaseManager extends Manager implements ManagePOInterface {
     }
 
     @Override
-    public void editPOItem(String poId, String itemId, String newSupplierId, int newQuantity, double newTotalPrice, String newStatus) {
-        updatePurchaseOrderItem(poId, itemId, newSupplierId, newQuantity, newTotalPrice, newStatus);
+    public void editPOItem(String poId, String itemId, String newSupplierId, 
+            int newQuantity, double newTotalPrice, String newStatus) {
+        updatePurchaseOrderItem(poId, itemId, newSupplierId, newQuantity, 
+                newTotalPrice, newStatus);
     }
 
     public void updatePurchaseOrderItem(String poId, String itemId, String newSupplierId, int newQuantity, double newTotalPrice, String newStatus) {
@@ -443,10 +449,7 @@ public class PurchaseManager extends Manager implements ManagePOInterface {
     
     @Override
     public void rejectPurchaseRequisitionItem(String prId, String itemId) {
-        if (!isAllowedToPerform("rejectPurchaseRequisitionItem")) {
-            throw new IllegalStateException("Authentication failed for reject PurchaseRequisitionItem");
-        }
-
+       
         // Validate PR ID and Item ID in purchase_requisition_item.txt
         boolean itemFound = false;
         List<PurchaseRequisitionItem> prItems = PurchaseRequisitionItem.loadPurchaseRequisitionItems();
