@@ -519,7 +519,7 @@ private void deleteSelectedPO() {
 
         jLabel12.setText("Status:");
 
-        statusField.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "PENDING", "APPROVED", "REJECTED", "RECEIVED", "UNFULFILLED", "COMPLETED" }));
+        statusField.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "PENDING", "APPROVED", "REJECTED", "RECEIVED", "UNFULFILLED", "VERIFIED", "COMPLETED" }));
 
         jLabel13.setText("PR ID:");
 
