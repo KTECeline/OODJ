@@ -2,10 +2,9 @@ IT0001,Medium Size Tupperware,117,22.5,32.0,false
 IT0002,Kuromi T-shirt,4,2.0,5.0,true
 IT0004,Rabbit Pink Bag,39,15.0,25.0,false
 IT0005,Bottle,25,20.0,50.0,false
-IT0006,Phone,9,1000.0,1200.0,false
+IT0006,Phone,9,1000.0,1200.0,true
 IT0007,Pink Purse,20,10.5,19.9,false
 IT0008,Melody Cup,20,50.0,88.0,false
 IT0009,Table Mat,55,4.5,9.0,false
-IT0010,Small Bin,33,9.9,15.9,false
-IT0011,Phone Stand,60,3.5,8.6,false
-IT0012,Mini Penguin Bag,77,5.9,13.9,false
+IT0010,Small Bin,33,10.0,15.9,false
+IT0012,Mini Penguin Bag,7,5.9,13.9,true
