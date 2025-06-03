@@ -8,6 +8,7 @@ import com.mycompany.owsb.model.FinanceManager;
 import com.mycompany.owsb.model.PurchaseManager;
 import com.mycompany.owsb.model.SalesManager;
 import com.mycompany.owsb.model.User;
+import com.mycompany.owsb.model.WindowUtil;
 import javax.swing.JOptionPane;
 
 /**
@@ -234,11 +235,7 @@ public class Admin_Dashboard extends javax.swing.JFrame {
     }//GEN-LAST:event_UserManagementActionPerformed
 
     private void LogoutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LogoutButtonActionPerformed
-        // TODO add your handling code here:
-        this.dispose(); // Closes the current SalesManagerWindow
-
-        LoginWindow loginWindow = new LoginWindow();
-        loginWindow.setVisible(true);
+        WindowUtil.logoutAndRedirectToLogin(this);
     }//GEN-LAST:event_LogoutButtonActionPerformed
 
     private void itemListBtn1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemListBtn1ActionPerformed
