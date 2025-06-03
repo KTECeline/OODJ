@@ -114,8 +114,8 @@ public class FinanceManager extends Manager {
         return verifiedOrders;
     }
 
-    // Approve/Reject a PO - FIXED to handle multiple line items with same PO ID
-    public boolean updatePOStatus(String poId, String newStatus) throws IOException {
+    // Approve/Reject a specific PO line item - Updated to use both PO ID and Item ID
+    public boolean updatePOStatus(String poId, String itemId, String newStatus) throws IOException {
         if (!isAllowedToPerform("ApprovePO") || 
             (!newStatus.equals("APPROVED") && !newStatus.equals("REJECTED"))) {
             return false;
@@ -128,13 +128,13 @@ public class FinanceManager extends Manager {
         List<String> lines = Files.readAllLines(Paths.get(PURCHASE_ORDER_FILE));
         boolean found = false;
         
-        // Process ALL lines with matching PO ID, not just the first one
+        // Process only the line with matching PO ID AND Item ID
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
             if (line.trim().isEmpty()) continue;
             
             String[] parts = line.split(",");
-            if (parts[0].trim().equals(poId)) {
+            if (parts[0].trim().equals(poId) && parts[1].trim().equals(itemId)) {
                 Finance_PurchaseOrder po = new Finance_PurchaseOrder(
                     parts[0].trim(), parts[1].trim(), parts[2].trim(),
                     Integer.parseInt(parts[3].trim()),
@@ -145,24 +145,24 @@ public class FinanceManager extends Manager {
                 po.setStatus(newStatus);
                 lines.set(i, po.toString());
                 found = true;
-                // REMOVED the break statement - continue processing all matching lines
+                break; // Stop after finding the specific line item
             }
         }
         
         if (found) {
             Files.write(Paths.get(PURCHASE_ORDER_FILE), lines);
-             AuditLog auditLog = new AuditLog();
-        String action = "PO Status Update by Finance Manager";
-        String details = String.format("PO ID: %s, New Status: %s", poId, newStatus);
-        auditLog.logAction(loggedInUser.getUsername(), loggedInUser.getRole(), action, details);
+            AuditLog auditLog = new AuditLog();
+            String action = "PO Status Update by Finance Manager";
+            String details = String.format("PO ID: %s, Item ID: %s, New Status: %s", poId, itemId, newStatus);
+            auditLog.logAction(loggedInUser.getUsername(), loggedInUser.getRole(), action, details);
             return true;
         }
         
         return false;
     }
 
-    // Verify inventory update (change RECEIVED to VERIFIED)
-    public boolean verifyInventoryUpdate(String poId) throws IOException {
+    // Verify inventory update for a specific line item - Updated to use both PO ID and Item ID
+    public boolean verifyInventoryUpdate(String poId, String itemId) throws IOException {
         if (!isAllowedToPerform("VerifyInventory")) {
             return false;
         }
@@ -174,41 +174,41 @@ public class FinanceManager extends Manager {
         List<String> lines = Files.readAllLines(Paths.get(PURCHASE_ORDER_FILE));
         boolean found = false;
         
-        // Process ALL lines with matching PO ID, not just the first one
+        // Process only the line with matching PO ID AND Item ID
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
             if (line.trim().isEmpty()) continue;
             
             String[] parts = line.split(",");
-            if (parts[0].trim().equals(poId) && parts[6].equalsIgnoreCase("RECEIVED")) {
+            if (parts[0].trim().equals(poId) && parts[1].trim().equals(itemId) && 
+                parts[6].equalsIgnoreCase("RECEIVED")) {
                 // Change status from RECEIVED to VERIFIED
                 parts[6] = "VERIFIED";
                 lines.set(i, String.join(",", parts));
                 found = true;
-                // REMOVED break statement - continue processing all matching lines
+                break; // Stop after finding the specific line item
             }
         }
         
         if (found) {
             Files.write(Paths.get(PURCHASE_ORDER_FILE), lines);
-             AuditLog auditLog = new AuditLog();
+            AuditLog auditLog = new AuditLog();
             String action = "PO Status Update by Finance Manager";
-            String details = String.format("PO ID: %s, New Status: VERIFIED", poId);
+            String details = String.format("PO ID: %s, Item ID: %s, New Status: VERIFIED", poId, itemId);
             auditLog.logAction(loggedInUser.getUsername(), loggedInUser.getRole(), action, details);
-
             return true;
         }
         return false;
     }
 
     // Process payment for a verified PO
-    public boolean processPayment(String poId, String paymentMethod) throws IOException {
+    public boolean processPayment(String poId, String itemId, String paymentMethod) throws IOException {
         if (!isAllowedToPerform("ProcessPayment")) {
             return false;
         }
         
-        // First, get the PO details
-        Finance_VerifyInventory po = getVerifiedPOById(poId);
+        // First, get the specific PO line item details
+        Finance_VerifyInventory po = getVerifiedPOById(poId, itemId);
         if (po == null || !po.isReadyForPayment()) {
             return false;
         }
@@ -228,15 +228,15 @@ public class FinanceManager extends Manager {
         boolean paymentSaved = savePayment(payment);
         
         if (paymentSaved) {
-            // Update PO status to COMPLETED
-            return updatePOStatusToCompleted(poId);
+            // Update specific PO line item status to COMPLETED
+            return updatePOStatusToCompleted(poId, itemId);
         }
         
         return false;
     }
 
     // Get verified PO by ID
-    private Finance_VerifyInventory getVerifiedPOById(String poId) throws IOException {
+    private Finance_VerifyInventory getVerifiedPOById(String poId, String itemId) throws IOException {
         if (!Files.exists(Paths.get(PURCHASE_ORDER_FILE))) {
             return null;
         }
@@ -248,7 +248,7 @@ public class FinanceManager extends Manager {
             
             String[] parts = line.split(",");
             if (parts.length >= 9 && parts[0].trim().equals(poId) && 
-                parts[6].equalsIgnoreCase("VERIFIED")) {
+                parts[1].trim().equals(itemId) && parts[6].equalsIgnoreCase("VERIFIED")) {
                 return new Finance_VerifyInventory(
                     parts[0].trim(), parts[1].trim(), parts[2].trim(),
                     Integer.parseInt(parts[3].trim()),
@@ -278,32 +278,31 @@ public class FinanceManager extends Manager {
         }
     }
 
-    // Update PO status to COMPLETED after payment
-    private boolean updatePOStatusToCompleted(String poId) throws IOException {
+    // Update PO status to COMPLETED after payment for a specific line item
+    private boolean updatePOStatusToCompleted(String poId, String itemId) throws IOException {
         List<String> lines = Files.readAllLines(Paths.get(PURCHASE_ORDER_FILE));
         boolean found = false;
         
-        // Process ALL lines with matching PO ID, not just the first one
+        // Process only the line with matching PO ID AND Item ID
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
             if (line.trim().isEmpty()) continue;
             
             String[] parts = line.split(",");
-            if (parts[0].trim().equals(poId)) {
+            if (parts[0].trim().equals(poId) && parts[1].trim().equals(itemId)) {
                 parts[6] = "COMPLETED";
                 lines.set(i, String.join(",", parts));
                 found = true;
-                // REMOVED break statement - continue processing all matching lines
+                break; // Stop after finding the specific line item
             }
         }
         
         if (found) {
             Files.write(Paths.get(PURCHASE_ORDER_FILE), lines);
-             AuditLog auditLog = new AuditLog();
-            String action = "Inventory Verified by Finance Manager";
-            String details = String.format("PO ID: %s, Status changed to VERIFIED", poId);
+            AuditLog auditLog = new AuditLog();
+            String action = "Payment Processed by Finance Manager";
+            String details = String.format("PO ID: %s, Item ID: %s, Status changed to COMPLETED", poId, itemId);
             auditLog.logAction(loggedInUser.getUsername(), loggedInUser.getRole(), action, details);
-
             return true;
         }
         return false;

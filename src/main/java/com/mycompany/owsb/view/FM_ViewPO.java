@@ -305,7 +305,7 @@ public class FM_ViewPO extends javax.swing.JFrame {
         }
     }
     
-    /**
+/**
      * Approve the selected purchase orders
      */
     private void approveSelectedPOs() {
@@ -318,14 +318,16 @@ public class FM_ViewPO extends javax.swing.JFrame {
             return;
         }
         
-        // Get selected order IDs
+        // Get selected order IDs and item IDs
         List<String> orderIDs = new ArrayList<>();
+        List<String> itemIDs = new ArrayList<>();
         for (int row : selectedRows) {
-            orderIDs.add((String) tableModel.getValueAt(row, 0));
+            orderIDs.add((String) tableModel.getValueAt(row, 0)); // Order ID
+            itemIDs.add((String) tableModel.getValueAt(row, 1));  // Item ID
         }
         
         String message = selectedRows.length == 1 ? 
-            "Are you sure you want to approve Purchase Order: " + orderIDs.get(0) + "?" :
+            "Are you sure you want to approve Purchase Order: " + orderIDs.get(0) + " (Item: " + itemIDs.get(0) + ")?" :
             "Are you sure you want to approve " + selectedRows.length + " Purchase Orders?\n" +
             "Order IDs: " + String.join(", ", orderIDs);
         
@@ -338,16 +340,18 @@ public class FM_ViewPO extends javax.swing.JFrame {
             int successCount = 0;
             List<String> failedOrders = new ArrayList<>();
             
-            for (String orderID : orderIDs) {
+            for (int i = 0; i < orderIDs.size(); i++) {
+                String orderID = orderIDs.get(i);
+                String itemID = itemIDs.get(i);
                 try {
-                    boolean success = financeManager.updatePOStatus(orderID, "APPROVED");
+                    boolean success = financeManager.updatePOStatus(orderID, itemID, "APPROVED");
                     if (success) {
                         successCount++;
                     } else {
-                        failedOrders.add(orderID);
+                        failedOrders.add(orderID + "-" + itemID);
                     }
                 } catch (IOException e) {
-                    failedOrders.add(orderID);
+                    failedOrders.add(orderID + "-" + itemID);
                 }
             }
             
@@ -390,14 +394,16 @@ public class FM_ViewPO extends javax.swing.JFrame {
             return;
         }
         
-        // Get selected order IDs
+        // Get selected order IDs and item IDs
         List<String> orderIDs = new ArrayList<>();
+        List<String> itemIDs = new ArrayList<>();
         for (int row : selectedRows) {
-            orderIDs.add((String) tableModel.getValueAt(row, 0));
+            orderIDs.add((String) tableModel.getValueAt(row, 0)); // Order ID
+            itemIDs.add((String) tableModel.getValueAt(row, 1));  // Item ID
         }
         
         String message = selectedRows.length == 1 ? 
-            "Are you sure you want to reject Purchase Order: " + orderIDs.get(0) + "?" :
+            "Are you sure you want to reject Purchase Order: " + orderIDs.get(0) + " (Item: " + itemIDs.get(0) + ")?" :
             "Are you sure you want to reject " + selectedRows.length + " Purchase Orders?\n" +
             "Order IDs: " + String.join(", ", orderIDs);
         
@@ -410,16 +416,20 @@ public class FM_ViewPO extends javax.swing.JFrame {
             int successCount = 0;
             List<String> failedOrders = new ArrayList<>();
             
-            for (String orderID : orderIDs) {
+            // Loop through indices instead of just orderIDs
+            for (int i = 0; i < orderIDs.size(); i++) {
+                String orderID = orderIDs.get(i);
+                String itemID = itemIDs.get(i);  // Get corresponding item ID
                 try {
-                    boolean success = financeManager.updatePOStatus(orderID, "REJECTED");
+                    // Pass all 3 required parameters: orderID, itemID, status
+                    boolean success = financeManager.updatePOStatus(orderID, itemID, "REJECTED");
                     if (success) {
                         successCount++;
                     } else {
-                        failedOrders.add(orderID);
+                        failedOrders.add(orderID + "-" + itemID);  // Show both IDs in error
                     }
                 } catch (IOException e) {
-                    failedOrders.add(orderID);
+                    failedOrders.add(orderID + "-" + itemID);  // Show both IDs in error
                 }
             }
             
@@ -448,6 +458,7 @@ public class FM_ViewPO extends javax.swing.JFrame {
             loadPendingPOs(); // Refresh the table
         }
     }
+    
     
     /**
      * Go back to the main Finance Manager window

@@ -355,16 +355,20 @@ public class FM_VerifyInventory extends javax.swing.JFrame {
             return;
         }
         
-        // Get selected order IDs
-        List<String> orderIDs = new ArrayList<>();
+        // Get selected order ID and item ID pairs
+        List<String> orderItemPairs = new ArrayList<>();
+        List<String> displayInfo = new ArrayList<>();
         for (int row : selectedRows) {
-            orderIDs.add((String) tableModel.getValueAt(row, 0));
+            String orderID = (String) tableModel.getValueAt(row, 0);
+            String itemID = (String) tableModel.getValueAt(row, 1);
+            orderItemPairs.add(orderID + "|" + itemID); // Use delimiter to separate
+            displayInfo.add(orderID + " - " + itemID);
         }
         
         String message = selectedRows.length == 1 ? 
-            "Are you sure you want to verify Order: " + orderIDs.get(0) + "?" :
-            "Are you sure you want to verify " + selectedRows.length + " orders?\n" +
-            "Order IDs: " + String.join(", ", orderIDs);
+            "Are you sure you want to verify Order: " + displayInfo.get(0) + "?" :
+            "Are you sure you want to verify " + selectedRows.length + " order items?\n" +
+            "Order-Item pairs: " + String.join(", ", displayInfo);
         
         int confirm = JOptionPane.showConfirmDialog(this, 
             message, 
@@ -375,37 +379,41 @@ public class FM_VerifyInventory extends javax.swing.JFrame {
             int successCount = 0;
             List<String> failedOrders = new ArrayList<>();
             
-            for (String orderID : orderIDs) {
+            for (int i = 0; i < orderItemPairs.size(); i++) {
+                String[] parts = orderItemPairs.get(i).split("\\|");
+                String orderID = parts[0];
+                String itemID = parts[1];
+                
                 try {
-                    boolean success = updateOrderStatus(orderID, "VERIFIED");
+                    boolean success = updateOrderItemStatus(orderID, itemID, "VERIFIED");
                     if (success) {
                         successCount++;
                     } else {
-                        failedOrders.add(orderID);
+                        failedOrders.add(displayInfo.get(i));
                     }
                 } catch (IOException e) {
-                    failedOrders.add(orderID);
+                    failedOrders.add(displayInfo.get(i));
                 }
             }
             
             // Show results
-            if (successCount == orderIDs.size()) {
+            if (successCount == orderItemPairs.size()) {
                 String successMessage = successCount == 1 ? 
-                    "Order has been verified successfully!" :
-                    successCount + " orders have been verified successfully!";
+                    "Order item has been verified successfully!" :
+                    successCount + " order items have been verified successfully!";
                 JOptionPane.showMessageDialog(this, 
                     successMessage, 
                     "Success", 
                     JOptionPane.INFORMATION_MESSAGE);
             } else if (successCount > 0) {
                 JOptionPane.showMessageDialog(this, 
-                    successCount + " orders verified successfully.\n" +
+                    successCount + " order items verified successfully.\n" +
                     "Failed to verify: " + String.join(", ", failedOrders), 
                     "Partial Success", 
                     JOptionPane.WARNING_MESSAGE);
             } else {
                 JOptionPane.showMessageDialog(this, 
-                    "Failed to verify any orders: " + String.join(", ", failedOrders), 
+                    "Failed to verify any order items: " + String.join(", ", failedOrders), 
                     "Error", 
                     JOptionPane.ERROR_MESSAGE);
             }
@@ -415,8 +423,41 @@ public class FM_VerifyInventory extends javax.swing.JFrame {
     }
     
     /**
-     * Update order status in the file
+     * Update order status in the file using both Order ID and Item ID as identifiers
      */
+    private boolean updateOrderItemStatus(String orderID, String itemID, String newStatus) throws IOException {
+        List<String> lines = Files.readAllLines(Paths.get(PURCHASE_ORDER_FILE));
+        boolean found = false;
+        
+        // Process lines with matching Order ID AND Item ID
+        for (int i = 0; i < lines.size(); i++) {
+            String line = lines.get(i);
+            if (line.trim().isEmpty()) continue;
+            
+            String[] parts = line.split(",");
+            if (parts.length >= 9 && 
+                parts[0].trim().equals(orderID) && 
+                parts[1].trim().equals(itemID)) {
+                parts[6] = newStatus; // Update status
+                lines.set(i, String.join(",", parts));
+                found = true;
+                // Only update the specific Order ID + Item ID combination
+                break; // Exit after finding the specific match
+            }
+        }
+        
+        if (found) {
+            Files.write(Paths.get(PURCHASE_ORDER_FILE), lines);
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Update order status in the file (deprecated - kept for backward compatibility)
+     * Use updateOrderItemStatus instead
+     */
+    @Deprecated
     private boolean updateOrderStatus(String orderID, String newStatus) throws IOException {
         List<String> lines = Files.readAllLines(Paths.get(PURCHASE_ORDER_FILE));
         boolean found = false;

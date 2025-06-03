@@ -117,3 +117,12 @@
 2025-06-02 15:27:29,celine,Purchase Manager,PO Item Deleted by Purchase Manager,PO:PO0001,Item:IT0002
 2025-06-02 17:06:24,zhixian,Finance Manager,PO Status Update by Finance Manager,PO ID: PO0010, New Status: REJECTED
 2025-06-02 17:06:28,zhixian,Finance Manager,PO Status Update by Finance Manager,PO ID: PO0011, New Status: APPROVED
+2025-06-03 19:46:41,zhixian,Finance Manager,PO Status Update by Finance Manager,PO ID: PO0009, New Status: REJECTED
+2025-06-03 20:06:23,zhixian,Finance Manager,PO Status Update by Finance Manager,PO ID: PO0009, Item ID: IT0005, New Status: APPROVED
+2025-06-03 20:06:26,zhixian,Finance Manager,PO Status Update by Finance Manager,PO ID: PO0009, Item ID: IT0009, New Status: REJECTED
+2025-06-03 20:15:34,zhixian,Finance Manager,PO Status Update by Finance Manager,PO ID: PO0009, Item ID: IT0005, New Status: REJECTED
+2025-06-03 20:15:49,zhixian,Finance Manager,PO Status Update by Finance Manager,PO ID: PO0009, Item ID: IT0009, New Status: APPROVED
+2025-06-03 20:15:49,zhixian,Finance Manager,PO Status Update by Finance Manager,PO ID: PO0009, Item ID: IT0012, New Status: APPROVED
+2025-06-03 20:33:03,zhixian,Finance Manager,PO Status Update by Finance Manager,PO ID: PO0009, Item ID: IT0005, New Status: REJECTED
+2025-06-03 20:33:16,zhixian,Finance Manager,PO Status Update by Finance Manager,PO ID: PO0009, Item ID: IT0009, New Status: APPROVED
+2025-06-03 20:33:16,zhixian,Finance Manager,PO Status Update by Finance Manager,PO ID: PO0009, Item ID: IT0012, New Status: APPROVED
